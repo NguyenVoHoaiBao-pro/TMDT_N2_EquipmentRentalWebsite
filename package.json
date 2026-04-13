@@ -1,0 +1,31 @@
+{
+  "name": "tmdt_n2_equipmentrentalwebsite",
+  "version": "1.0.0",
+  "description": "E-commerce Equipment Rental Website - Monorepo",
+  "private": true,
+  "main": "index.js",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:ci": "npm run test:ci --workspaces --if-present",
+    "install:all": "npm install && npm install --workspaces",
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "lerna": "^8.1.2"
+  },
+  "keywords": [
+    "monorepo",
+    "ecommerce",
+    "equipment-rental"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "type": "commonjs"
+}

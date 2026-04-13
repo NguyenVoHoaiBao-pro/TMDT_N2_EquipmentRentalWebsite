@@ -1,0 +1,16 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "description": "Spring Boot Backend API - Equipment Rental",
+  "private": true,
+  "scripts": {
+    "dev": "./mvnw spring-boot:run",
+    "build": "./mvnw clean package -DskipTests",
+    "build:docker": "./mvnw clean package -DskipTests && docker build -t backend:latest .",
+    "test": "./mvnw clean test",
+    "test:ci": "./mvnw clean test -B",
+    "install": "./mvnw clean install",
+    "clean": "./mvnw clean"
+  },
+  "author": "Your Name"
+}

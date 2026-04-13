@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "private": true,
+  "npmClient": "npm",
+  "useWorkspaces": true,
+  "command": {
+    "publish": {
+      "ignoreChanges": ["*.md", ".gitignore"]
+    },
+    "bootstrap": {
+      "ignore": "component-*",
+      "npmClientArgs": ["--no-package-lock"]
+    }
+  },
+  "packages": ["apps/*"]
+}
