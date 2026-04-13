@@ -2,7 +2,6 @@
   "version": "1.0.0",
   "private": true,
   "npmClient": "npm",
-  "useWorkspaces": true,
   "command": {
     "publish": {
       "ignoreChanges": ["*.md", ".gitignore"]
@@ -11,5 +10,6 @@
       "ignore": "component-*"
     }
   },
-  "packages": ["apps/*"]
+  "packages": ["apps/*"],
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }

@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ZodSchema } from 'zod';
 import { z } from 'zod';
 
 // Define validation schema with Zod
@@ -9,9 +10,12 @@ const loginSchema = z.object({
     .string()
     .min(8, 'Password must be at least 8 characters')
     .min(1, 'Password is required'),
-});
+}) as unknown as ZodSchema;
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormData = {
+  email: string;
+  password: string;
+};
 
 export function LoginForm() {
   const {
@@ -19,7 +23,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema as unknown as any),
+    resolver: zodResolver(loginSchema as any),
   });
 
   const onSubmit = async (data: LoginFormData) => {

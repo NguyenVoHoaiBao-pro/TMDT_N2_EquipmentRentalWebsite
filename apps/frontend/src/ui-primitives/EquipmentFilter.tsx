@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { ZodSchema } from 'zod';
 import { z } from 'zod';
 
 // Define validation schema with Zod
@@ -8,9 +9,14 @@ const equipmentSearchSchema = z.object({
   category: z.string().optional(),
   priceMin: z.coerce.number().min(0, 'Minimum price cannot be negative').optional(),
   priceMax: z.coerce.number().min(0, 'Maximum price cannot be negative').optional(),
-});
+}) as unknown as ZodSchema;
 
-type EquipmentFilterData = z.infer<typeof equipmentSearchSchema>;
+type EquipmentFilterData = {
+  keyword?: string;
+  category?: string;
+  priceMin?: number;
+  priceMax?: number;
+};
 
 export function EquipmentFilter() {
   const {
@@ -18,7 +24,7 @@ export function EquipmentFilter() {
     handleSubmit,
     formState: { errors },
   } = useForm<EquipmentFilterData>({
-    resolver: zodResolver(equipmentSearchSchema as unknown as any),
+    resolver: zodResolver(equipmentSearchSchema as any),
     defaultValues: {
       keyword: '',
       category: 'all',
