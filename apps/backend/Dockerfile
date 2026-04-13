@@ -3,14 +3,14 @@ FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /build
 
-# Copy pom.xml
-COPY pom.xml .
+# Copy pom.xml from app/backend
+COPY apps/backend/pom.xml .
 
 # Download dependencies
 RUN mvn dependency:go-offline
 
 # Copy source code
-COPY src ./src
+COPY apps/backend/src ./src
 
 # Build application
 RUN mvn clean package -DskipTests
