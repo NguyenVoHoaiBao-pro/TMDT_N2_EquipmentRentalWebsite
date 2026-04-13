@@ -24,6 +24,7 @@ export function EquipmentFilter() {
     handleSubmit,
     formState: { errors },
   } = useForm<EquipmentFilterData>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(equipmentSearchSchema as any),
     defaultValues: {
       keyword: '',
