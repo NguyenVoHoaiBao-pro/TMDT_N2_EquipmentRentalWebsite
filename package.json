@@ -5,8 +5,7 @@
   "private": true,
   "main": "index.js",
   "workspaces": [
-    "apps/frontend",
-    "apps/backend"
+    "apps/frontend"
   ],
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
