@@ -43,7 +43,7 @@ services:
   # Backend API
   backend:
     build:
-      context: ./apps/backend/demo
+      context: ./apps/backend
       dockerfile: Dockerfile
     container_name: equipment-rental-backend
     restart: unless-stopped

@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./apps/backend/demo
+        working-directory: ./apps/backend/
 
     steps:
       - name: Checkout Code
@@ -37,7 +37,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: backend-test-results
-          path: apps/backend/demo/target/surefire-reports/
+          path: apps/backend/target/surefire-reports/
 
   # Frontend Build & Lint
   frontend:
