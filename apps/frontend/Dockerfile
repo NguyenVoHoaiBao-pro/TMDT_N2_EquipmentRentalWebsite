@@ -25,7 +25,7 @@ WORKDIR /app
 RUN npm install -g serve
 
 # Copy built app from builder
-COPY --from=builder /build/dist ./dist
+COPY --from=builder /build/apps/frontend/dist ./dist
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \
