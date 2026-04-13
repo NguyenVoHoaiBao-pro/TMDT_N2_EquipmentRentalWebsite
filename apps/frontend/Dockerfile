@@ -3,13 +3,18 @@ FROM node:20-alpine AS builder
 
 WORKDIR /build
 
+# Copy monorepo structure
 COPY package.json package-lock.json ./
+COPY apps/frontend/package.json ./apps/frontend/
 
+# Install all workspace dependencies
 RUN npm ci
 
-COPY . .
+# Copy frontend source
+COPY apps/frontend/ ./apps/frontend/
 
-RUN npm run build
+# Build frontend workspace
+RUN npm run build --workspace=apps/frontend
 
 # Production stage
 FROM node:20-alpine
