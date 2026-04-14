@@ -43,8 +43,8 @@ services:
   # Backend API
   backend:
     build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
     container_name: equipment-rental-backend
     restart: unless-stopped
     environment:
@@ -75,8 +75,8 @@ services:
   # Frontend
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile
     container_name: equipment-rental-frontend
     restart: unless-stopped
     ports:

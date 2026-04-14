@@ -41,13 +41,13 @@ docker-logs:
 	docker-compose logs -f
 
 backend-dev:
-	cd apps/backend && npm run dev
+	cd apps/backend && ./mvnw spring-boot:run
 
 backend-build:
-	cd apps/backend && npm run build
+	cd apps/backend && ./mvnw clean package
 
 backend-test:
-	cd apps/backend && npm run test:ci
+	cd apps/backend && ./mvnw test
 
 frontend-dev:
 	cd apps/frontend && npm run dev
