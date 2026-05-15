@@ -27,11 +27,11 @@ public class CustomUserDetails implements UserDetails {
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.email = user.getEmail();
-        this.role = user.getRole().name();
+        this.role = user.getRoleType().name();
         this.enabled = user.getEnabled();
 
         List<GrantedAuthority> authList = new ArrayList<>();
-        authList.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        authList.add(new SimpleGrantedAuthority("ROLE_" + user.getRoleType().name()));
         this.authorities = authList;
     }
 

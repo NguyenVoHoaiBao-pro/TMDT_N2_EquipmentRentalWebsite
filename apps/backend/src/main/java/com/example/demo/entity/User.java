@@ -1,18 +1,18 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.example.demo.enumValues.RoleType;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.io.Serial;
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -21,24 +21,38 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class User extends BaseEntity implements Serializable {
 
-    @Column(nullable = false, unique = true)
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    @Column(name = "user_name", nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "full_name", nullable = true)
+    private String fullName;
+
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
+    @Column(name = "phone_number", nullable = true, length = 20)
+    private String phoneNumber;
+
+    @Column(name = "id_card_number", nullable = true, length = 16)
+    private String idCardNumber;
+
+    @Column(name = "trust_score", nullable = true, precision = 3, scale = 2)
+    private BigDecimal trustScore;
+
+    @ManyToMany(fetch = FetchType.EAGER) // FetchType.EAGER to eagerly load roles
+    @JoinTable(name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
-    private Boolean enabled;
+    private boolean enabled = false;
 }

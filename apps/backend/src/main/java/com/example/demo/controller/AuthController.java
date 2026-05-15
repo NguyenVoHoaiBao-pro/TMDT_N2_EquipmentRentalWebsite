@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.dto.JwtResponse;
 import com.example.demo.dto.LoginRequest;
-import com.example.demo.entity.Role;
+import com.example.demo.enumValues.RoleType;
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtTokenProvider;
@@ -54,7 +54,7 @@ public class AuthController {
                             .type("Bearer")
                             .expiresIn(jwtTokenProvider.getExpirationTime())
                             .username(user.getUsername())
-                            .role(user.getRole().name())
+                            .role(user.getRoleType().name())
                             .build());
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -73,7 +73,7 @@ public class AuthController {
                 .username(registerRequest.getUsername())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .email(registerRequest.getUsername() + "@example.com")
-                .role(Role.USER)
+                .roleType(RoleType.USER)
                 .enabled(true)
                 .build();
 

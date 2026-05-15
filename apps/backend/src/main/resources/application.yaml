@@ -8,11 +8,21 @@ spring:
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
+
     show-sql: false
     properties:
       hibernate:
         '[format_sql]': true
+
+     # Defer database initialization until Spring Boot starts
+    defer-datasource-initialization: true
+
+  sql:
+    init:
+      mode: always # Run SQL scripts on application startup
+      schema-locations: classpath:database/schema.sql
+      data-locations: classpath:database/samples_data.sql
 
   # Database Configuration - MySQL (from .env)
   datasource:
