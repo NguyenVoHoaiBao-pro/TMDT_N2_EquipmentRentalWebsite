@@ -1,11 +1,14 @@
--- Delete all tables and recreate them
-DROP ALL OBJECTS;
+-- Turn off foreign key checks to avoid issues when dropping tables with dependencies
+SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
+
+-- Enable foreign key checks after dropping tables successfully
+SET FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE roles
 (

@@ -8,12 +8,15 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.repository.IUserRepository;
 import com.example.demo.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,9 @@ public class AuthService {
     private final AuthenticationManager manager;
     private final JwtTokenProvider tokenProvider;
     private final IUserRepository userRepository;
+
+    // Use this for dealing with redis, e.g., store refresh tokens, blacklisted tokens, etc.
+    private final StringRedisTemplate redisTemplate;
 
     public JwtResponse login(LoginRequest loginRequest) {
         try {
@@ -51,6 +57,31 @@ public class AuthService {
                 .build();
         } catch (AuthenticationException e) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+    }
+
+    public void logout(String authorizationHeader) {
+        // 1. Check and throw Exception if the token is invalid or expired
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // 2. Retrieve token from the header
+        String token = authorizationHeader.substring(7);
+
+        try {
+            Date expirationDate = tokenProvider.getExpirationDateFromToken(token);
+            long expiryTime = expirationDate.getTime();
+            long currentTime = System.currentTimeMillis();
+            long ttl = expiryTime - currentTime;
+
+            if (ttl > 0) {
+                // Store token to redis as a key, set expired ttl to the same as the token's remaining time to live (TTL)
+                redisTemplate.opsForValue().set("blacklisted:" + token, "true", ttl, TimeUnit.MILLISECONDS);
+            }
+
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.INVALID_KEY);
         }
     }
 }

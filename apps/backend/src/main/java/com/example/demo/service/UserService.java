@@ -52,4 +52,13 @@ public class UserService {
 
         return userMapper.mapToResponse(newUser);
     }
+
+    public boolean checkUsernameExists(String username) {
+        return userRepository.existsByUsername(username.trim());
+    }
+
+    public boolean checkEmailExists(String email) {
+        return userRepository.existsByEmail(email.trim());
+    }
+
 }

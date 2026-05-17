@@ -12,4 +12,14 @@ public abstract class BaseController {
             .build();
         return ResponseEntity.status(status).body(response);
     }
+
+    // This method is the extension of the previous one, allowing you to specify a custom message and code
+    protected <T> ResponseEntity<MyApiResponse<T>> createResponse(HttpStatus status, int code, String message, T data) {
+        MyApiResponse<T> response = MyApiResponse.<T>builder()
+            .code(code)
+            .message(message)
+            .result(data)
+            .build();
+        return ResponseEntity.status(status).body(response);
+    }
 }

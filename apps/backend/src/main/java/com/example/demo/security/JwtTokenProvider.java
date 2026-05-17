@@ -5,6 +5,8 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import com.example.demo.exception.AppException;
+import com.example.demo.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -57,13 +59,17 @@ public class JwtTokenProvider {
 
     /**
      * Generate JWT token from username
+     * We use this method for
+     * 1. Oauth2 feature
+     * 2. After token jwt expired in 1 day,
+     * user request, we use this method to generate a new access token for the user without needing to log in again
      */
     public String generateTokenFromUsername(String username, String role, String email) {
         Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
 
         return Jwts.builder()
             .subject(username)
-            .claim("role", role)
+            .claim("roles", role)
             .claim("email", email)
             .issuedAt(new Date())
             .expiration(expiryDate)
@@ -90,6 +96,7 @@ public class JwtTokenProvider {
 
     /**
      * Get role from JWT token
+     * After filter succeed in token verification, we use this method to get roles from token to reduce the weight of a database
      */
     public String getRoleFromToken(String token) {
         try {
@@ -98,7 +105,7 @@ public class JwtTokenProvider {
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("role", String.class);
+                .get("roles", String.class);
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Failed to get role from JWT token: {}", e.getMessage());
             return null;
@@ -134,5 +141,22 @@ public class JwtTokenProvider {
      */
     public Long getExpirationTime() {
         return jwtExpirationMs;
+    }
+
+    /**
+     * Get expiration date from JWT token
+     */
+    public Date getExpirationDateFromToken(String token) {
+        try {
+            return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getExpiration();
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Failed to get expiration date from JWT token: {}", e.getMessage());
+            throw new AppException(ErrorCode.INVALID_KEY);
+        }
     }
 }

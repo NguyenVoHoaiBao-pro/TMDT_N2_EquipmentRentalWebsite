@@ -151,6 +151,16 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Source: https://mvnrepository.com/artifact/com.github.codemonstur/embedded-redis -->
+    <!-- Used for testing Redis interactions without needing an actual Redis server -->
+    <dependency>
+      <groupId>com.github.codemonstur</groupId>
+      <artifactId>embedded-redis</artifactId>
+      <version>1.4.3</version>
+      <scope>test</scope>
+    </dependency>
+
+
     <!-- Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

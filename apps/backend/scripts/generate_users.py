@@ -65,7 +65,7 @@ def generate_users(num_users=1000):
         last_name = random.choice(LAST_NAMES)
         full_name = f"{last_name} {first_name}"
 
-        username = f"{first_name.lower()}.{last_name.lower()}{i}"
+        username = f"{first_name.lower()}_{last_name.lower()}{i}"  # username can only contain lowercase letters, numbers, and underscores
         email = generate_random_email(first_name, last_name, i)
         phone = generate_random_phone()
         id_card = generate_id_card()
