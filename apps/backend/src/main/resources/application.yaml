@@ -15,7 +15,7 @@ spring:
       hibernate:
         '[format_sql]': true
 
-     # Defer database initialization until Spring Boot starts
+      # Defer database initialization until Spring Boot starts
     defer-datasource-initialization: true
 
   sql:
@@ -26,7 +26,7 @@ spring:
 
   # Database Configuration - MySQL (from .env)
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:equipment_rental_db}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:equipment_rental_db}?createDatabaseIfNotExist=true
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -61,11 +61,11 @@ springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
-    path: /swagger-ui.html
+    path: /swagger-ui
     enabled: true
     operations-sorter: method
     tags-sorter: alpha
-    use-root-path: true
+    use-root-path: false
     display-request-duration: true
     disable-swagger-default-url: false
     doc-expansion: list

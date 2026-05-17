@@ -1,16 +1,20 @@
-DROP DATABASE IF EXISTS ecommerce_prod;
-CREATE DATABASE ecommerce_prod;
+-- Delete all tables and recreate them
+DROP ALL OBJECTS;
 
-USE ecommerce_prod;
-
+DROP TABLE IF EXISTS user_roles;
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
-CREATE TABLE roles(
+
+CREATE TABLE roles
+(
     id        INT AUTO_INCREMENT PRIMARY KEY,
     role_name VARCHAR(50) UNIQUE NOT NULL
 );
 
-DROP TABLE IF EXISTS users;
-CREATE TABLE users(
+CREATE TABLE users
+(
     id             INT AUTO_INCREMENT PRIMARY KEY,
     user_name      VARCHAR(255) NOT NULL UNIQUE,
     password       VARCHAR(255) NOT NULL,
@@ -22,8 +26,8 @@ CREATE TABLE users(
     enabled        BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
-DROP TABLE IF EXISTS user_roles;
-CREATE TABLE user_roles(
+CREATE TABLE user_roles
+(
     user_id INT NOT NULL,
     role_id INT NOT NULL,
     PRIMARY KEY (user_id, role_id),
@@ -31,20 +35,20 @@ CREATE TABLE user_roles(
     FOREIGN KEY (role_id) REFERENCES roles (id)
 );
 
-DROP TABLE IF EXISTS products;
-CREATE TABLE products(
+CREATE TABLE products
+(
     id            INT AUTO_INCREMENT PRIMARY KEY,
     owner_id      INT,
     name          VARCHAR(255)   NOT NULL,
     description   VARCHAR(255),
     price_per_day DECIMAL(10, 2) NOT NULL,
-    status        ENUM("AVAILABLE", "RENTED", "MAINTENANCE") DEFAULT "AVAILABLE",
+    status        VARCHAR(50) DEFAULT 'AVAILABLE',
     image_url     VARCHAR(255),
     FOREIGN KEY (owner_id) REFERENCES users (id)
 );
 
-DROP TABLE IF EXISTS orders;
-CREATE TABLE orders(
+CREATE TABLE orders
+(
     id             INT AUTO_INCREMENT PRIMARY KEY,
     product_id     INT,
     renter_id      INT,

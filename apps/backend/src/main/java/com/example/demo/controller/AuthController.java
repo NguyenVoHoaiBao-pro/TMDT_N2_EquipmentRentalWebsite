@@ -1,85 +1,58 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.MyApiResponse;
+import com.example.demo.dto.auth.RegisterRequest;
+import com.example.demo.dto.user.UserResponse;
+import com.example.demo.service.AuthService;
+import com.example.demo.service.UserService;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.dto.JwtResponse;
-import com.example.demo.dto.LoginRequest;
-import com.example.demo.enumValues.RoleType;
-import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.security.JwtTokenProvider;
+import com.example.demo.dto.auth.JwtResponse;
+import com.example.demo.dto.auth.LoginRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Authentication endpoints")
-public class AuthController {
+public class AuthController extends BaseController {
 
-    private final AuthenticationManager authenticationManager;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/login")
     @Operation(summary = "Login user", description = "Authenticate user and get JWT token")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest) {
-        try {
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsername(),
-                            loginRequest.getPassword()));
-
-            String token = jwtTokenProvider.generateToken(authentication);
-
-            User user = userRepository.findByUsername(loginRequest.getUsername()).orElseThrow();
-
-            return ResponseEntity.ok(
-                    JwtResponse.builder()
-                            .token(token)
-                            .type("Bearer")
-                            .expiresIn(jwtTokenProvider.getExpirationTime())
-                            .username(user.getUsername())
-                            .role(user.getRoleType().name())
-                            .build());
-        } catch (AuthenticationException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Invalid username or password");
-        }
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login successful"),
+        @ApiResponse(responseCode = "401", description = "Invalid credentials"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    public ResponseEntity<MyApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
+        return createResponse(HttpStatus.OK, authService.login(loginRequest));
     }
 
     @PostMapping("/register")
     @Operation(summary = "Register new user", description = "Create a new user account")
-    public ResponseEntity<?> register(@Valid @RequestBody LoginRequest registerRequest) {
-        if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already taken");
-        }
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid user data"),
+        @ApiResponse(responseCode = "409", description = "User already exists")
+    })
 
-        User user = User.builder()
-                .username(registerRequest.getUsername())
-                .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .email(registerRequest.getUsername() + "@example.com")
-                .roleType(RoleType.USER)
-                .enabled(true)
-                .build();
+    public ResponseEntity<MyApiResponse<UserResponse>> register(@Valid @RequestBody RegisterRequest request) {
 
-        userRepository.save(user);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("User registered successfully");
+        return createResponse(HttpStatus.CREATED, userService.registerUser(request));
     }
 }
