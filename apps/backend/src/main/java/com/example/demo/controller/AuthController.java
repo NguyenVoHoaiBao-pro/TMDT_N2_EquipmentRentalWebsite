@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 
 @RestController
-@RequestMapping("auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication", description = "Authentication endpoints")
 public class AuthController extends BaseController {

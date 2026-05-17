@@ -4,7 +4,6 @@ import lombok.Getter;
 
 @Getter
 public enum RoleType {
-    GUEST("Guest", "User with the role of guest, who can view products and make orders"),
     OWNER("Owner", "User with the role of owner, who can list products and manage orders"),
     RENTER("Renter", "User with the role of renter, who can rent products"),
     ADMIN("Admin", "User with the role of admin, who has full access to the system");
