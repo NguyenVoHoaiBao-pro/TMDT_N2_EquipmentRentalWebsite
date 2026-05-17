@@ -22,7 +22,11 @@ spring:
     init:
       mode: always # Run SQL scripts on application startup
       schema-locations: classpath:database/schema.sql
-      data-locations: classpath:database/samples_data.sql
+      data-locations:
+        - classpath:database/seed_roles.sql
+        - classpath:database/seed_users.sql
+        - classpath:database/seed_products.sql
+        - classpath:database/seed_orders.sql
 
   # Database Configuration - MySQL (from .env)
   datasource:
