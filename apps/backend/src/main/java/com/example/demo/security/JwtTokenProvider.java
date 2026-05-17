@@ -7,6 +7,7 @@ import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -39,14 +40,19 @@ public class JwtTokenProvider {
 
         Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
 
+        assert userPrincipal != null;
         return Jwts.builder()
-                .subject(userPrincipal.getUsername())
-                .claim("role", userPrincipal.getAuthority())
-                .claim("email", userPrincipal.getEmail())
-                .issuedAt(new Date())
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
-                .compact();
+            .subject(userPrincipal.getUsername())
+            .claim("roles", userPrincipal.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList())
+
+            .claim("email", userPrincipal.getEmail())
+            .issuedAt(new Date())
+            .expiration(expiryDate)
+            .signWith(getSigningKey())
+            .compact();
     }
 
     /**
@@ -56,13 +62,13 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
 
         return Jwts.builder()
-                .subject(username)
-                .claim("role", role)
-                .claim("email", email)
-                .issuedAt(new Date())
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
-                .compact();
+            .subject(username)
+            .claim("role", role)
+            .claim("email", email)
+            .issuedAt(new Date())
+            .expiration(expiryDate)
+            .signWith(getSigningKey())
+            .compact();
     }
 
     /**
@@ -71,11 +77,11 @@ public class JwtTokenProvider {
     public String getUsernameFromToken(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject();
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject();
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Failed to get username from JWT token: {}", e.getMessage());
             return null;
@@ -88,11 +94,11 @@ public class JwtTokenProvider {
     public String getRoleFromToken(String token) {
         try {
             return Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload()
-                    .get("role", String.class);
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("role", String.class);
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Failed to get role from JWT token: {}", e.getMessage());
             return null;
@@ -105,9 +111,9 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token);
             return true;
         } catch (ExpiredJwtException e) {
             log.error("Expired JWT token: {}", e.getMessage());

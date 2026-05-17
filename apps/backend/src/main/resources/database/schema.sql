@@ -1,7 +1,7 @@
-DROP DATABASE IF EXISTS ecommerce_prod;
-CREATE DATABASE ecommerce_prod;
+DROP DATABASE IF EXISTS equipment_rental_db;
+CREATE DATABASE equipment_rental_db;
 
-USE ecommerce_prod;
+USE equipment_rental_db;
 
 DROP TABLE IF EXISTS roles;
 CREATE TABLE roles(

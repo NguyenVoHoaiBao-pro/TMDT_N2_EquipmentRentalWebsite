@@ -17,7 +17,7 @@ public abstract class BaseEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Long id;
+    protected Integer id; // Long is quite redundant now
 
     protected LocalDateTime createdAt;
 

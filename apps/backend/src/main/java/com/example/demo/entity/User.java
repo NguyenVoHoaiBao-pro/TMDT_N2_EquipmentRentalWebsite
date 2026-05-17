@@ -1,6 +1,5 @@
 package com.example.demo.entity;
 
-import com.example.demo.enumValues.RoleType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,8 +50,10 @@ public class User extends BaseEntity implements Serializable {
     @JoinTable(name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @Builder.Default // Ensure roles are initialized with an empty set but not null
     private Set<Role> roles = new HashSet<>();
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean enabled = false;
 }

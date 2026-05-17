@@ -1,12 +1,13 @@
 package com.example.demo.security;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.IUserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -14,18 +15,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserRepository userRepository;
+    private final IUserRepository IUserRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
+        User user = IUserRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
         return new CustomUserDetails(user);
     }
 
     public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
+        User user = IUserRepository.findById(id)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
         return new CustomUserDetails(user);
     }
 }
