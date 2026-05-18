@@ -1,22 +1,29 @@
-{"properties": [
-  {
-    "name": "app.jwt-secret",
-    "type": "java.lang.String",
-    "description": "A description for 'app.jwt-secret'"
-  },
-  {
-    "name": "app.jwtExpirationMs",
-    "type": "java.lang.String",
-    "description": "A description for 'app.jwtExpirationMs'"
-  },
-  {
-    "name": "spring.h2.console.enabled",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.h2.console.enabled'"
-  },
-  {
-    "name": "spring.h2.console.path",
-    "type": "java.lang.String",
-    "description": "A description for 'spring.h2.console.path'"
-  }
-]}
+{
+  "properties": [
+    {
+      "name": "app.jwt.secretKey",
+      "type": "java.lang.String",
+      "description": "A description for 'app.jwt-secret'"
+    },
+    {
+      "name": "app.jwt.accessTokenExpirationMs",
+      "type": "java.lang.String",
+      "description": "A description for 'app.jwt.accessTokenExpirationMs'"
+    },
+    {
+      "name": "app.jwt.refreshTokenExpirationMs",
+      "type": "java.lang.String",
+      "description": "A description for 'app.jwt.refreshTokenExpirationMs'"
+    },
+    {
+      "name": "spring.h2.console.enabled",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.h2.console.enabled'"
+    },
+    {
+      "name": "spring.h2.console.path",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.h2.console.path'"
+    }
+  ]
+}

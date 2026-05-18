@@ -50,8 +50,11 @@ spring:
 
 # JWT Configuration (from .env)
 app:
-  jwtSecret: ${JWT_SECRET:MySecretKeyThatIsAtLeast32CharactersLongForHS256}
-  jwtExpirationMs: ${JWT_EXPIRATION_MS:86400000}
+  jwt:
+    # Secret key for signing JWT tokens
+    secretKey: ${JWT_SECRET:MySecretKeyThatIsAtLeast32CharactersLongForHS256}
+    accessTokenExpirationMs: ${JWT_ACCESS_EXPIRATION_MS:900000} # 15 minutes
+    refreshTokenExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:604800000} # 7 days
 
 # Logging Configuration (from .env)
 logging:

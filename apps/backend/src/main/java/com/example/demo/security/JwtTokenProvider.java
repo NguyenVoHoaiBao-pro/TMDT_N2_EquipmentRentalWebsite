@@ -8,7 +8,10 @@ import javax.crypto.SecretKey;
 
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
@@ -21,19 +24,23 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
+// Add prefix so that spring can read the properties config
+@ConfigurationProperties(prefix = "app.jwt")
+@Getter
+@Setter
 @Component
 @Slf4j
 public class JwtTokenProvider {
 
-    @Value("${app.jwtSecret:MySecretKeyThatIsAtLeast32CharactersLongForHS256}")
-    private String jwtSecret;
+    private String secretKey;
 
-    @Value("${app.jwtExpirationMs:86400000}") // Default: 24 hours
-    private long jwtExpirationMs;
+    private long accessTokenExpirationMs;
+
+    private long refreshTokenExpirationMs;
 
     // Use HMAC-SHA algorithm to sign for the JWT token
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -42,7 +49,7 @@ public class JwtTokenProvider {
     public String generateToken(Authentication authentication) {
         CustomUserDetails userPrincipal = (CustomUserDetails) authentication.getPrincipal();
 
-        Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
+        Date expiryDate = new Date(System.currentTimeMillis() + accessTokenExpirationMs);
 
         assert userPrincipal != null; // Ensure userPrincipal is not null
         return Jwts.builder()
@@ -68,7 +75,7 @@ public class JwtTokenProvider {
      * needing to log in again
      */
     public String generateTokenFromUsername(String username, String role, String email) {
-        Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
+        Date expiryDate = new Date(System.currentTimeMillis() + accessTokenExpirationMs);
 
         return Jwts.builder()
             .subject(username)
@@ -144,7 +151,7 @@ public class JwtTokenProvider {
      * Get token expiration time
      */
     public Long getExpirationTime() {
-        return jwtExpirationMs;
+        return accessTokenExpirationMs;
     }
 
     /**
@@ -162,5 +169,9 @@ public class JwtTokenProvider {
             log.error("Failed to get expiration date from JWT token: {}", e.getMessage());
             throw new AppException(ErrorCode.INVALID_KEY);
         }
+    }
+
+    public Long getRefreshTokenExpirationTime() {
+        return refreshTokenExpirationMs;
     }
 }
