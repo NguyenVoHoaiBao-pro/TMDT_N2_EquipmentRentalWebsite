@@ -1,4 +1,4 @@
-package com.example.demo.dto.auth;
+package com.example.demo.dto.auth.request;
 
 import com.example.demo.constants.ValidationConstants;
 import jakarta.validation.constraints.Email;

@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.MyApiResponse;
-import com.example.demo.dto.auth.RegisterRequest;
+import com.example.demo.dto.auth.request.RegisterRequest;
+import com.example.demo.dto.auth.request.TokenRefreshRequest;
+import com.example.demo.dto.auth.response.TokenRefreshResponse;
 import com.example.demo.dto.user.UserResponse;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.UserService;
@@ -16,8 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.demo.dto.auth.JwtResponse;
-import com.example.demo.dto.auth.LoginRequest;
+import com.example.demo.dto.auth.response.JwtResponse;
+import com.example.demo.dto.auth.request.LoginRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,16 +64,32 @@ public class AuthController extends BaseController {
 
     @PostMapping("/logout")
     @Operation(summary = "Logout user", description = "Invalidate the current JWT token")
-    public ResponseEntity<MyApiResponse<String>> logout(@RequestHeader("Authorization") String headerAuthorization) {
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Logout successful"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+    })
+    public ResponseEntity<MyApiResponse<String>> logout(@RequestHeader("Authorization") String headerAuthorization,
+                                                        @RequestParam(required = false) String refreshToken) {
 
-        // 1. Execute / Delete blacklisted token from redis
-        authService.logout(headerAuthorization);
+        // 1. Execute / Delete blacklisted token and refreshToken(if exists) from redis
+        authService.logout(headerAuthorization, refreshToken);
 
         // 2. Translate a message successfully from the message source
         String localizedMessage = messageSource.getMessage("auth.logout.success", null, LocaleContextHolder.getLocale());
 
         // 3. New create response with customization
-        return createResponse(HttpStatus.OK, 1000, localizedMessage, "Token has been blacklisted successfully.");
+        return createResponse(HttpStatus.OK, 1000, localizedMessage, "Session has been cleared and tokens invalidated successfully.");
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh JWT token", description = "Get a new JWT token using a valid refresh token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
+        @ApiResponse(responseCode = "401", description = "Invalid refresh token"),
+    })
+    public ResponseEntity<MyApiResponse<TokenRefreshResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+
+        return createResponse(HttpStatus.OK, authService.refreshToken(request));
     }
 
 
