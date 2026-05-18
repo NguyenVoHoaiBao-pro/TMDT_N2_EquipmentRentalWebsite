@@ -2,6 +2,7 @@ package com.example.demo.security;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 
@@ -30,6 +31,7 @@ public class JwtTokenProvider {
     @Value("${app.jwtExpirationMs:86400000}") // Default: 24 hours
     private long jwtExpirationMs;
 
+    // Use HMAC-SHA algorithm to sign for the JWT token
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
@@ -42,7 +44,7 @@ public class JwtTokenProvider {
 
         Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
 
-        assert userPrincipal != null;
+        assert userPrincipal != null; // Ensure userPrincipal is not null
         return Jwts.builder()
             .subject(userPrincipal.getUsername())
             .claim("roles", userPrincipal.getAuthorities()
@@ -62,7 +64,8 @@ public class JwtTokenProvider {
      * We use this method for
      * 1. Oauth2 feature
      * 2. After token jwt expired in 1 day,
-     * user request, we use this method to generate a new access token for the user without needing to log in again
+     * user request, we use this method to generate a new access token for the user without
+     * needing to log in again
      */
     public String generateTokenFromUsername(String username, String role, String email) {
         Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationMs);
@@ -98,17 +101,18 @@ public class JwtTokenProvider {
      * Get role from JWT token
      * After filter succeed in token verification, we use this method to get roles from token to reduce the weight of a database
      */
-    public String getRoleFromToken(String token) {
+    @SuppressWarnings("unchecked")
+    public List<String> getRolesFromToken(String token) {
         try {
             return Jwts.parser()
                 .verifyWith(getSigningKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload()
-                .get("roles", String.class);
+                .get("roles", List.class); // Synchronize to avoid ClassCastException
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Failed to get role from JWT token: {}", e.getMessage());
-            return null;
+            return List.of();
         }
     }
 
