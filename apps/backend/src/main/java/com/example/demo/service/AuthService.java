@@ -7,6 +7,9 @@ import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.repository.IUserRepository;
 import com.example.demo.security.JwtTokenProvider;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -71,7 +74,7 @@ public class AuthService {
 
         try {
             Date expirationDate = tokenProvider.getExpirationDateFromToken(token);
-            long expiryTime = expirationDate.getTime();
+            long expiryTime = expirationDate.getTime(); //
             long currentTime = System.currentTimeMillis();
             long ttl = expiryTime - currentTime;
 
@@ -80,8 +83,16 @@ public class AuthService {
                 redisTemplate.opsForValue().set("blacklisted:" + token, "true", ttl, TimeUnit.MILLISECONDS);
             }
 
-        } catch (Exception e) {
+            // the jjwt exception class:
+        } catch (ExpiredJwtException e) {
+            // Token expired or invalid
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        } catch (MalformedJwtException e) {
+            // Invalid token format cannot be parsed
             throw new AppException(ErrorCode.INVALID_KEY);
+        } catch (JwtException e) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+
     }
 }

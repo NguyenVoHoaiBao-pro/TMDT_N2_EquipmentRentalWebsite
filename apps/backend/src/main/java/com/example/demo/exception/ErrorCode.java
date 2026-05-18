@@ -14,7 +14,11 @@ public enum ErrorCode {
     USER_EXISTED(1002, "error.user.existed", HttpStatus.CONFLICT),
     USER_NOT_FOUND(1003, "error.user.not_found", HttpStatus.NOT_FOUND),
     PASSWORD_INCORRECT(1004, "error.password.incorrect", HttpStatus.BAD_REQUEST),
-    UNAUTHORIZED(1005, "error.unauthorized", HttpStatus.UNAUTHORIZED);
+    UNAUTHORIZED(1005, "error.unauthorized", HttpStatus.UNAUTHORIZED),
+    VALIDATION_ERROR(1006, "error.validation", HttpStatus.BAD_REQUEST),
+    FORBIDDEN(1007, "error.forbidden", HttpStatus.FORBIDDEN),
+    UNPROCESSABLE(1008, "error.unprocessable", HttpStatus.UNPROCESSABLE_CONTENT),
+    SERVICE_UNAVAILABLE(1009, "error.service_unavailable", HttpStatus.SERVICE_UNAVAILABLE);
 
     private final int code;            // Internal code
     private final String keyMessage;   // Key for multi-language
