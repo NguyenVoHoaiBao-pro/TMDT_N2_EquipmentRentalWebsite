@@ -41,3 +41,6 @@ build/
 
 # Allow .env.example to be committed to the repository
 !.env.example
+
+# Python virtual environment (Not allowed to be committed to the repository)
+**/.venv/

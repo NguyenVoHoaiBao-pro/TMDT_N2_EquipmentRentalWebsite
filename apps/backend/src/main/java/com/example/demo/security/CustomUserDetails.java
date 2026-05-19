@@ -1,9 +1,9 @@
 package com.example.demo.security;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import com.example.demo.entity.Role;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,11 +14,10 @@ import lombok.Getter;
 
 @Getter
 public class CustomUserDetails implements UserDetails {
-    private final Long id;
+    private final Integer id;
     private final String username;
     private final String password;
     private final String email;
-    private final String role;
     private final boolean enabled;
     private final Collection<? extends GrantedAuthority> authorities;
 
@@ -27,17 +26,13 @@ public class CustomUserDetails implements UserDetails {
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.email = user.getEmail();
-        this.role = user.getRole().name();
-        this.enabled = user.getEnabled();
+        this.enabled = user.isEnabled();
 
         List<GrantedAuthority> authList = new ArrayList<>();
-        authList.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        for (Role role : user.getRoles()) {
+            authList.add(new SimpleGrantedAuthority("ROLE_" + role.getRole().name()));
+        }
         this.authorities = authList;
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
     }
 
     @Override
@@ -70,7 +65,9 @@ public class CustomUserDetails implements UserDetails {
         return enabled;
     }
 
-    public String getAuthority() {
-        return "ROLE_" + role;
+    public Set<String> getRoles() {
+        return authorities.stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet());
     }
 }
