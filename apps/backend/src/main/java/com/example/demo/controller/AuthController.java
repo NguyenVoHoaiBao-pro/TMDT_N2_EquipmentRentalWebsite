@@ -1,8 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.MyApiResponse;
-import com.example.demo.dto.auth.request.RegisterRequest;
-import com.example.demo.dto.auth.request.TokenRefreshRequest;
+import com.example.demo.dto.auth.request.*;
 import com.example.demo.dto.auth.response.TokenRefreshResponse;
 import com.example.demo.dto.user.UserResponse;
 import com.example.demo.service.AuthService;
@@ -19,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.dto.auth.response.JwtResponse;
-import com.example.demo.dto.auth.request.LoginRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -90,6 +88,20 @@ public class AuthController extends BaseController {
     public ResponseEntity<MyApiResponse<TokenRefreshResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
 
         return createResponse(HttpStatus.OK, authService.refreshToken(request));
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot password", description = "Send a reset password link to user's email")
+    public ResponseEntity<MyApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordReq request) {
+        authService.forgotPassword(request);
+        return createResponse(HttpStatus.OK, 1000, "Email sent successfully", "A password reset link has been sent to your email if it exists in our system.");
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password", description = "Reset user password using the token from email")
+    public ResponseEntity<MyApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordReq request) {
+        authService.resetPassword(request);
+        return createResponse(HttpStatus.OK, 1000, "Password reset successfully", "Your password has been reset successfully. You can now log in with your new password.");
     }
 
 
