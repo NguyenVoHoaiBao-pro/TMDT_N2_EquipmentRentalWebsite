@@ -10,13 +10,13 @@ import java.util.List;
 @Service
 public class ProductService {
 
-    private final IProductRepository IProductRepository;
+    private final IProductRepository productRepository;
 
-    public ProductService(IProductRepository IProductRepository) {
-        this.IProductRepository = IProductRepository; // Dependency injection
+    public ProductService(IProductRepository productRepository) {
+        this.productRepository = productRepository; // Dependency injection
     }
 
     public List<Product> findAvailableProducts() {
-        return IProductRepository.findByStatus(ProductStatus.AVAILABLE);
+        return productRepository.findByStatus(ProductStatus.AVAILABLE);
     }
 }

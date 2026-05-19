@@ -1,8 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.MyApiResponse;
-import com.example.demo.dto.auth.request.RegisterRequest;
-import com.example.demo.dto.auth.request.TokenRefreshRequest;
+import com.example.demo.dto.auth.request.*;
 import com.example.demo.dto.auth.response.TokenRefreshResponse;
 import com.example.demo.dto.user.UserResponse;
 import com.example.demo.service.AuthService;
@@ -19,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.dto.auth.response.JwtResponse;
-import com.example.demo.dto.auth.request.LoginRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,6 +43,7 @@ public class AuthController extends BaseController {
         @ApiResponse(responseCode = "401", description = "Invalid credentials"),
         @ApiResponse(responseCode = "404", description = "User not found")
     })
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
         return createResponse(HttpStatus.OK, authService.login(loginRequest));
     }
@@ -56,7 +55,7 @@ public class AuthController extends BaseController {
         @ApiResponse(responseCode = "400", description = "Invalid user data"),
         @ApiResponse(responseCode = "409", description = "User already exists")
     })
-
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<UserResponse>> register(@Valid @RequestBody RegisterRequest request) {
 
         return createResponse(HttpStatus.CREATED, userService.registerUser(request));
@@ -68,6 +67,7 @@ public class AuthController extends BaseController {
         @ApiResponse(responseCode = "200", description = "Logout successful"),
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
     })
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<String>> logout(@RequestHeader("Authorization") String headerAuthorization,
                                                         @RequestParam(required = false) String refreshToken) {
 
@@ -81,20 +81,38 @@ public class AuthController extends BaseController {
         return createResponse(HttpStatus.OK, 1000, localizedMessage, "Session has been cleared and tokens invalidated successfully.");
     }
 
-    @PostMapping("/refresh")
+    @PostMapping("/refresh-token")
     @Operation(summary = "Refresh JWT token", description = "Get a new JWT token using a valid refresh token")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
         @ApiResponse(responseCode = "401", description = "Invalid refresh token"),
     })
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<TokenRefreshResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
 
         return createResponse(HttpStatus.OK, authService.refreshToken(request));
     }
 
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Forgot password", description = "Send a reset password link to user's email")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
+    public ResponseEntity<MyApiResponse<String>> forgotPassword(@Valid @RequestBody ForgotPasswordReq request) {
+        authService.forgotPassword(request);
+        return createResponse(HttpStatus.OK, 1000, "Email sent successfully", "A password reset link has been sent to your email if it exists in our system.");
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password", description = "Reset user password using the token from email")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
+    public ResponseEntity<MyApiResponse<String>> resetPassword(@Valid @RequestBody ResetPasswordReq request) {
+        authService.resetPassword(request);
+        return createResponse(HttpStatus.OK, 1000, "Password reset successfully", "Your password has been reset successfully. You can now log in with your new password.");
+    }
+
 
     @GetMapping("/check-email")
     @Operation(summary = "Check email existence", description = "Check if an email is already registered")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<Boolean>> checkEmail(
         @RequestParam @NotBlank @Email String email) {
         return createResponse(HttpStatus.OK, userService.checkEmailExists(email));
@@ -102,6 +120,7 @@ public class AuthController extends BaseController {
 
     @GetMapping("/check-username")
     @Operation(summary = "Check username existence", description = "Check if a username is already taken")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<Boolean>> checkUsername(@RequestParam @NotBlank String username) {
         return createResponse(HttpStatus.OK, userService.checkUsernameExists(username));
     }

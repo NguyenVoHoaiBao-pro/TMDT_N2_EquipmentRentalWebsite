@@ -35,6 +35,7 @@ public class RegisterRequest {
     private String fullName;
 
     @NotBlank(message = "{phone_number.not.blank}")
-    @Size(min = 10, max = 20, message = "{phone_number.size}")
+    @Size(min = 10, max = 10, message = "{phone_number.size}")
+    @Pattern(regexp = ValidationConstants.PHONE_NUMBER_PATTERN, message = "{phone_number.pattern}")
     private String phoneNumber;
 }

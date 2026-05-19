@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.auth.request.ForgotPasswordReq;
+import com.example.demo.dto.auth.request.ResetPasswordReq;
 import com.example.demo.dto.auth.request.TokenRefreshRequest;
 import com.example.demo.dto.auth.response.JwtResponse;
 import com.example.demo.dto.auth.request.LoginRequest;
@@ -22,6 +24,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -41,8 +44,11 @@ public class AuthService {
 
     private final ObjectMapper objectMapper;
 
+    private final EmailService emailService;
+
     // Use this for dealing with redis, e.g., store refresh tokens, blacklisted tokens, etc.
     private final StringRedisTemplate redisTemplate;
+    private final PasswordEncoder passwordEncoder;
 
     public JwtResponse login(LoginRequest loginRequest) {
         try {
@@ -180,7 +186,7 @@ public class AuthService {
             long ttl = tokenProvider.getRefreshTokenExpirationTime();
             redisTemplate.opsForValue().set("refresh_token:" + newRefreshToken, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
 
-            // 6. Phản hồi cặp mã mới về cho phía Client (Frontend)
+            // 6. Return the new Access Token and Refresh Token to the client
             return TokenRefreshResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
@@ -190,5 +196,58 @@ public class AuthService {
             log.error("Failed to parse JSON from Redis: {}", redisKey, e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
+    }
+
+    public void forgotPassword(ForgotPasswordReq request) {
+
+        // 1. Retrieve user's email from the request'
+        String email = request.getEmail();
+
+        // 2. Check if the user exists in the database and create a reset token
+        User user = userRepository.findByEmail(email).orElseThrow(
+            () -> new AppException(ErrorCode.USER_NOT_FOUND)
+        );
+
+        String resetToken = UUID.randomUUID().toString();
+
+        // 3. Store the reset token in Redis with an expiration time (e.g., 15 minutes)
+        String redisKey = "reset_token:" + resetToken;
+        redisTemplate.opsForValue().set(redisKey, user.getUsername(), 15, TimeUnit.MINUTES);
+
+        // Create a reset link (you should replace the URL with your frontend's reset password page)
+        String resetLink = "http://localhost:3000/reset-password?token=" + resetToken;
+
+        // Send the reset link to the user's email
+        emailService.sendResetPasswordEmail(email, resetLink);
+        log.info("Reset link be sent to user's email: {}", email);
+    }
+
+    public void resetPassword(ResetPasswordReq request) {
+        String token = request.getToken();
+
+        String redisKey = "reset_token:" + token;
+
+        // 1. Search token in redis and retrieve the associated email
+        String email = redisTemplate.opsForValue().get(redisKey);
+
+        if (email == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // 2. Extract the User that has that email from the database
+        User user = userRepository.findByEmail(email).orElseThrow(
+            () -> new AppException(ErrorCode.USER_NOT_FOUND)
+        );
+
+        // 3. Encrypt the user password and update the old password with the new one
+        String encryptPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(encryptPassword);
+
+        // 4. Save the updated user to the database
+        userRepository.save(user);
+
+        // 5. Delete the reset token from redis to avoid reuse
+        redisTemplate.delete(redisKey);
+        log.info("Password has been reset for user: {}", user.getEmail());
     }
 }
