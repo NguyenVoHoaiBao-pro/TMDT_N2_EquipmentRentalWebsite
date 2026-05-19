@@ -1,6 +1,7 @@
-package com.example.demo.dto.auth;
+package com.example.demo.dto.auth.request;
 
 import com.example.demo.constants.ValidationConstants;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -14,7 +15,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class RegisterRequest {
 
     @NotBlank(message = "{username.not.blank}")
@@ -35,6 +35,7 @@ public class RegisterRequest {
     private String fullName;
 
     @NotBlank(message = "{phone_number.not.blank}")
-    @Size(min = 10, max = 20, message = "{phone_number.size}")
+    @Size(min = 10, max = 10, message = "{phone_number.size}")
+    @Pattern(regexp = ValidationConstants.PHONE_NUMBER_PATTERN, message = "{phone_number.pattern}")
     private String phoneNumber;
 }

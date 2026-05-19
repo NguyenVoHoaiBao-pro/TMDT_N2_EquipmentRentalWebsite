@@ -1,4 +1,4 @@
-package com.example.demo.dto.auth;
+package com.example.demo.dto.auth.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +17,5 @@ public class JwtResponse {
     private Long expiresIn;
     private String username;
     private String role;
+    private String refreshToken;
 }

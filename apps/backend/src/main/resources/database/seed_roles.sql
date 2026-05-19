@@ -1,5 +1,5 @@
-INSERT INTO roles (id, role_name)
-VALUES (1, 'ADMIN'),
-       (2, 'OWNER'),
-       (3, 'RENTER');
+INSERT INTO roles (id, role_name, created_at, updated_at)
+VALUES (1, 'ADMIN', NOW(), NOW()),
+       (2, 'OWNER', NOW(), NOW()),
+       (3, 'RENTER', NOW(), NOW());
 

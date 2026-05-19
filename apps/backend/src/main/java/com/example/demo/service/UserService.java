@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.auth.RegisterRequest;
+import com.example.demo.dto.auth.request.RegisterRequest;
 import com.example.demo.dto.user.UserResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
@@ -52,4 +52,13 @@ public class UserService {
 
         return userMapper.mapToResponse(newUser);
     }
+
+    public boolean checkUsernameExists(String username) {
+        return userRepository.existsByUsername(username.trim());
+    }
+
+    public boolean checkEmailExists(String email) {
+        return userRepository.existsByEmail(email.trim());
+    }
+
 }
