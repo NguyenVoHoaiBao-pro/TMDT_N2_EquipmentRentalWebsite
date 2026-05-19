@@ -1,6 +1,7 @@
 package com.example.demo.dto.auth.request;
 
 import com.example.demo.constants.ValidationConstants;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -14,7 +15,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class RegisterRequest {
 
     @NotBlank(message = "{username.not.blank}")

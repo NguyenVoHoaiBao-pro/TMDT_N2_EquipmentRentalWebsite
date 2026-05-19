@@ -135,7 +135,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Build MyApiResponse with error code and localized message
         MyApiResponse<Object> errorApiResponse = MyApiResponse.builder()
-            .code(errorCode.getCode())
+            .appCode(errorCode.getCode())
             .message(localizedMessage) // Use the localized message
             .build();
 

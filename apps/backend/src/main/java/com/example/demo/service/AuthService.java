@@ -212,7 +212,7 @@ public class AuthService {
 
         // 3. Store the reset token in Redis with an expiration time (e.g., 15 minutes)
         String redisKey = "reset_token:" + resetToken;
-        redisTemplate.opsForValue().set(redisKey, user.getUsername(), 15, TimeUnit.MINUTES);
+        redisTemplate.opsForValue().set(redisKey, user.getEmail(), 15, TimeUnit.MINUTES);
 
         // Create a reset link (you should replace the URL with your frontend's reset password page)
         String resetLink = "http://localhost:3000/reset-password?token=" + resetToken;
