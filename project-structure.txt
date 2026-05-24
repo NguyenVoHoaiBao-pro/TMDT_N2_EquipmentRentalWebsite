@@ -135,7 +135,7 @@
 │       │   │   └── apps\frontend\src\assets\vite.svg
 │       │   ├── apps\frontend\src\components
 │       │   │   ├── apps\frontend\src\components\EquipmentFilter.tsx
-│       │   │   └── apps\frontend\src\components\LoginForm.tsx
+│       │   │   └── apps\frontend\src\components\LoginPage.tsx
 │       │   ├── apps\frontend\src\hooks
 │       │   │   └── apps\frontend\src\hooks\useEquipment.ts
 │       │   ├── apps\frontend\src\index.css
