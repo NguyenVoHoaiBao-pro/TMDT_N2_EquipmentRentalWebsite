@@ -146,7 +146,7 @@
 │       │   ├── apps\frontend\src\services
 │       │   │   └── apps\frontend\src\services\api.ts
 │       │   ├── apps\frontend\src\store
-│       │   │   └── apps\frontend\src\store\useStore.ts
+│       │   │   └── apps\frontend\src\store\useAuthStore.ts
 │       │   ├── apps\frontend\src\types
 │       │   └── apps\frontend\src\utils
 │       ├── apps\frontend\tailwind.config.js

@@ -1,6 +1,33 @@
 import { Link } from 'react-router-dom';
 
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useLoginMutation } from '@/features/auth/services/auth.service.ts';
+
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+const loginSchema = z.object({
+  username: z.string().min(1, { message: 'Username is required' }),
+  password: z.string().min(1, { message: 'Password is required' }).regex(passwordRegex, {
+    message:
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+  }),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
+
 export function LoginForm() {
+  const loginMutation = useLoginMutation();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center p-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
@@ -30,7 +57,10 @@ export function LoginForm() {
               <p className="text-gray-500 mt-2">Please login to your account</p>
             </div>
 
-            <form className="space-y-5">
+            <form
+              onSubmit={handleSubmit((data) => loginMutation.mutate(data))}
+              className="space-y-5"
+            >
               {/* Username */}
               <div>
                 <label
@@ -43,9 +73,13 @@ export function LoginForm() {
                 <input
                   type="text"
                   id="username"
+                  {...register('username')}
                   placeholder="Enter your username"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                 />
+                {errors.username && (
+                  <p className="text-red-500 text-left text-sm mt-1">{errors.username.message}</p>
+                )}
               </div>
 
               {/* Password */}
@@ -60,9 +94,13 @@ export function LoginForm() {
                 <input
                   type="password"
                   id="password"
+                  {...register('password')}
                   placeholder="••••••••••"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                 />
+                {errors.password && (
+                  <p className="text-red-500 text-left text-sm mt-1">{errors.password.message}</p>
+                )}
               </div>
 
               {/* Remember + Forgot */}
@@ -80,9 +118,10 @@ export function LoginForm() {
               {/* Button */}
               <button
                 type="submit"
+                disabled={loginMutation.isPending}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-200"
               >
-                Login
+                {loginMutation.isPending ? 'Logging in...' : 'Login'}
               </button>
             </form>
 

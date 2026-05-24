@@ -1,6 +1,66 @@
 import { Link } from 'react-router-dom';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+// Regex constants (Kept only what Zod doesn't have native primitives for)
+const fullNameRegex = /^[a-zA-Z\s]+$/;
+const phoneRegex = /^[0-9]{10}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+const registerSchema = z
+  .object({
+    fullName: z
+      .string()
+      .min(1, { message: 'Full name is required' })
+      .regex(fullNameRegex, { message: 'Full name must contain only letters and spaces' }),
+
+    username: z.string().min(1, { message: 'Username is required' }),
+
+    phoneNumber: z
+      .string()
+      .min(1, { message: 'Phone number is required' })
+      .regex(phoneRegex, { message: 'Phone number must be exactly 10 digits' }),
+
+    email: z
+      .string()
+      .min(1, { message: 'Email is required' })
+      .email({ message: 'Invalid email address' }),
+
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters long' })
+      .regex(passwordRegex, {
+        message:
+          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+      }),
+
+    confirmPassword: z
+      .string()
+      .min(8, { message: 'Confirm password must be at least 8 characters' }),
+  })
+  // superRefine is now clean and dedicated ONLY to cross-field validation
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (password !== confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Passwords do not match',
+        path: ['confirmPassword'], // Correctly maps the error to the confirmPassword UI field
+      });
+    }
+  });
+
+type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-100 flex items-center justify-center p-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
@@ -33,7 +93,7 @@ export function RegisterForm() {
             </div>
 
             {/* Form */}
-            <form className="space-y-5">
+            <form onSubmit={handleSubmit((data) => console.log(data))} className="space-y-5">
               {/* Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Fullname */}
@@ -48,9 +108,13 @@ export function RegisterForm() {
                   <input
                     type="text"
                     id="fullName"
+                    {...register('fullName')}
                     placeholder=""
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {errors.fullName && (
+                    <p className="text-red-500 text-left text-sm mt-1">{errors.fullName.message}</p>
+                  )}
                 </div>
 
                 {/* Username */}
@@ -65,9 +129,13 @@ export function RegisterForm() {
                   <input
                     type="text"
                     id="username"
+                    {...register('username')}
                     placeholder=""
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {errors.username && (
+                    <p className="text-red-500 text-left text-sm mt-1">{errors.username.message}</p>
+                  )}
                 </div>
 
                 {/* Phone Number */}
@@ -82,9 +150,15 @@ export function RegisterForm() {
                   <input
                     type="text"
                     id="phoneNumber"
+                    {...register('phoneNumber')}
                     placeholder=""
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {errors.phoneNumber && (
+                    <p className="text-red-500 text-left text-sm mt-1">
+                      {errors.phoneNumber.message}
+                    </p>
+                  )}
                 </div>
 
                 {/* Email */}
@@ -99,9 +173,13 @@ export function RegisterForm() {
                   <input
                     type="email"
                     id="email"
+                    {...register('email')}
                     placeholder="example@gmail.com"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-left text-sm mt-1">{errors.email.message}</p>
+                  )}
                 </div>
 
                 {/* Password */}
@@ -116,9 +194,13 @@ export function RegisterForm() {
                   <input
                     type="password"
                     id="password"
+                    {...register('password')}
                     placeholder="••••••••"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {errors.password && (
+                    <p className="text-red-500 text-left text-sm mt-1">{errors.password.message}</p>
+                  )}
                 </div>
 
                 {/* Confirm Password */}
@@ -133,9 +215,15 @@ export function RegisterForm() {
                   <input
                     type="password"
                     id="confirmPassword"
+                    {...register('confirmPassword')}
                     placeholder="••••••••"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {errors.confirmPassword && (
+                    <p className="text-red-500 text-left text-sm mt-1">
+                      {errors.confirmPassword.message}
+                    </p>
+                  )}
                 </div>
               </div>
 
