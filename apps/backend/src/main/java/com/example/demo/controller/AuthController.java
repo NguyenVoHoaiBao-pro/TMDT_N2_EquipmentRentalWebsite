@@ -69,10 +69,10 @@ public class AuthController extends BaseController {
     })
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<String>> logout(@RequestHeader("Authorization") String headerAuthorization,
-                                                        @RequestParam(required = false) String refreshToken) {
+                                                        @RequestBody(required = false) LogoutRequest logoutRequest) {
 
         // 1. Execute / Delete blacklisted token and refreshToken(if exists) from redis
-        authService.logout(headerAuthorization, refreshToken);
+        authService.logout(headerAuthorization, logoutRequest != null ? logoutRequest.getRefreshToken() : null);
 
         // 2. Translate a message successfully from the message source
         String localizedMessage = messageSource.getMessage("auth.logout.success", null, LocaleContextHolder.getLocale());

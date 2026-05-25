@@ -4,28 +4,35 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLoginMutation } from '@/features/auth/services/auth.service.ts';
-
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+import { passwordRegex } from '@/features/auth/utils/auth.utils.ts';
+import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required' }),
-  password: z.string().min(1, { message: 'Password is required' }).regex(passwordRegex, {
-    message:
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-  }),
+  password: z
+    .string()
+    .min(8, { message: 'Password is at least 8 characters' })
+    .regex(passwordRegex, {
+      message:
+        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
+    }),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
+
   const loginMutation = useLoginMutation();
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
+    mode: 'onTouched',
   });
 
   return (
@@ -58,7 +65,13 @@ export function LoginForm() {
             </div>
 
             <form
-              onSubmit={handleSubmit((data) => loginMutation.mutate(data))}
+              onSubmit={handleSubmit(async (data) => {
+                try {
+                  await loginMutation.mutateAsync(data);
+                } catch (error) {
+                  console.error('Login failed:', error);
+                }
+              })}
               className="space-y-5"
             >
               {/* Username */}
@@ -74,6 +87,7 @@ export function LoginForm() {
                   type="text"
                   id="username"
                   {...register('username')}
+                  autoFocus
                   placeholder="Enter your username"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                 />
@@ -91,13 +105,23 @@ export function LoginForm() {
                   Password
                 </label>
 
-                <input
-                  type="password"
-                  id="password"
-                  {...register('password')}
-                  placeholder="••••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    {...register('password')}
+                    placeholder="••••••••••"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200 pr-12"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-red-500 text-left text-sm mt-1">{errors.password.message}</p>
                 )}
@@ -110,18 +134,51 @@ export function LoginForm() {
                   Remember me
                 </label>
 
-                <a href="#" className="text-blue-500 hover:text-blue-600 hover:underline">
+                <Link
+                  to="/forgot-password"
+                  className="text-blue-500 hover:text-blue-600 hover:underline"
+                >
                   Forgot password?
-                </a>
+                </Link>
               </div>
 
               {/* Button */}
               <button
                 type="submit"
-                disabled={loginMutation.isPending}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-200"
+                disabled={!isDirty || !isValid || isSubmitting || loginMutation.isPending}
+                className={`w-full bg-blue-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:shadow-blue-200 ${
+                  !isDirty || !isValid || isSubmitting || loginMutation.isPending
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-blue-700 shadow-lg'
+                }`}
               >
-                {loginMutation.isPending ? 'Logging in...' : 'Login'}
+                {loginMutation.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://w3.org"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    'Logging in...'
+                  </span>
+                ) : (
+                  'Login'
+                )}
               </button>
             </form>
 

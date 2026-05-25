@@ -1,13 +1,19 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
 import type {
+  ForgotPasswordRequest,
   JwtResponse,
+  LoginRequest,
   MyApiResponse,
+  RegisterRequest,
   TokenRefreshResponse,
+  ResetPasswordRequest,
+  UserResponse,
 } from '@/features/auth/types/auth.types.ts';
 import type { InternalAxiosRequestConfig } from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000;
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
@@ -15,17 +21,18 @@ interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
+// For each request, check if there's a token in local storage and add it to the Authorization header'
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`; // Add the token to the Authorization header
     }
     return config;
   },
@@ -97,15 +104,24 @@ apiClient.interceptors.response.use(
 // Define API endpoints
 export const api = {
   auth: {
-    login: (data: Record<string, string>) => apiClient.post<JwtResponse>('/auth/login', data),
+    login: (data: LoginRequest): Promise<JwtResponse> => apiClient.post('/auth/login', data),
 
-    register: (data: Record<string, string>) => apiClient.post('/auth/register', data),
+    register: (data: RegisterRequest): Promise<UserResponse> =>
+      apiClient.post('/auth/register', data),
 
-    forgotPassword: (data: { email: string }) => apiClient.post('/auth/forgot-password', data),
+    forgotPassword: (data: ForgotPasswordRequest): Promise<void> =>
+      apiClient.post('/auth/forgot-password', data),
 
-    resetPassword: (data: Record<string, string>) => apiClient.post('/auth/reset-password', data),
+    resetPassword: (data: ResetPasswordRequest): Promise<void> =>
+      apiClient.post('/auth/reset-password', data),
 
-    logout: () => apiClient.post('/auth/logout'),
+    logout: (data: { refreshToken: string | null }): Promise<void> =>
+      apiClient.post('/auth/logout', data),
+    checkDuplicateEmail: (email: string): Promise<{ exists: boolean }> =>
+      apiClient.post('/auth/check-email', { email }),
+
+    checkDuplicateUsername: (username: string): Promise<{ exists: boolean }> =>
+      apiClient.post('/auth/check-username', { username }),
   },
 };
 

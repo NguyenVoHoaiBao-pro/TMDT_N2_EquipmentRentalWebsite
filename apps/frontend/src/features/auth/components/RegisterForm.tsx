@@ -2,11 +2,15 @@ import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-
-// Regex constants (Kept only what Zod doesn't have native primitives for)
-const fullNameRegex = /^[a-zA-Z\s]+$/;
-const phoneRegex = /^[0-9]{10}$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+import {
+  useCheckDuplicateEmail,
+  useCheckDuplicateUsername,
+  useRegisterMutation,
+} from '@/features/auth/services/auth.service.ts';
+import { type RegisterRequest } from '@/features/auth/types/auth.types.ts';
+import { fullNameRegex, passwordRegex, phoneRegex } from '@/features/auth/utils/auth.utils.ts';
+import { Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 
 const registerSchema = z
   .object({
@@ -53,13 +57,60 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const registerMutation = useRegisterMutation();
+
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    watch,
+    getFieldState,
+    formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    mode: 'onTouched',
   });
+
+  // Extract realtime value of email and username fields
+  const currentUsername = watch('username');
+  const currentEmail = watch('email');
+
+  // Filter out fields that are not ready to check
+  const usernameState = getFieldState('username');
+  const isUsernameReadyToCheck = usernameState.isTouched && !usernameState.error;
+
+  const emailState = getFieldState('email');
+  const isEmailReadyToCheck = emailState.isTouched && !emailState.error;
+
+  // Pass values to hooks
+  const { data: usernameCheck, isLoading: usernameLoading } = useCheckDuplicateUsername(
+    currentUsername,
+    { enabled: isUsernameReadyToCheck }
+  );
+
+  const { data: emailCheck, isLoading: emailLoading } = useCheckDuplicateEmail(currentEmail, {
+    enabled: isEmailReadyToCheck,
+  });
+
+  const onSubmit = async (data: RegisterFormData) => {
+    try {
+      if (emailCheck?.exists) return;
+      if (usernameCheck?.exists) return;
+
+      const { username, password, email, fullName, phoneNumber } = data;
+      await registerMutation.mutateAsync({
+        username,
+        password,
+        email,
+        fullName,
+        phoneNumber,
+      } as RegisterRequest);
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-100 flex items-center justify-center p-6">
@@ -93,7 +144,7 @@ export function RegisterForm() {
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit((data) => console.log(data))} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {/* Fullname */}
@@ -108,6 +159,7 @@ export function RegisterForm() {
                   <input
                     type="text"
                     id="fullName"
+                    autoFocus
                     {...register('fullName')}
                     placeholder=""
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
@@ -133,6 +185,12 @@ export function RegisterForm() {
                     placeholder=""
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {usernameLoading && (
+                    <p className="text-gray-500 text-left text-sm mt-1">Checking username...</p>
+                  )}
+                  {usernameCheck?.exists && (
+                    <p className="text-red-500 text-left text-sm mt-1">Username already exists</p>
+                  )}
                   {errors.username && (
                     <p className="text-red-500 text-left text-sm mt-1">{errors.username.message}</p>
                   )}
@@ -177,6 +235,12 @@ export function RegisterForm() {
                     placeholder="example@gmail.com"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
+                  {emailLoading && (
+                    <p className="text-gray-500 text-left text-sm mt-1">Checking email...</p>
+                  )}
+                  {emailCheck?.exists && (
+                    <p className="text-red-500 text-left text-sm mt-1">Email already exists</p>
+                  )}
                   {errors.email && (
                     <p className="text-red-500 text-left text-sm mt-1">{errors.email.message}</p>
                   )}
@@ -190,14 +254,21 @@ export function RegisterForm() {
                   >
                     Password
                   </label>
-
-                  <input
-                    type="password"
-                    id="password"
-                    {...register('password')}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      id="password"
+                      {...register('password')}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                   {errors.password && (
                     <p className="text-red-500 text-left text-sm mt-1">{errors.password.message}</p>
                   )}
@@ -212,13 +283,25 @@ export function RegisterForm() {
                     Confirm Password
                   </label>
 
-                  <input
-                    type="password"
-                    id="confirmPassword"
-                    {...register('confirmPassword')}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      id="confirmPassword"
+                      {...register('confirmPassword')}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-colors"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                   {errors.confirmPassword && (
                     <p className="text-red-500 text-left text-sm mt-1">
                       {errors.confirmPassword.message}
@@ -246,9 +329,40 @@ export function RegisterForm() {
               {/* Button */}
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-indigo-200"
+                disabled={!isDirty || !isValid || isSubmitting || registerMutation.isPending}
+                className={`w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:shadow-indigo-200 ${
+                  !isDirty || !isValid || isSubmitting || registerMutation.isPending
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-indigo-700 shadow-lg'
+                }`}
               >
-                Create Account
+                {registerMutation.isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-white"
+                      xmlns="http://w3.org"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    'Creating Account...'
+                  </span>
+                ) : (
+                  'Create Account'
+                )}
               </button>
             </form>
 

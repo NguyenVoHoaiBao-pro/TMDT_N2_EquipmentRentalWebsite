@@ -15,6 +15,7 @@ interface AuthStore {
   logoutSuccess: () => void;
 }
 
+// persist in middleware use for tracking the data in local storage
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
