@@ -16,7 +16,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      test: [ 'CMD', 'mysqladmin', 'ping', '-h', 'localhost' ]
       timeout: 20s
       retries: 10
       interval: 10s
@@ -33,7 +33,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: [ 'CMD', 'redis-cli', 'ping' ]
       timeout: 3s
       retries: 5
       interval: 5s
@@ -65,7 +65,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8080/swagger-ui.html']
+      test: [ 'CMD', 'curl', '-f', 'http://localhost:8080/swagger-ui.html' ]
       timeout: 3s
       retries: 5
       interval: 10s
@@ -84,9 +84,9 @@ services:
     depends_on:
       - backend
     environment:
-      VITE_API_URL: http://backend:8080
+      VITE_API_BASE_URL: http://backend:8080
     healthcheck:
-      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:3000/']
+      test: [ 'CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:3000/' ]
       timeout: 3s
       retries: 5
       interval: 10s
