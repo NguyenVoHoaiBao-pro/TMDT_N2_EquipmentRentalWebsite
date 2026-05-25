@@ -116,6 +116,7 @@ export const useLogoutMutation = () => {
   });
 };
 
+// auth.service.ts
 export const useCheckDuplicateEmail = (email: string, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['checkEmail', email],

@@ -12,7 +12,7 @@ import type {
 } from '@/features/auth/types/auth.types.ts';
 import type { InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000;
 
 interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -117,11 +117,16 @@ export const api = {
 
     logout: (data: { refreshToken: string | null }): Promise<void> =>
       apiClient.post('/auth/logout', data),
-    checkDuplicateEmail: (email: string): Promise<{ exists: boolean }> =>
-      apiClient.post('/auth/check-email', { email }),
 
-    checkDuplicateUsername: (username: string): Promise<{ exists: boolean }> =>
-      apiClient.post('/auth/check-username', { username }),
+    checkDuplicateEmail: (email: string): Promise<boolean> =>
+      apiClient.get('/auth/check-email', {
+        params: { email }, // Axios auto convert to /auth/check-email?email=email
+      }),
+
+    checkDuplicateUsername: (username: string): Promise<boolean> =>
+      apiClient.get('/auth/check-username', {
+        params: { username }, // Similar for username
+      }),
   },
 };
 

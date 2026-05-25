@@ -11,12 +11,17 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
+    port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://backend:8080/equipment_rental/',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
       },
+    },
+    watch: {
+      usePolling: true, // Use polling to watch for file changes
     },
   },
   build: {

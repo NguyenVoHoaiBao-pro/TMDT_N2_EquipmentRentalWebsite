@@ -11,6 +11,7 @@ import { type RegisterRequest } from '@/features/auth/types/auth.types.ts';
 import { fullNameRegex, passwordRegex, phoneRegex } from '@/features/auth/utils/auth.utils.ts';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { useDebounce } from '@/features/auth/hooks/auth.hooks.ts';
 
 const registerSchema = z
   .object({
@@ -66,38 +67,39 @@ export function RegisterForm() {
     register,
     handleSubmit,
     watch,
-    getFieldState,
-    formState: { errors, isSubmitting, isValid, isDirty },
+    formState: { errors, isSubmitting, isValid, isDirty, touchedFields },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: 'onTouched',
   });
 
-  // Extract realtime value of email and username fields
+  // 1. Extract realtime value of email and username fields
   const currentUsername = watch('username');
   const currentEmail = watch('email');
 
-  // Filter out fields that are not ready to check
-  const usernameState = getFieldState('username');
-  const isUsernameReadyToCheck = usernameState.isTouched && !usernameState.error;
+  // 2. Create a debounced version of the username and email fields
+  const debouncedUsername = useDebounce(currentUsername, 500);
+  const debouncedEmail = useDebounce(currentEmail, 500);
 
-  const emailState = getFieldState('email');
-  const isEmailReadyToCheck = emailState.isTouched && !emailState.error;
+  // 3. Take out form state and check if the fields are ready to be touched
+  const isUsernameReadyToCheck = touchedFields.username && !errors.username;
 
-  // Pass values to hooks
+  const isEmailReadyToCheck = touchedFields.email && !errors.email;
+
+  // 3. Pass values to the checkDuplicateUsername and checkDuplicateEmail hooks
   const { data: usernameCheck, isLoading: usernameLoading } = useCheckDuplicateUsername(
-    currentUsername,
-    { enabled: isUsernameReadyToCheck }
+    debouncedUsername,
+    { enabled: isUsernameReadyToCheck && debouncedUsername.length >= 3 }
   );
 
-  const { data: emailCheck, isLoading: emailLoading } = useCheckDuplicateEmail(currentEmail, {
+  const { data: emailCheck, isLoading: emailLoading } = useCheckDuplicateEmail(debouncedEmail, {
     enabled: isEmailReadyToCheck,
   });
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      if (emailCheck?.exists) return;
-      if (usernameCheck?.exists) return;
+      if (emailCheck === true) return;
+      if (usernameCheck === true) return;
 
       const { username, password, email, fullName, phoneNumber } = data;
       await registerMutation.mutateAsync({
@@ -188,7 +190,7 @@ export function RegisterForm() {
                   {usernameLoading && (
                     <p className="text-gray-500 text-left text-sm mt-1">Checking username...</p>
                   )}
-                  {usernameCheck?.exists && (
+                  {usernameCheck === true && (
                     <p className="text-red-500 text-left text-sm mt-1">Username already exists</p>
                   )}
                   {errors.username && (
@@ -238,7 +240,7 @@ export function RegisterForm() {
                   {emailLoading && (
                     <p className="text-gray-500 text-left text-sm mt-1">Checking email...</p>
                   )}
-                  {emailCheck?.exists && (
+                  {emailCheck === true && (
                     <p className="text-red-500 text-left text-sm mt-1">Email already exists</p>
                   )}
                   {errors.email && (
