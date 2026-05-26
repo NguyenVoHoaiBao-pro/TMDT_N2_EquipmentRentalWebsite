@@ -33,7 +33,21 @@ export function LoginForm() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: 'onTouched',
+    defaultValues: {
+      username: '',
+      password: '',
+    },
   });
+
+  const isSubmitDisabled = !isDirty || !isValid || isSubmitting || loginMutation.isPending;
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      await loginMutation.mutateAsync(data);
+    } catch (error) {
+      console.error('Login failed:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center p-6">
@@ -64,16 +78,7 @@ export function LoginForm() {
               <p className="text-gray-500 mt-2">Please login to your account</p>
             </div>
 
-            <form
-              onSubmit={handleSubmit(async (data) => {
-                try {
-                  await loginMutation.mutateAsync(data);
-                } catch (error) {
-                  console.error('Login failed:', error);
-                }
-              })}
-              className="space-y-5"
-            >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Username */}
               <div>
                 <label
@@ -87,7 +92,6 @@ export function LoginForm() {
                   type="text"
                   id="username"
                   {...register('username')}
-                  autoFocus
                   placeholder="Enter your username"
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all duration-200"
                 />
@@ -145,18 +149,16 @@ export function LoginForm() {
               {/* Button */}
               <button
                 type="submit"
-                disabled={!isDirty || !isValid || isSubmitting || loginMutation.isPending}
+                disabled={isSubmitDisabled}
                 className={`w-full bg-blue-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:shadow-blue-200 ${
-                  !isDirty || !isValid || isSubmitting || loginMutation.isPending
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-blue-700 shadow-lg'
+                  isSubmitDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 shadow-lg'
                 }`}
               >
                 {loginMutation.isPending ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg
                       className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://w3.org"
+                      xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -174,7 +176,7 @@ export function LoginForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    'Logging in...'
+                    Logging in...
                   </span>
                 ) : (
                   'Login'

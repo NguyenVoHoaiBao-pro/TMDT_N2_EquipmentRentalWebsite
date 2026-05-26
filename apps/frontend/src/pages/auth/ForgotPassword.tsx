@@ -16,10 +16,24 @@ export function ForgotPassword() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isValid, isDirty },
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      email: '',
+    },
   });
+
+  const isSubmitDisabled = !isDirty || !isValid || isSubmitting || forgotPasswordMutation.isPending;
+
+  const onSubmit = async (data: ForgotPasswordFormData) => {
+    try {
+      await forgotPasswordMutation.mutateAsync(data);
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center p-6">
@@ -55,16 +69,7 @@ export function ForgotPassword() {
             </div>
 
             {/* Form */}
-            <form
-              onSubmit={handleSubmit(async (data) => {
-                try {
-                  await forgotPasswordMutation.mutateAsync(data);
-                } catch (error) {
-                  console.error('Forgot password failed:', error);
-                }
-              })}
-              className="space-y-5"
-            >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <label
                   htmlFor="email"
@@ -88,9 +93,14 @@ export function ForgotPassword() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-blue-200"
+                disabled={isSubmitDisabled}
+                className={`w-full bg-blue-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg ${
+                  isSubmitDisabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-blue-700 hover:shadow-blue-200'
+                }`}
               >
-                Send Reset Link
+                {forgotPasswordMutation.isPending ? 'Sending...' : 'Send Reset Link'}
               </button>
             </form>
 

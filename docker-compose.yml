@@ -1,18 +1,15 @@
-version: '3.8'
-
 services:
-  # MySQL Database
   mysql:
     image: mysql:8.0
     container_name: equipment-rental-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-      MYSQL_DATABASE: ${DB_NAME:-demo_db}
-      MYSQL_USER: ${DB_USER:-demo}
+      MYSQL_DATABASE: ${DB_NAME:-equipment_rental_db}
+      MYSQL_USER: ${DB_USER:-root}
       MYSQL_PASSWORD: ${DB_PASSWORD:-root}
     ports:
-      - '3307:3306'
+      - '3306:3306'
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -23,7 +20,6 @@ services:
     networks:
       - equipment-rental-network
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: equipment-rental-cache
@@ -40,38 +36,20 @@ services:
     networks:
       - equipment-rental-network
 
-  # Backend API
   backend:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
-    env_file:
-      - ./apps/backend/.env
     container_name: equipment-rental-backend
     restart: unless-stopped
+    # CHỈ GIỮ LẠI CÁC BIẾN MẠNG NỘI BỘ, KHÔNG ĐỂ BIẾN ${} BỊ TRỐNG Ở ĐÂY
     environment:
       JAVA_OPTS: '-Xmx512m -Xms256m'
-
-      # Database Connection
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-equipment_rental_db} # Aligned with application.yml default
-      DB_USER: ${DB_USER:-root}                 # Aligned with application.yml default
-      DB_PASSWORD: ${DB_PASSWORD:-root}
-
-      # Redis Connection
-      REDIS_HOST: redis                         # Added to connect inside the Docker network
+      REDIS_HOST: redis
       REDIS_PORT: 6379
-
-      # Server & App Specs
       SERVER_PORT: 8080
-      JWT_SECRET: ${JWT_SECRET:-MySecretKeyThatIsAtLeast32CharactersLongForHS256}
-      JWT_ACCESS_EXPIRATION_MS: ${JWT_ACCESS_EXPIRATION_MS:-900000}       # Corrected name
-      JWT_REFRESH_EXPIRATION_MS: ${JWT_REFRESH_EXPIRATION_MS:-604800000}   # Corrected name
-
-      # Mail Configuration (Optional: Add if you want to override production values)
-      MAIL_USERNAME: ${MAIL_USERNAME:-your-email-address}
-      MAIL_PASSWORD: ${MAIL_PASSWORD:-your-app-password}
     ports:
       - '8080:8080'
     depends_on:
@@ -79,39 +57,19 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      # Updated the health check path to include the /equipment_rental context-path defined in Spring
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:8080/equipment_rental/swagger-ui/index.html' ]
-      timeout: 3s
-      retries: 5
-      interval: 10s
     networks:
       - equipment-rental-network
 
-  # Frontend
   frontend:
     build:
       context: .
       dockerfile: ./apps/frontend/Dockerfile
-    env_file:
-      - ./apps/frontend/.env
     container_name: equipment-rental-frontend
     restart: unless-stopped
     ports:
-      - '5173:5173'
-
-    volumes:
-      - ./apps/frontend:/app/apps/frontend
-      - /app/apps/frontend/node_modules
+      - '80:80'
     depends_on:
       - backend
-    environment:
-      VITE_API_BASE_URL: http://localhost:8080/equipment_rental/api
-    healthcheck:
-      test: [ 'CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:5173/' ]
-      timeout: 3s
-      retries: 5
-      interval: 10s
     networks:
       - equipment-rental-network
 

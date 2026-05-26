@@ -93,6 +93,13 @@ public class AuthController extends BaseController {
         return createResponse(HttpStatus.OK, authService.refreshToken(request));
     }
 
+    /**
+     * REST Endpoint for handling forgot password requests.
+     * * SECURITY NOTE (Compliance with OWASP Standards):
+     * To prevent User Enumeration and mitigate Phishing risks, this endpoint
+     * MUST always return a generic success message (HTTP 200) regardless of
+     * whether the email exists in the database or not.
+     */
     @PostMapping("/forgot-password")
     @Operation(summary = "Forgot password", description = "Send a reset password link to user's email")
     @io.swagger.v3.oas.annotations.security.SecurityRequirements

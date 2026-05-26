@@ -44,15 +44,21 @@ export function ResetPassword() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isDirty, isValid },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
+    mode: 'onTouched',
+    defaultValues: {
+      newPassword: '',
+      confirmNewPassword: '',
+    },
   });
 
+  const isSubmitDisabled =
+    !resetToken || !isDirty || !isValid || isSubmitting || resetPasswordMutation.isPending;
+
   const onSubmit = (data: ResetPasswordFormData) => {
-    if (!resetToken) {
-      return;
-    }
+    if (!resetToken) return;
 
     resetPasswordMutation.mutate({
       token: resetToken,
@@ -92,6 +98,16 @@ export function ResetPassword() {
 
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              {!resetToken && (
+                <div
+                  className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative"
+                  role="alert"
+                >
+                  <strong className="font-bold">
+                    Token is outdated or invalid. Please request a new password reset.
+                  </strong>
+                </div>
+              )}
               {/* New Password */}
               <div>
                 <label
@@ -141,9 +157,14 @@ export function ResetPassword() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-indigo-200"
+                disabled={isSubmitDisabled}
+                className={`w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg ${
+                  isSubmitDisabled
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-indigo-700 hover:shadow-indigo-200'
+                }`}
               >
-                Reset Password
+                {resetPasswordMutation.isPending ? 'Resetting...' : 'Reset Password'}
               </button>
             </form>
 

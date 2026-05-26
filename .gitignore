@@ -35,3 +35,5 @@ Thumbs.db
 
 # Maven
 .m2/
+
+!docker-compose.yml

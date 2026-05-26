@@ -1,18 +1,15 @@
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Copy các file quản lý thư viện trước
+# Giai đoạn 1: Build file tĩnh
+FROM node:20-alpine AS builder
+WORKDIR /build
 COPY package.json package-lock.json ./
 COPY apps/frontend/package.json ./apps/frontend/
-
-# Cài đặt dependencies (Docker sẽ cache bước này)
 RUN npm ci
+COPY apps/frontend/ ./apps/frontend/
+RUN npm run build --workspace=apps/frontend
 
-# Copy toàn bộ code (Bị ghi đè bởi volumes trong compose khi chạy, nhưng vẫn cần để khởi tạo)
-COPY . .
-
-EXPOSE 5173
-
-# Lệnh chạy chế độ Dev để có Hot-Reload
-CMD ["npm", "run", "dev", "--workspace=apps/frontend", "--", "--host", "0.0.0.0"]
+# Giai đoạn 2: Khởi chạy bằng Nginx
+FROM nginx:1.25-alpine
+COPY --from=builder /build/apps/frontend/dist /usr/share/nginx/html
+# Mở cổng 80 tiêu chuẩn của Web Server
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

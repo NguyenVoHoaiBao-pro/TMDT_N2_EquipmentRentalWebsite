@@ -1,12 +1,14 @@
 # ⚛️ Equipment Rental Frontend - React + TypeScript + Vite
 
-A modern, responsive e-commerce frontend application built with React 19, TypeScript, and Vite for fast development and production builds. Features include equipment catalog, shopping cart, user authentication, and admin dashboard.
+A modern, responsive e-commerce frontend application built with React 19, TypeScript, and Vite for fast development and
+production builds. Features include equipment catalog, shopping cart, user authentication, and admin dashboard.
 
 **Version:** 1.0.0 | **Node:** 20+ | **React:** 19 | **Vite:** 8+ | **TypeScript:** 6.0+
 
 ## 🚀 Key Features
 
 ### Frontend Framework & Tooling
+
 - ✅ **React 19** - Latest React version with latest hooks & features
 - ✅ **TypeScript 6.0+** - Static type checking for robust code
 - ✅ **Vite 8+** - Ultra-fast build tool with HMR (Hot Module Replacement)
@@ -14,6 +16,7 @@ A modern, responsive e-commerce frontend application built with React 19, TypeSc
 - ✅ **ESLint & Prettier** - Code quality & formatting
 
 ### State Management & Data Fetching
+
 - ✅ **Zustand** - Lightweight state management (auth, UI state)
 - ✅ **TanStack Query (React Query)** - Server state management & caching
 - ✅ **Axios** - Modern HTTP client with interceptors
@@ -21,6 +24,7 @@ A modern, responsive e-commerce frontend application built with React 19, TypeSc
 - ✅ **API Proxy** - Vite proxy redirects `/api` to backend
 
 ### UI & Styling
+
 - ✅ **Tailwind CSS 3** - Utility-first CSS framework
 - ✅ **shadcn/ui** - High-quality React components
 - ✅ **Lucide React** - Beautiful SVG icons (250+ icons)
@@ -28,12 +32,14 @@ A modern, responsive e-commerce frontend application built with React 19, TypeSc
 - ✅ **Responsive Design** - Mobile-first, works on all devices
 
 ### Forms & Validation
+
 - ✅ **React Hook Form** - Performant, flexible form handling
 - ✅ **Zod** - TypeScript-first schema validation
 - ✅ **Input Validation** - Real-time field validation
 - ✅ **Error Messages** - User-friendly error feedback
 
 ### User Experience
+
 - ✅ **Dark/Light Mode** - Theme switcher (optional)
 - ✅ **Skeleton Loaders** - Loading states for better UX
 - ✅ **Optimistic Updates** - Instant UI feedback
@@ -41,6 +47,7 @@ A modern, responsive e-commerce frontend application built with React 19, TypeSc
 - ✅ **Lazy Loading** - Code splitting for faster initial load
 
 ### Development Experience
+
 - ✅ **Hot Module Replacement (HMR)** - Instant updates without page reload
 - ✅ **TypeScript Strict Mode** - Catch errors at compile time
 - ✅ **Path Aliases** - Clean import paths (`@/components`, `@/hooks`)
@@ -273,78 +280,78 @@ apps/frontend/
 ├── tsconfig.node.json                  # TypeScript build tool config
 ├── vite.config.ts                      # Vite bundler configuration
 ├── components.json                     # shadcn/ui configuration
-├── Dockerfile                          # Docker image definition
+├── Dockerfile-dev                          # Docker image definition
 └── README.md                           # This file
 ```
 
 ### Key Directories Explained
 
-| Directory | Purpose | Key Files |
-|-----------|---------|-----------|
-| `components/` | Reusable React components | Buttons, cards, modals, etc. |
-| `pages/` | Page-level components | Routes and full pages |
-| `features/` | Feature modules (auth, cart) | Feature-specific logic |
-| `hooks/` | Custom React hooks | Data fetching, state management |
-| `services/` | API communication | HTTP calls to backend |
-| `store/` | Global state (Zustand) | Auth, cart, UI state |
-| `providers/` | Context & providers | Theme, query, auth providers |
-| `lib/` | Utilities & helpers | Validation, constants, helpers |
-| `types/` | TypeScript types | Global type definitions |
-| `assets/` | Static files | Images, icons, fonts |
+| Directory     | Purpose                      | Key Files                       |
+|---------------|------------------------------|---------------------------------|
+| `components/` | Reusable React components    | Buttons, cards, modals, etc.    |
+| `pages/`      | Page-level components        | Routes and full pages           |
+| `features/`   | Feature modules (auth, cart) | Feature-specific logic          |
+| `hooks/`      | Custom React hooks           | Data fetching, state management |
+| `services/`   | API communication            | HTTP calls to backend           |
+| `store/`      | Global state (Zustand)       | Auth, cart, UI state            |
+| `providers/`  | Context & providers          | Theme, query, auth providers    |
+| `lib/`        | Utilities & helpers          | Validation, constants, helpers  |
+| `types/`      | TypeScript types             | Global type definitions         |
+| `assets/`     | Static files                 | Images, icons, fonts            |
 
 ## 📦 Dependencies
 
 ### React & Core
 
-| Dependency | Version | Purpose |
-|-----------|---------|---------|
-| **React** | 19.2.4+ | UI framework |
-| **React DOM** | 19.2.4+ | React rendering |
+| Dependency       | Version | Purpose             |
+|------------------|---------|---------------------|
+| **React**        | 19.2.4+ | UI framework        |
+| **React DOM**    | 19.2.4+ | React rendering     |
 | **React Router** | 7.15.1+ | Client-side routing |
 
 ### State Management & Data Fetching
 
-| Dependency | Version | Purpose |
-|-----------|---------|---------|
-| **Zustand** | 4.4.7+ | Lightweight state management |
-| **TanStack Query** | 5.28.0+ | Server state & caching |
-| **Axios** | 1.16.1+ | HTTP client |
+| Dependency         | Version | Purpose                      |
+|--------------------|---------|------------------------------|
+| **Zustand**        | 4.4.7+  | Lightweight state management |
+| **TanStack Query** | 5.28.0+ | Server state & caching       |
+| **Axios**          | 1.16.1+ | HTTP client                  |
 
 ### UI & Styling
 
-| Dependency | Version | Purpose |
-|-----------|---------|---------|
-| **Tailwind CSS** | 3.4.1+ | Utility CSS framework |
-| **shadcn/ui** | 4.2.0+ | Component library |
-| **Lucide React** | 1.8.0+ | Icon library |
-| **Sonner** | 2.0.7+ | Toast notifications |
-| **clsx** | 2.1.1+ | Conditional className building |
-| **Tailwind Merge** | 2.6.1+ | Merge Tailwind classes |
+| Dependency         | Version | Purpose                        |
+|--------------------|---------|--------------------------------|
+| **Tailwind CSS**   | 3.4.1+  | Utility CSS framework          |
+| **shadcn/ui**      | 4.2.0+  | Component library              |
+| **Lucide React**   | 1.8.0+  | Icon library                   |
+| **Sonner**         | 2.0.7+  | Toast notifications            |
+| **clsx**           | 2.1.1+  | Conditional className building |
+| **Tailwind Merge** | 2.6.1+  | Merge Tailwind classes         |
 
 ### Forms & Validation
 
-| Dependency | Version | Purpose |
-|-----------|---------|---------|
-| **React Hook Form** | 7.76.1+ | Performant form handling |
-| **@hookform/resolvers** | 5.4.0+ | Form validation adapters |
-| **Zod** | 3.24.1+ | TypeScript schema validation |
+| Dependency              | Version | Purpose                      |
+|-------------------------|---------|------------------------------|
+| **React Hook Form**     | 7.76.1+ | Performant form handling     |
+| **@hookform/resolvers** | 5.4.0+  | Form validation adapters     |
+| **Zod**                 | 3.24.1+ | TypeScript schema validation |
 
 ### Build & Development Tools
 
-| Dependency | Version | Purpose |
-|-----------|---------|---------|
-| **Vite** | 8.0.4+ | Fast build tool |
-| **TypeScript** | 6.0.2+ | Static type checking |
-| **ESLint** | 9.39.4+ | Code linting |
-| **Prettier** | 3.2.5+ | Code formatting |
+| Dependency     | Version | Purpose              |
+|----------------|---------|----------------------|
+| **Vite**       | 8.0.4+  | Fast build tool      |
+| **TypeScript** | 6.0.2+  | Static type checking |
+| **ESLint**     | 9.39.4+ | Code linting         |
+| **Prettier**   | 3.2.5+  | Code formatting      |
 
 ### Additional UI Libraries
 
-| Dependency | Version | Purpose |
-|-----------|---------|---------|
-| **@base-ui/react** | 1.4.0+ | Headless UI components |
-| **embla-carousel-react** | 8.6.0+ | Carousel/slider component |
-| **cmdk** | 1.1.1+ | Command menu/search |
+| Dependency               | Version | Purpose                   |
+|--------------------------|---------|---------------------------|
+| **@base-ui/react**       | 1.4.0+  | Headless UI components    |
+| **embla-carousel-react** | 8.6.0+  | Carousel/slider component |
+| **cmdk**                 | 1.1.1+  | Command menu/search       |
 
 ## 🔌 API Integration
 
@@ -610,30 +617,30 @@ VITE_ENABLE_DEBUG=false
 ## 📝 Best Practices
 
 1. **Component Organization**
-   - Keep components small and focused
-   - Use composition over inheritance
-   - Extract logic to custom hooks
+    - Keep components small and focused
+    - Use composition over inheritance
+    - Extract logic to custom hooks
 
 2. **State Management**
-   - Use Zustand for global state
-   - Use React Query for server state
-   - Use useState for local component state
+    - Use Zustand for global state
+    - Use React Query for server state
+    - Use useState for local component state
 
 3. **TypeScript**
-   - Use strict mode
-   - Define interfaces for all data
-   - Avoid `any` type
+    - Use strict mode
+    - Define interfaces for all data
+    - Avoid `any` type
 
 4. **Performance**
-   - Use React.memo for expensive components
-   - Implement code splitting with React.lazy
-   - Optimize images with proper formats
-   - Use proper cache strategies with React Query
+    - Use React.memo for expensive components
+    - Implement code splitting with React.lazy
+    - Optimize images with proper formats
+    - Use proper cache strategies with React Query
 
 5. **Testing** (when applicable)
-   - Write unit tests for utilities
-   - Write integration tests for hooks
-   - Write E2E tests for critical flows
+    - Write unit tests for utilities
+    - Write integration tests for hooks
+    - Write E2E tests for critical flows
 
 ## 📚 Resources
 
@@ -648,6 +655,7 @@ VITE_ENABLE_DEBUG=false
 ## 📞 Support
 
 For issues:
+
 1. Check existing documentation
 2. Review component code for examples
 3. Check browser developer tools console

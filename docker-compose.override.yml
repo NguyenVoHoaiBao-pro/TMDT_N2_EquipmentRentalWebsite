@@ -1,0 +1,20 @@
+services:
+  mysql:
+    ports:
+      - '3307:3306' # Ghi đè cổng 3307 ở local để bạn dùng Navicat
+
+  backend:
+    env_file:
+      - ./apps/backend/.env # Nạp file .env chứa JWT_SECRET xịn ở local vào đây
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./apps/frontend/Dockerfile-dev # Ép local dùng file dev gạch ngang
+    ports:
+      - '5173:5173' # Mở cổng dev ở local
+    volumes:
+      - ./apps/frontend:/app/apps/frontend
+      - /app/apps/frontend/node_modules
+    env_file:
+      - ./apps/frontend/.env

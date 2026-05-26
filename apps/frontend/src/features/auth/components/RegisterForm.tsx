@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -8,54 +7,11 @@ import {
   useRegisterMutation,
 } from '@/features/auth/services/auth.service.ts';
 import { type RegisterRequest } from '@/features/auth/types/auth.types.ts';
-import { fullNameRegex, passwordRegex, phoneRegex } from '@/features/auth/utils/auth.utils.ts';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useDebounce } from '@/features/auth/hooks/auth.hooks.ts';
-
-const registerSchema = z
-  .object({
-    fullName: z
-      .string()
-      .min(1, { message: 'Full name is required' })
-      .regex(fullNameRegex, { message: 'Full name must contain only letters and spaces' }),
-
-    username: z.string().min(1, { message: 'Username is required' }),
-
-    phoneNumber: z
-      .string()
-      .min(1, { message: 'Phone number is required' })
-      .regex(phoneRegex, { message: 'Phone number must be exactly 10 digits' }),
-
-    email: z
-      .string()
-      .min(1, { message: 'Email is required' })
-      .email({ message: 'Invalid email address' }),
-
-    password: z
-      .string()
-      .min(8, { message: 'Password must be at least 8 characters long' })
-      .regex(passwordRegex, {
-        message:
-          'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
-      }),
-
-    confirmPassword: z
-      .string()
-      .min(8, { message: 'Confirm password must be at least 8 characters' }),
-  })
-  // superRefine is now clean and dedicated ONLY to cross-field validation
-  .superRefine(({ password, confirmPassword }, ctx) => {
-    if (password !== confirmPassword) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Passwords do not match',
-        path: ['confirmPassword'], // Correctly maps the error to the confirmPassword UI field
-      });
-    }
-  });
-
-type RegisterFormData = z.infer<typeof registerSchema>;
+import type { RegisterFormData } from '@/features/auth/utils/register.schema.ts';
+import { registerSchema } from '@/features/auth/utils/register.schema.ts';
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -71,6 +27,14 @@ export function RegisterForm() {
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: 'onTouched',
+    defaultValues: {
+      fullName: '',
+      username: '',
+      phoneNumber: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
   });
 
   // 1. Extract realtime value of email and username fields
@@ -95,6 +59,14 @@ export function RegisterForm() {
   const { data: emailCheck, isLoading: emailLoading } = useCheckDuplicateEmail(debouncedEmail, {
     enabled: isEmailReadyToCheck,
   });
+
+  const isSubmitDisabled =
+    !isDirty ||
+    !isValid ||
+    isSubmitting ||
+    registerMutation.isPending ||
+    usernameLoading ||
+    emailLoading;
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
@@ -161,7 +133,6 @@ export function RegisterForm() {
                   <input
                     type="text"
                     id="fullName"
-                    autoFocus
                     {...register('fullName')}
                     placeholder=""
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
@@ -234,7 +205,6 @@ export function RegisterForm() {
                     type="email"
                     id="email"
                     {...register('email')}
-                    placeholder="example@gmail.com"
                     className="w-full px-4 py-3 rounded-xl border border-gray-300 outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all"
                   />
                   {emailLoading && (
@@ -331,9 +301,9 @@ export function RegisterForm() {
               {/* Button */}
               <button
                 type="submit"
-                disabled={!isDirty || !isValid || isSubmitting || registerMutation.isPending}
+                disabled={isSubmitDisabled}
                 className={`w-full bg-indigo-600 text-white font-semibold py-3 rounded-xl transition-all duration-200 hover:shadow-indigo-200 ${
-                  !isDirty || !isValid || isSubmitting || registerMutation.isPending
+                  isSubmitDisabled
                     ? 'opacity-50 cursor-not-allowed'
                     : 'hover:bg-indigo-700 shadow-lg'
                 }`}
@@ -342,7 +312,7 @@ export function RegisterForm() {
                   <span className="flex items-center justify-center gap-2">
                     <svg
                       className="animate-spin h-5 w-5 text-white"
-                      xmlns="http://w3.org"
+                      xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
                     >
@@ -360,7 +330,7 @@ export function RegisterForm() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    'Creating Account...'
+                    Creating Account...
                   </span>
                 ) : (
                   'Create Account'

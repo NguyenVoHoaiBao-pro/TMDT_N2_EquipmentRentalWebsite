@@ -28,7 +28,7 @@ seamless deployment.
 │   │   │       ├── application.yaml     # Spring Boot configuration
 │   │   │       └── database/            # SQL schema & seed scripts
 │   │   ├── pom.xml                      # Maven dependencies & plugins
-│   │   ├── Dockerfile                   # Docker image for backend
+│   │   ├── Dockerfile-dev                   # Docker image for backend
 │   │   ├── mvnw & mvnw.cmd             # Maven wrapper (no install needed)
 │   │   └── README.md                    # Backend-specific documentation
 │   │
@@ -53,7 +53,7 @@ seamless deployment.
 │       ├── tsconfig.json               # TypeScript configuration
 │       ├── tailwind.config.js          # Tailwind CSS configuration
 │       ├── eslint.config.js            # ESLint rules
-│       ├── Dockerfile                   # Docker image for frontend
+│       ├── Dockerfile-dev                   # Docker image for frontend
 │       └── README.md                    # Frontend-specific documentation
 │
 ├── .github/
@@ -308,7 +308,7 @@ docker-compose up -d
 
 ```bash
 # Check if ports are already in use
-netstat -ano | findstr :3000
+netstat -ano | findstr :5173
 netstat -ano | findstr :8080
 
 # Remove conflicting containers

@@ -25,7 +25,7 @@ export const useLoginMutation = () => {
       loginSuccess({ username: user.username, role: user.role }, user.token, user.refreshToken);
 
       toast.success(`Welcome, ${user.username}!`);
-      navigate('/');
+      navigate('/home');
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
