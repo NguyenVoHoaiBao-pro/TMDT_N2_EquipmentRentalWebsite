@@ -12,6 +12,18 @@ import type {
 } from '@/features/auth/types/auth.types.ts';
 import type { InternalAxiosRequestConfig } from 'axios';
 
+/**
+ * API CLIENT OVERVIEW
+ * ---------------------------------------------------------------------------------
+ * This file configures a shared Axios instance for the entire application, featuring:
+ * 1. Automatic Access Token attachment to every outgoing request's Authorization header.
+ * 2. Automatic unwrapping of the `result` field from Spring Boot backend JSON responses.
+ * 3. TOKEN REFRESH QUEUE: When multiple concurrent API requests fail with a 401 error (expired),
+ * only the first request triggers the /refresh-token endpoint. Subsequent requests are
+ * queued and automatically retried in the background once the new token is acquired.
+ * This prevents race conditions.
+ */
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000;
 
@@ -27,12 +39,15 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// For each request, check if there's a token in local storage and add it to the Authorization header'
+/**
+ * REQUEST INTERCEPTOR
+ * Automatically checks localStorage and attaches the Access Token as a Bearer token if present.
+ */
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // Add the token to the Authorization header
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
@@ -41,24 +56,47 @@ apiClient.interceptors.request.use(
   }
 );
 
-let isRefreshing = false;
+// GLOBAL STATE FOR TOKEN REFRESH FLOW
+let isRefreshing = false; // Flag to indicate if a token refresh request is currently in progress
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let failedQueue: any[] = []; // Array to store 401 requests waiting for the new token
 
+/**
+ * QUEUE PROCESSOR
+ * Iterates through all queued requests, then resolves or rejects them based on the refresh outcome.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token); // Passes the new Access Token to update the request headers
+    }
+  });
+  failedQueue = []; // Clear the queue for future expiration cycles
+};
+
+/**
+ * RESPONSE INTERCEPTOR
+ * Handles data unwrapping for successful responses and intercepts 401 authentication errors.
+ */
 apiClient.interceptors.response.use(
   (response) => {
-    // unwrap `result` if present
+    // Automatically unwrap the data bypassing the Spring Boot wrapper if 'result' exists
     return response.data && 'result' in response.data ? response.data.result : response;
   },
   async (error: AxiosError) => {
     const status = error.response?.status;
-
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
-    // If we get that request is from the login command, don't try to reload or redirect the user
+    // LOGIN GUARD: If a 401 error occurs on the login request itself (invalid credentials),
+    // reject immediately to show a toast. This avoids infinite refresh loops or unexpected redirects.
     if (originalRequest?.url?.includes('/auth/login')) {
       return Promise.reject(error);
     }
 
-    // only handle 401 once per request
+    // Prevent infinite retry loops: Only handle 401 once per original request
     if (status !== 401 || !originalRequest || originalRequest._retry) {
       return Promise.reject(error);
     }
@@ -66,18 +104,34 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
     const refreshToken = localStorage.getItem('refreshToken');
 
-    // no refresh token, it happens when the token of the user is expired → force logout
+    // Token root lost: Refresh token missing (completely expired) -> Clear storage and force logout
     if (!refreshToken) {
       localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
       window.location.href = '/login';
       return Promise.reject(error);
     }
 
-    // already refreshing → just reject
+    // QUEUING SCENARIO: Another request is already refreshing the token.
+    // Wrap the current request in a Promise and push it to the queue until resolved.
     if (isRefreshing) {
-      return Promise.reject(error);
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: (token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            resolve(apiClient(originalRequest)); // Retry the request in the background
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          reject: (err: any) => {
+            reject(err);
+          },
+        });
+      });
     }
 
+    // PIONEER FLOW: The first request detecting 401 wins the right to refresh the token
     isRefreshing = true;
     try {
       const { data } = await axios.post<MyApiResponse<TokenRefreshResponse>>(
@@ -87,16 +141,22 @@ apiClient.interceptors.response.use(
 
       const { accessToken, refreshToken: newRefresh } = data.result;
 
+      // Update storage with fresh tokens
       localStorage.setItem('token', accessToken);
       localStorage.setItem('refreshToken', newRefresh);
       isRefreshing = false;
 
-      // retry the original request with a new token
+      // Release and retry all queued requests waiting in line
+      processQueue(null, accessToken);
+
+      // Self-rescue: Retry the pioneer request with the newly acquired token
       if (originalRequest.headers) {
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
       }
       return apiClient(originalRequest);
     } catch (refreshError) {
+      // Total failure (e.g., Refresh Token expired on server): Cancel all pending requests and force logout
+      processQueue(refreshError, null);
       isRefreshing = false;
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
@@ -106,7 +166,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Define API endpoints
+// API ENDPOINTS DEFINITION
 export const api = {
   auth: {
     login: (data: LoginRequest): Promise<JwtResponse> => apiClient.post('/auth/login', data),
@@ -124,14 +184,10 @@ export const api = {
       apiClient.post('/auth/logout', data),
 
     checkDuplicateEmail: (email: string): Promise<boolean> =>
-      apiClient.get('/auth/check-email', {
-        params: { email }, // Axios auto convert to /auth/check-email?email=email
-      }),
+      apiClient.get('/auth/check-email', { params: { email } }),
 
     checkDuplicateUsername: (username: string): Promise<boolean> =>
-      apiClient.get('/auth/check-username', {
-        params: { username }, // Similar for username
-      }),
+      apiClient.get('/auth/check-username', { params: { username } }),
   },
 };
 
