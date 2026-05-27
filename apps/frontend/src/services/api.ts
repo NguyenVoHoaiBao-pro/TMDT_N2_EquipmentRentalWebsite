@@ -53,6 +53,11 @@ apiClient.interceptors.response.use(
 
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
+    // If we get that request is from the login command, don't try to reload or redirect the user
+    if (originalRequest?.url?.includes('/auth/login')) {
+      return Promise.reject(error);
+    }
+
     // only handle 401 once per request
     if (status !== 401 || !originalRequest || originalRequest._retry) {
       return Promise.reject(error);
@@ -61,7 +66,7 @@ apiClient.interceptors.response.use(
     originalRequest._retry = true;
     const refreshToken = localStorage.getItem('refreshToken');
 
-    // no refresh token → force logout
+    // no refresh token, it happens when the token of the user is expired → force logout
     if (!refreshToken) {
       localStorage.removeItem('token');
       window.location.href = '/login';
