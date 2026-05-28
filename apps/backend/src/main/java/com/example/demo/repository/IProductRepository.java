@@ -8,6 +8,7 @@ import java.util.List;
 
 public interface IProductRepository extends JpaRepository<Product, Long> {
 
+
     // Helper methods:
     List<Product> findByStatus(ProductStatus status);
 }

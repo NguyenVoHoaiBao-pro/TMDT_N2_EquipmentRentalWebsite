@@ -16,7 +16,7 @@ public abstract class BaseEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Integer id;
+    protected Long id;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     protected Instant createdAt; // Use Instant instead of LocalDateTime for store time UTC

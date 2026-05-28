@@ -7,6 +7,8 @@ import lombok.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 @Table(name = "products")
 @Entity
@@ -38,6 +40,11 @@ public class Product extends BaseEntity implements Serializable {
     @Column(name = "status", nullable = false)
     private ProductStatus status;
 
-    @Column(name = "image_url", nullable = true)
-    private String imageUrl;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<ProductImage> images = new HashSet<>();
 }
