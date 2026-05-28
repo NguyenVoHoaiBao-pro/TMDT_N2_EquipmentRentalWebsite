@@ -14,7 +14,8 @@
     "test": "npm run test --workspaces --if-present",
     "test:ci": "npm run test:ci --workspaces --if-present",
     "install:all": "npm install && npm install --workspaces",
-    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules"
+    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "check-updates": "ncu -f nx"
   },
   "devDependencies": {
     "lerna": "^9.0.7"
@@ -26,5 +27,14 @@
   ],
   "author": "Your Name",
   "license": "MIT",
-  "type": "commonjs"
+  "type": "commonjs",
+  "dependencies": {
+    "axios": "^1.16.1",
+    "nx": "^22.7.3",
+    "yaml": "^2.9.0"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.6",
+    "yaml": "^2.9.0"
+  }
 }

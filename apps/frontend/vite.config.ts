@@ -11,12 +11,20 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
+    port: 5173,
     proxy: {
+      // Khi Frontend gọi đến bất kỳ URL nào bắt đầu bằng /api
       '/api': {
-        target: 'http://localhost:8080',
+        // Trỏ thẳng vào tên service của container backend
+        target: 'http://equipment-rental-backend:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api'),
+        // CẤU HÌNH QUAN TRỌNG: Tự động chèn /equipment_rental vào trước /api khi gửi đi
+        rewrite: (path) => path.replace(/^\/api/, '/equipment_rental/api'),
       },
+    },
+    watch: {
+      usePolling: true,
     },
   },
   build: {

@@ -30,6 +30,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -204,10 +205,18 @@ public class AuthService {
         String email = request.getEmail();
 
         // 2. Check if the user exists in the database and create a reset token
-        User user = userRepository.findByEmail(email).orElseThrow(
-            () -> new AppException(ErrorCode.USER_NOT_FOUND)
-        );
+        Optional<User> userOptional = userRepository.findByEmail(email);
 
+        /*
+         * if user not found we log and return not throw any exceptionn
+         * to avoid user enumeration and phishing attack.
+         */
+        if (userOptional.isEmpty()) {
+            log.warn("User with email {} not found", email);
+            return;
+        }
+        
+        User user = userOptional.get();
         String resetToken = UUID.randomUUID().toString();
 
         // 3. Store the reset token in Redis with an expiration time (e.g., 15 minutes)
@@ -215,7 +224,8 @@ public class AuthService {
         redisTemplate.opsForValue().set(redisKey, user.getEmail(), 15, TimeUnit.MINUTES);
 
         // Create a reset link (you should replace the URL with your frontend's reset password page)
-        String resetLink = "http://localhost:3000/reset-password?token=" + resetToken;
+        String resetLink = "http://localhost:5173/reset-password?token=" + resetToken;
+        ;
 
         // Send the reset link to the user's email
         emailService.sendResetPasswordEmail(email, resetLink);

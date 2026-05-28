@@ -1,29 +1,25 @@
-version: '3.8'
-
 services:
-  # MySQL Database
   mysql:
-    image: mysql:8.0-alpine
+    image: mysql:8.0
     container_name: equipment-rental-db
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
-      MYSQL_DATABASE: ${DB_NAME:-demo_db}
-      MYSQL_USER: ${DB_USER:-demo}
+      MYSQL_DATABASE: ${DB_NAME:-equipment_rental_db}
+      MYSQL_USER: ${DB_USER:-root}
       MYSQL_PASSWORD: ${DB_PASSWORD:-root}
     ports:
       - '3306:3306'
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      test: [ 'CMD', 'mysqladmin', 'ping', '-h', 'localhost' ]
       timeout: 20s
       retries: 10
       interval: 10s
     networks:
       - equipment-rental-network
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     container_name: equipment-rental-cache
@@ -33,30 +29,27 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: [ 'CMD', 'redis-cli', 'ping' ]
       timeout: 3s
       retries: 5
       interval: 5s
     networks:
       - equipment-rental-network
 
-  # Backend API
   backend:
     build:
       context: .
       dockerfile: ./apps/backend/Dockerfile
     container_name: equipment-rental-backend
     restart: unless-stopped
+    # Only remain internal network access to backend, remove port mapping to avoid exposing it directly
     environment:
       JAVA_OPTS: '-Xmx512m -Xms256m'
       DB_HOST: mysql
       DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-demo_db}
-      DB_USER: ${DB_USER:-demo}
-      DB_PASSWORD: ${DB_PASSWORD:-root}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       SERVER_PORT: 8080
-      JWT_SECRET: ${JWT_SECRET:-YourSuperSecretKeyMin32CharsLongPassword1234567890}
-      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
     ports:
       - '8080:8080'
     depends_on:
@@ -64,15 +57,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8080/swagger-ui.html']
-      timeout: 3s
-      retries: 5
-      interval: 10s
     networks:
       - equipment-rental-network
 
-  # Frontend
   frontend:
     build:
       context: .
@@ -80,16 +67,9 @@ services:
     container_name: equipment-rental-frontend
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - '80:80'
     depends_on:
       - backend
-    environment:
-      VITE_API_URL: http://backend:8080
-    healthcheck:
-      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:3000/']
-      timeout: 3s
-      retries: 5
-      interval: 10s
     networks:
       - equipment-rental-network
 

@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
 import { TooltipProvider } from '@/ui-primitives/ui/tooltip';
 import { Toaster } from 'sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -11,8 +12,11 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <App />
-        <Toaster position="top-right" richColors />
+        <BrowserRouter>
+          {' '}
+          <App />
+          <Toaster position="top-right" richColors />
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   </StrictMode>

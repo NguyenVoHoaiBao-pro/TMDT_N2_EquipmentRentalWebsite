@@ -1,9 +1,8 @@
 package com.example.demo.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL) // If a field is null, it won't be included in the response'
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class MyApiResponse<T> {
 
     private int statusCode;
@@ -22,5 +21,5 @@ public class MyApiResponse<T> {
     private T result;
 
     @Builder.Default
-    private LocalDateTime timestamp = LocalDateTime.now();
+    private Instant timestamp = Instant.now(); // Use Instant.now() for representing time in UTC
 }

@@ -33,3 +33,6 @@ dist-ssr
 
 # Allow .env.example to be committed to the repository
 !.env.example
+
+# Do not push this file to the repository, it is used for development purposes only
+Dockerfile-dev

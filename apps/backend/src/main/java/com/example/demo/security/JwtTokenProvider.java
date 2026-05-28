@@ -6,15 +6,13 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
-import com.example.demo.exception.AppException;
-import com.example.demo.exception.ErrorCode;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
+
+import com.example.demo.exception.AppException;
+import com.example.demo.exception.ErrorCode;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -22,6 +20,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 // Add prefix so that spring can read the properties config
@@ -71,7 +71,8 @@ public class JwtTokenProvider {
      * We use this method for
      * 1. Oauth2 feature
      * 2. After token jwt expired in 1 day,
-     * user request, we use this method to generate a new access token for the user without
+     * user request, we use this method to generate a new access token for the user
+     * without
      * needing to log in again
      */
     public String generateTokenFromUsername(String username, String role, String email) {
@@ -106,7 +107,8 @@ public class JwtTokenProvider {
 
     /**
      * Get role from JWT token
-     * After filter succeed in token verification, we use this method to get roles from token to reduce the weight of a database
+     * After filter succeed in token verification, we use this method to get roles
+     * from token to reduce the weight of a database
      */
     @SuppressWarnings("unchecked")
     public List<String> getRolesFromToken(String token) {

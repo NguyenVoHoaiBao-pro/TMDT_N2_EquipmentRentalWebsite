@@ -1,18 +1,48 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
+import type {
+  ForgotPasswordRequest,
+  JwtResponse,
+  LoginRequest,
+  MyApiResponse,
+  RegisterRequest,
+  TokenRefreshResponse,
+  ResetPasswordRequest,
+  UserResponse,
+} from '@/features/auth/types/auth.types.ts';
+import type { InternalAxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+/**
+ * API CLIENT OVERVIEW
+ * ---------------------------------------------------------------------------------
+ * This file configures a shared Axios instance for the entire application, featuring:
+ * 1. Automatic Access Token attachment to every outgoing request's Authorization header.
+ * 2. Automatic unwrapping of the `result` field from Spring Boot backend JSON responses.
+ * 3. TOKEN REFRESH QUEUE: When multiple concurrent API requests fail with a 401 error (expired),
+ * only the first request triggers the /refresh-token endpoint. Subsequent requests are
+ * queued and automatically retried in the background once the new token is acquired.
+ * This prevents race conditions.
+ */
 
-// Create axios instance
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 10000;
+
+interface CustomAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor - Add JWT token
+/**
+ * REQUEST INTERCEPTOR
+ * Automatically checks localStorage and attaches the Access Token as a Bearer token if present.
+ */
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,57 +51,143 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor - Handle errors
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error: AxiosError) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-
-    if (error.response?.status === 403) {
-      // Forbidden
-      console.error('Access forbidden');
-    }
-
+  (error) => {
     return Promise.reject(error);
   }
 );
 
-// API endpoints
+// GLOBAL STATE FOR TOKEN REFRESH FLOW
+let isRefreshing = false; // Flag to indicate if a token refresh request is currently in progress
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let failedQueue: any[] = []; // Array to store 401 requests waiting for the new token
+
+/**
+ * QUEUE PROCESSOR
+ * Iterates through all queued requests, then resolves or rejects them based on the refresh outcome.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token); // Passes the new Access Token to update the request headers
+    }
+  });
+  failedQueue = []; // Clear the queue for future expiration cycles
+};
+
+/**
+ * RESPONSE INTERCEPTOR
+ * Handles data unwrapping for successful responses and intercepts 401 authentication errors.
+ */
+apiClient.interceptors.response.use(
+  (response) => {
+    // Automatically unwrap the data bypassing the Spring Boot wrapper if 'result' exists
+    return response.data && 'result' in response.data ? response.data.result : response;
+  },
+  async (error: AxiosError) => {
+    const status = error.response?.status;
+    const originalRequest = error.config as CustomAxiosRequestConfig;
+
+    // LOGIN GUARD: If a 401 error occurs on the login request itself (invalid credentials),
+    // reject immediately to show a toast. This avoids infinite refresh loops or unexpected redirects.
+    if (originalRequest?.url?.includes('/auth/login')) {
+      return Promise.reject(error);
+    }
+
+    // Prevent infinite retry loops: Only handle 401 once per original request
+    if (status !== 401 || !originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    originalRequest._retry = true;
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    // Token root lost: Refresh token missing (completely expired) -> Clear storage and force logout
+    if (!refreshToken) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
+      return Promise.reject(error);
+    }
+
+    // QUEUING SCENARIO: Another request is already refreshing the token.
+    // Wrap the current request in a Promise and push it to the queue until resolved.
+    if (isRefreshing) {
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: (token: string) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            resolve(apiClient(originalRequest)); // Retry the request in the background
+          },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          reject: (err: any) => {
+            reject(err);
+          },
+        });
+      });
+    }
+
+    // PIONEER FLOW: The first request detecting 401 wins the right to refresh the token
+    isRefreshing = true;
+    try {
+      const { data } = await axios.post<MyApiResponse<TokenRefreshResponse>>(
+        `${API_BASE_URL}/auth/refresh-token`,
+        { refreshToken }
+      );
+
+      const { accessToken, refreshToken: newRefresh } = data.result;
+
+      // Update storage with fresh tokens
+      localStorage.setItem('token', accessToken);
+      localStorage.setItem('refreshToken', newRefresh);
+      isRefreshing = false;
+
+      // Release and retry all queued requests waiting in line
+      processQueue(null, accessToken);
+
+      // Self-rescue: Retry the pioneer request with the newly acquired token
+      if (originalRequest.headers) {
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      }
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      // Total failure (e.g., Refresh Token expired on server): Cancel all pending requests and force logout
+      processQueue(refreshError, null);
+      isRefreshing = false;
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/login';
+      return Promise.reject(refreshError);
+    }
+  }
+);
+
+// API ENDPOINTS DEFINITION
 export const api = {
-  // Auth endpoints
   auth: {
-    login: (email: string, password: string) =>
-      apiClient.post('/api/auth/login', { email, password }),
-    register: (email: string, password: string, username: string) =>
-      apiClient.post('/api/auth/register', { email, password, username }),
-    logout: () => apiClient.post('/api/auth/logout'),
-  },
+    login: (data: LoginRequest): Promise<JwtResponse> => apiClient.post('/auth/login', data),
 
-  // Equipment endpoints
-  equipment: {
-    list: (params?: Record<string, unknown>) => apiClient.get('/api/equipment', { params }),
-    getById: (id: string) => apiClient.get(`/api/equipment/${id}`),
-    search: (keyword: string) => apiClient.get('/api/equipment/search', { params: { keyword } }),
-  },
+    register: (data: RegisterRequest): Promise<UserResponse> =>
+      apiClient.post('/auth/register', data),
 
-  // Order endpoints
-  orders: {
-    list: () => apiClient.get('/api/orders'),
-    create: (orderData: Record<string, unknown>) => apiClient.post('/api/orders', orderData),
-    getById: (id: string) => apiClient.get(`/api/orders/${id}`),
-  },
+    forgotPassword: (data: ForgotPasswordRequest): Promise<void> =>
+      apiClient.post('/auth/forgot-password', data),
 
-  // User endpoints
-  user: {
-    profile: () => apiClient.get('/api/user/profile'),
-    updateProfile: (data: Record<string, unknown>) => apiClient.put('/api/user/profile', data),
+    resetPassword: (data: ResetPasswordRequest): Promise<void> =>
+      apiClient.post('/auth/reset-password', data),
+
+    logout: (data: { refreshToken: string | null }): Promise<void> =>
+      apiClient.post('/auth/logout', data),
+
+    checkDuplicateEmail: (email: string): Promise<boolean> =>
+      apiClient.get('/auth/check-email', { params: { email } }),
+
+    checkDuplicateUsername: (username: string): Promise<boolean> =>
+      apiClient.get('/auth/check-username', { params: { username } }),
   },
 };
 
