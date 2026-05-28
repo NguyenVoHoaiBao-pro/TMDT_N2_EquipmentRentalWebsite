@@ -42,7 +42,7 @@ services:
       dockerfile: ./apps/backend/Dockerfile
     container_name: equipment-rental-backend
     restart: unless-stopped
-    # CHỈ GIỮ LẠI CÁC BIẾN MẠNG NỘI BỘ, KHÔNG ĐỂ BIẾN ${} BỊ TRỐNG Ở ĐÂY
+    # Only remain internal network access to backend, remove port mapping to avoid exposing it directly
     environment:
       JAVA_OPTS: '-Xmx512m -Xms256m'
       DB_HOST: mysql
