@@ -36,4 +36,4 @@ Thumbs.db
 # Maven
 .m2/
 
-!docker-compose.yml
+docker-compose.override.yml
