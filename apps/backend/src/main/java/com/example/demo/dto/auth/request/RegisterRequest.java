@@ -1,7 +1,7 @@
 package com.example.demo.dto.auth.request;
 
 import com.example.demo.constants.ValidationConstants;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -18,13 +18,11 @@ import lombok.NoArgsConstructor;
 public class RegisterRequest {
 
     @NotBlank(message = "{username.not.blank}")
-    @Pattern(regexp = ValidationConstants.USERNAME_PATTERN,
-        message = "{username.pattern}")
+    @Pattern(regexp = ValidationConstants.USERNAME_PATTERN, message = "{username.pattern}")
     private String username;
 
     @NotBlank(message = "{password.not.blank}")
-    @Pattern(regexp = ValidationConstants.PASSWORD_PATTERN,
-        message = "{password.pattern}")
+    @Pattern(regexp = ValidationConstants.PASSWORD_PATTERN, message = "{password.pattern}")
     private String password;
 
     @NotBlank(message = "{email.not.blank}")
