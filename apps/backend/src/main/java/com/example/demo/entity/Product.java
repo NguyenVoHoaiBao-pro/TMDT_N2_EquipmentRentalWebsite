@@ -44,6 +44,9 @@ public class Product extends BaseEntity implements Serializable {
     @JoinColumn(name = "category_id")
     private Category category;
 
+    @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
+    private ProductDetail productDetail;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Builder.Default
     private Set<ProductImage> images = new HashSet<>();

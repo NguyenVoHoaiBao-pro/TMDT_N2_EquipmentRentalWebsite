@@ -5,6 +5,7 @@ FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS product_images;
+DROP TABLE IF EXISTS product_details;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS users;
@@ -68,6 +69,20 @@ CREATE TABLE products
     FOREIGN KEY (category_id) REFERENCES categories (id),
     created_at    TIMESTAMP      NOT NULL,
     updated_at    TIMESTAMP      NOT NULL
+);
+
+CREATE TABLE product_details
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id     BIGINT UNIQUE NOT NULL,
+    brand          VARCHAR(100),
+    model          VARCHAR(100),
+    lens_mount     VARCHAR(50), -- For body/lens
+    specifications TEXT,        -- Other specifications
+    accessories    TEXT,        -- Accessories
+    FOREIGN KEY (product_id) REFERENCES products (id),
+    created_at     TIMESTAMP     NOT NULL,
+    updated_at     TIMESTAMP     NOT NULL
 );
 
 CREATE TABLE product_images

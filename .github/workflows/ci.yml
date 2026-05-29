@@ -59,8 +59,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies (Monorepo)
-        run: npm ci # Chạy tại root để nhận diện toàn bộ workspace lock file
-
+        run: npm ci # Run on root to install dependencies for all packages
       - name: Run Lint
         run: npm run lint --workspace=apps/frontend
 

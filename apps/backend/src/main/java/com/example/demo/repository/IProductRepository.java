@@ -1,14 +1,18 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Product;
-import com.example.demo.enumValues.ProductStatus;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import java.math.BigDecimal;
 
 public interface IProductRepository extends JpaRepository<Product, Long> {
 
+    Page<Product> findByCategoryId(Long categoryId, Pageable pageable);
 
-    // Helper methods:
-    List<Product> findByStatus(ProductStatus status);
+    Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    Page<Product> findByPricePerDayBetween(BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable);
+
 }
