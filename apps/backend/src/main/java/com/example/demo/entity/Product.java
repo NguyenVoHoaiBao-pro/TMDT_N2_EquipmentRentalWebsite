@@ -1,13 +1,14 @@
 package com.example.demo.entity;
 
-import com.example.demo.enumValues.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Table(name = "products")
@@ -30,22 +31,25 @@ public class Product extends BaseEntity implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Column(name = "slug", nullable = false, unique = true)
+    private String slug;
+
     @Column(name = "description", nullable = true)
     private String description;
 
-    @Column(name = "price_per_day", nullable = false, precision = 10, scale = 2)
-    private BigDecimal pricePerDay;
+    @JdbcTypeCode(SqlTypes.JSON)
+    // Use this to require the Hibernate this is a JSON column and can be serialized and deserialized to/from JSON
+    private Map<String, Object> specifications;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ProductStatus status;
+    @Column(name = "accessories_included", nullable = true)
+    private String accessoriesIncluded;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
-    private ProductDetail productDetail;
+    private ProductItem productItem;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Builder.Default

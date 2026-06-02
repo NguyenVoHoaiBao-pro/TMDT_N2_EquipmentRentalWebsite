@@ -1,21 +1,21 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
-@Table(name = "categories")
+@Table(name = "brands")
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Category extends BaseEntity implements Serializable {
+public class Brand extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -26,10 +26,4 @@ public class Category extends BaseEntity implements Serializable {
     @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "description", nullable = true)
-    private String description;
-
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    @Builder.Default
-    private Set<Product> products = new HashSet<>();
 }
