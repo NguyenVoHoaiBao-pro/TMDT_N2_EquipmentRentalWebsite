@@ -31,19 +31,19 @@ public class User extends BaseEntity implements Serializable {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "full_name", nullable = true)
+    @Column(name = "full_name", nullable = false)
     private String fullName;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phone_number", nullable = true, length = 10)
+    @Column(name = "phone_number", nullable = false, unique = true, length = 10)
     private String phoneNumber;
 
-    @Column(name = "id_card_number", nullable = true, length = 16)
+    @Column(name = "id_card_number", length = 16)
     private String idCardNumber;
 
-    @Column(name = "trust_score", nullable = true, precision = 3, scale = 2)
+    @Column(name = "trust_score", precision = 3, scale = 2)
     private BigDecimal trustScore;
 
     @ManyToMany(fetch = FetchType.EAGER) // FetchType.EAGER to eagerly load roles
@@ -52,6 +52,10 @@ public class User extends BaseEntity implements Serializable {
         inverseJoinColumns = @JoinColumn(name = "role_id"))
     @Builder.Default // Ensure roles are initialized with an empty set but not null
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<ProductItem> ownedItems = new HashSet<>();
 
     @Column(nullable = false)
     @Builder.Default

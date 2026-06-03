@@ -4,9 +4,9 @@ from datetime import datetime
 from pathlib import Path
 from tqdm import tqdm
 
-# Predefined lists of Vietnamese first names and last names
+# Danh sách tên đệm và tên tiếng Việt (bỏ dấu hoặc giữ nguyên không dấu để tránh lỗi encode tùy bạn, ở đây giữ chuẩn ko dấu cho sạch)
 FIRST_NAMES_MALE = [
-    "Minh", "Anh", "Hua", "Van", "Hung", "Dung", "Tung", "Khanh", "Dang", "Hoang",
+    "Minh", "Anh", "Van", "Hung", "Dung", "Tung", "Khanh", "Dang", "Hoang",
     "Tuan", "Thanh", "Phuc", "Long", "Binh", "Nam", "Khoi", "Khang", "Duc", "Nghia"
 ]
 
@@ -19,60 +19,6 @@ LAST_NAMES = [
     "Nguyen", "Tran", "Le", "Pham", "Hoang", "Vu", "Do", "Ho", "Ngoc",
     "Luong", "Ky", "Dang", "Bui", "Doan", "Luu", "Trinh"
 ]
-
-# Bộ dữ liệu địa chính phân cấp chuẩn Việt Nam để tránh rác dữ liệu
-VIETNAM_ADDRESSES = [
-    {
-        "province": "Thanh pho Ho Chi Minh",
-        "districts": [
-            {
-                "district": "Quan 1",
-                "wards": ["Phuong Ben Nghe", "Phuong Ben Thanh", "Phuong Nguyen Cu Trinh", "Phuong Da Kao"]
-            },
-            {
-                "district": "Quan Binh Thanh",
-                "wards": ["Phuong 15", "Phuong 25", "Phuong Tăng Bat Ho", "Phuong Hiep Binh Chanh"]
-            },
-            {
-                "district": "Quan 7",
-                "wards": ["Phuong Tan Phong", "Phuong Tan Quy", "Phuong Phu My"]
-            }
-        ]
-    },
-    {
-        "province": "Thanh pho Ha Noi",
-        "districts": [
-            {
-                "district": "Quan Hoan Kiem",
-                "wards": ["Phuong Hang Bac", "Phuong Hang Trong", "Phuong Trang Tien"]
-            },
-            {
-                "district": "Quan Cau Giay",
-                "wards": ["Phuong Dich Vong", "Phuong Mai Dich", "Phuong Trung Hoa"]
-            },
-            {
-                "district": "Quan Dong Da",
-                "wards": ["Phuong Lang Ha", "Phuong Quang Trung", "Phuong O Cho Dua"]
-            }
-        ]
-    },
-    {
-        "province": "Thanh pho Da Nang",
-        "districts": [
-            {
-                "district": "Quan Hai Chau",
-                "wards": ["Phuong Thach Thang", "Phuong Hoa Thuan Dong", "Phuong Phuoc Ninh"]
-            },
-            {
-                "district": "Quan Son Tra",
-                "wards": ["Phuong An Hai Bac", "Phuong Phuoc My", "Phuong Tho Quang"]
-            }
-        ]
-    }
-]
-
-STREETS = ["Duong Nguyen Hue", "Duong Le Loi", "Duong Tran Hung Dao", "Duong CMT8", "Duong Nguyen Trai",
-           "Duong Le Duan", "Duong Hoang Dieu"]
 
 
 def generate_random_email(first_name, last_name, index):
@@ -103,39 +49,24 @@ def assign_roles(user_index):
         roles.append("ADMIN")
     elif user_index <= 155:
         roles.append("OWNER")
+        # Chủ máy có 30% tỷ lệ muốn đi thuê lại máy của người khác (vừa là Owner vừa là Renter)
         if random.random() < 0.3:
             roles.append("RENTER")
     else:
+        # Toàn bộ người dùng còn lại là khách thuê thuần túy
         roles.append("RENTER")
     return roles
-
-
-def generate_random_address_data(user_id):
-    # Chọn ngẫu nhiên Tỉnh -> chọn Huyện thuộc Tỉnh đó -> chọn Xã thuộc Huyện đó
-    geo_province = random.choice(VIETNAM_ADDRESSES)
-    geo_district = random.choice(geo_province["districts"])
-    geo_ward = random.choice(geo_district["wards"])
-
-    street_num = random.randint(1, 450)
-    street_name = random.choice(STREETS)
-    street_address = f"So {street_num}, {street_name}"
-
-    return {
-        "user_id": user_id,
-        "province": geo_province["province"],
-        "district": geo_district["district"],
-        "ward": geo_ward,
-        "street_address": street_address,
-        "is_default": "TRUE"  # Địa chỉ đầu tiên mặc định là TRUE
-    }
 
 
 def generate_users(num_users=1000):
     users = []
     user_roles = []
-    user_addresses = []
 
-    for i in tqdm(range(1, num_users + 1), desc="Generating data", unit="user"):
+    # Tạo trước 1 password hash chung để tránh việc chạy bcrypt 1000 lần gây treo/chậm script
+    print("Hashing default password (please wait)...")
+    password_hashed = hash_password("Password@123")
+
+    for i in tqdm(range(1, num_users + 1), desc="Generating users", unit="user"):
         is_male = random.choice([True, False])
         first_name = random.choice(FIRST_NAMES_MALE) if is_male else random.choice(FIRST_NAMES_FEMALE)
         last_name = random.choice(LAST_NAMES)
@@ -145,10 +76,8 @@ def generate_users(num_users=1000):
         email = generate_random_email(first_name, last_name, i)
         phone = generate_random_phone()
         id_card = generate_id_card()
-        password_hashed = hash_password("Password@123")
         trust_score = round(random.uniform(3.00, 5.00), 2)
-        enabled = i <= 950
-
+        enabled = i <= 950  # 95% user được kích hoạt sẵn
         roles = assign_roles(i)
 
         users.append({
@@ -165,10 +94,7 @@ def generate_users(num_users=1000):
         for role in roles:
             user_roles.append({'user_id': i, 'role_name': role})
 
-        # Tự động sinh địa chỉ cho từng User tương ứng với id `i`
-        user_addresses.append(generate_random_address_data(i))
-
-    return users, user_roles, user_addresses
+    return users, user_roles
 
 
 def generate_users_sql(users):
@@ -180,10 +106,14 @@ def generate_users_sql(users):
         "-- =====================================================",
         "INSERT INTO users (user_name, password, full_name, email, phone_number, id_card_number, trust_score, enabled, created_at, updated_at) VALUES"
     ]
+
     values = []
     for user in users:
+        # Cập nhật đảm bảo các giá trị chuỗi không bị null tuân thủ ràng buộc NOT NULL của database
         value = f"    ('{user['username']}', '{user['password']}', '{user['full_name']}', '{user['email']}', '{user['phone']}', '{user['id_card']}', {user['trust_score']}, {user['enabled']}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
         values.append(value)
+
+    # Đưa các câu lệnh nối chuỗi ra ngoài vòng lặp FOR để tránh lỗi cú pháp SQL
     sql_lines.append(",\n".join(values) + ";")
     return "\n".join(sql_lines)
 
@@ -195,46 +125,51 @@ def generate_user_roles_sql(user_roles, role_id_map):
         "-- =====================================================",
         "INSERT INTO user_roles (user_id, role_id) VALUES"
     ]
+
     values = []
     for ur in user_roles:
         role_id = role_id_map[ur['role_name']]
         values.append(f"    ({ur['user_id']}, {role_id})")
-    sql_lines.append(",\n".join(values) + ";")
-    return "\n".join(sql_lines)
 
-
-def generate_user_addresses_sql(user_addresses):
-    sql_lines = [
-        "-- =====================================================",
-        "-- SEED DATA: USER_ADDRESSES",
-        "-- =====================================================",
-        "INSERT INTO user_addresses (user_id, province, district, ward, street_address, is_default, created_at, updated_at) VALUES"
-    ]
-    values = []
-    for addr in user_addresses:
-        value = f"    ({addr['user_id']}, '{addr['province']}', '{addr['district']}', '{addr['ward']}', '{addr['street_address']}', {addr['is_default']}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)"
-        values.append(value)
+    # Đưa ra ngoài vòng lặp FOR
     sql_lines.append(",\n".join(values) + ";")
     return "\n".join(sql_lines)
 
 
 def main():
     print("=" * 70)
-    print("GENERATING SEED DATA FOR EQUIPMENT RENTAL WEBSITE (WITH ADDRESSES)")
+    print("GENERATING SEED DATA FOR EQUIPMENT RENTAL WEBSITE")
     print("=" * 70)
 
-    print("\nGenerating 1000 users, roles, and addresses...")
-    users, user_roles, user_addresses = generate_users(1000)
+    users, user_roles = generate_users(1000)
 
-    role_id_map = {"ADMIN": 1, "OWNER": 2, "RENTER": 3}
+    role_counts = {}
+    for ur in user_roles:
+        role_counts[ur['role_name']] = role_counts.get(ur['role_name'], 0) + 1
+
+    print(f"\nRole distribution:")
+    for role, count in sorted(role_counts.items()):
+        percentage = count / len(users) * 100
+        print(f"   {role:10s}: {count:4d} users ({percentage:5.1f}%)")
+
+    user_role_counts = {}
+    for ur in user_roles:
+        user_role_counts[ur['user_id']] = user_role_counts.get(ur['user_id'], 0) + 1
+    multi_role_users = sum(1 for count in user_role_counts.values() if count > 1)
+    print(f"\nUsers with multiple roles: {multi_role_users}")
+
+    role_id_map = {
+        "ADMIN": 1,
+        "OWNER": 2,
+        "RENTER": 3
+    }
 
     print("\nGenerating SQL statements...")
     users_sql = generate_users_sql(users)
     user_roles_sql = generate_user_roles_sql(user_roles, role_id_map)
-    addresses_sql = generate_user_addresses_sql(user_addresses)
 
     full_sql = f"""-- =====================================================
--- SEED DATA: USERS, USER_ROLES, AND USER_ADDRESSES
+-- SEED DATA: USERS AND USER_ROLES
 -- Generated at: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC
 -- DO NOT EDIT THIS FILE MANUALLY - Regenerate with: python scripts/generate_users.py
 -- =====================================================
@@ -242,8 +177,6 @@ def main():
 {users_sql}
 
 {user_roles_sql}
-
-{addresses_sql}
 """
 
     backend_path = Path("src/main/resources/database")
@@ -253,7 +186,7 @@ def main():
     with open(output_file, "w", encoding="utf-8") as f:
         f.write(full_sql)
 
-    print(f"\nSuccessfully generated {len(users)} users & addresses!")
+    print(f"\nSuccessfully generated {len(users)} users!")
     print(f"Output file: {output_file}")
     print("\n" + "=" * 70)
 

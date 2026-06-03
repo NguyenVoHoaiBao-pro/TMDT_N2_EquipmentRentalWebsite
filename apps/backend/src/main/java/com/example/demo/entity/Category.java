@@ -26,7 +26,7 @@ public class Category extends BaseEntity implements Serializable {
     @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "description", nullable = true)
+    @Column(name = "description")
     private String description;
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)

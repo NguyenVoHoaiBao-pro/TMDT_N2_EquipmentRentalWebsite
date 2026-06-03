@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serial;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "roles")
@@ -13,7 +14,7 @@ import java.io.Serial;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Role extends BaseEntity {
+public class Role extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

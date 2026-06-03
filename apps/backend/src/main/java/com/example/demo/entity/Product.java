@@ -25,8 +25,12 @@ public class Product extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
-    private User owner;
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id", nullable = false)
+    private Brand brand;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -34,19 +38,16 @@ public class Product extends BaseEntity implements Serializable {
     @Column(name = "slug", nullable = false, unique = true)
     private String slug;
 
-    @Column(name = "description", nullable = true)
+    @Column(name = "description")
     private String description;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    // Use this to require the Hibernate this is a JSON column and can be serialized and deserialized to/from JSON
+    @Column(name = "specifications")
     private Map<String, Object> specifications;
 
     @Column(name = "accessories_included", nullable = true)
     private String accessoriesIncluded;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
 
     @OneToOne(mappedBy = "product", cascade = CascadeType.ALL)
     private ProductItem productItem;

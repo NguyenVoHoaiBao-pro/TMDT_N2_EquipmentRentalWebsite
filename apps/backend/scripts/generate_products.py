@@ -1,279 +1,117 @@
-import requests
-from bs4 import BeautifulSoup
-from datetime import datetime, timezone
-import mysql.connector
-import re
 import json
-import random
-import time
-from typing import List
+import re
+import pandas as pd
 
-# -------------------------------------------------------------------------
-# 1. CẤU HÌNH HỆ THỐNG AN TOÀN
-# -------------------------------------------------------------------------
-CONFIG = {
-    'delay_min': 2,  # Giảm một chút để cào mượt hơn nhưng vẫn an toàn
-    'delay_max': 5,
-    'timeout': 10,
-    'max_retries': 3,
-}
-
-FREE_PROXIES = [
-    'http://103.152.112.162:8080',
-    'http://45.77.55.173:8080',
-    'http://185.162.230.55:8080',
-]
-
-# -------------------------------------------------------------------------
-# 2. KẾT NỐI DATABASE (ĐỒNG BỘ SPRING BOOT)
-# -------------------------------------------------------------------------
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Quietness149131!",
-    database="equipment_rental_db",
-    charset="utf8mb4",
-)
-cursor = db.cursor()
+# 1. Đọc file dữ liệu cào từ Web Scraper
+# Giả định file có tên là 'scraped_cameras.csv'
+try:
+    df = pd.read_csv("scraped_cameras.csv")
+except FileNotFoundError:
+    # Tạo dataframe giả lập cấu trúc để code không bị lỗi nếu chạy test
+    df = pd.DataFrame(
+        [
+            {
+                "name": "Sony Alpha a7 IV",
+                "description": "Excellent hybrid camera...",
+                "accessories_included": "Battery, Charger, Strap",
+                "Ten_Thong_So": "Sensor Size;Lens Mount",
+                "Gia_Tri": "Full-Frame;Sony E",
+                "image": "https://cdn.com",
+                "product_images": "https://cdn.com",
+                "price": "$60 for 3 days",
+            }
+        ]
+    )
 
 
-# -------------------------------------------------------------------------
-# 3. CÁC HÀM TIỆN ÍCH & TRỢ GIÚP
-# -------------------------------------------------------------------------
-def get_current_utc_time():
-    return datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-
-
-def random_delay():
-    time.sleep(random.uniform(CONFIG['delay_min'], CONFIG['delay_max']))
-
-
-def slugify(text):
-    text = text.lower()
-    text = re.sub(r'[áàảãạăắằẳẵặâấầẩẫậ]', 'a', text)
-    text = re.sub(r'[éèẻẽẹêếềểễệ]', 'e', text)
-    text = re.sub(r'[íìỉĩị]', 'i', text)
-    text = re.sub(r'[óòỏõọôốồổỗộơớờởỡợ]', 'o', text)
-    text = re.sub(r'[úùủũụưứừửữự]', 'u', text)
-    text = re.sub(r'[ýỳỷỹỵ]', 'y', text)
-    text = re.sub(r'đ', 'd', text)
-    text = re.sub(r'[^a-z0-9\s-]', '', text)
-    text = re.sub(r'[\s-]+', '-', text).strip('-')
+# Hàm tạo slug
+def make_slug(text):
+    text = text.lower().strip()
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[\s_]+", "-", text)
     return text
 
 
-def clean_price(price_text):
-    digits = re.sub(r'[^\d]', '', price_text)
-    return float(digits) if digits else 0.0
+# Bộ từ điển map tên hãng để lấy brand_id
+brand_map = {"sony": 1, "canon": 2, "nikon": 3, "fujifilm": 4, "panasonic": 5}
+category_id = 1  # Mặc định 1 là danh mục Máy ảnh (Cameras)
+owner_id = 1  # Mặc định gán cho tài khoản hệ thống/admin ban đầu
 
+sql_statements = []
+sql_statements.append("SET FOREIGN_KEY_CHECKS = 0;\n")
 
-def generate_unique_slug(slug):
-    final_slug = slug
-    counter = 1
-    while True:
-        cursor.execute("SELECT id FROM products WHERE slug = %s", (final_slug,))
-        if not cursor.fetchone():
-            break
-        counter += 1
-        final_slug = f"{slug}-{counter}"
-    return final_slug
+# Thống kê ID tự tăng cho bảng products và product_items
+prod_id = 1
+item_id = 1
+img_id = 1
 
+for index, row in df.iterrows():
+    name = str(row["name"]).strip()
+    slug = make_slug(name)
+    description = str(row["description"]).replace("'", "''")
+    accessories = str(row["accessories_included"]).replace("'", "''")
 
-def get_owner_id():
-    cursor.execute("""
-                   SELECT u.id
-                   FROM users u
-                            INNER JOIN user_roles ur ON u.id = ur.user_id
-                            INNER JOIN roles r ON ur.role_id = r.id
-                   WHERE r.role_name = 'OWNER' LIMIT 1
-                   """)
-    result = cursor.fetchone()
-    return result[0] if result else 1
+    # Bóc tách tên Hãng sản xuất từ từ đầu tiên của tên máy
+    first_word = name.split(" ")[0].lower()
+    brand_id = brand_map.get(first_word, 6)  # 6 là ID 'Khác' nếu không khớp
 
+    # Xử lý thông số kỹ thuật (Gom Ten_Thong_So và Gia_Tri thành JSON)
+    specs_dict = {}
+    if pd.notna(row["Ten_Thong_So"]) and pd.notna(row["Gia_Tri"]):
+        keys = str(row["Ten_Thong_So"]).split(";")
+        vals = str(row["Gia_Tri"]).split(";")
+        for k, v in zip(keys, vals):
+            if k.strip():
+                specs_dict[k.strip()] = v.strip()
+    specs_json = json.dumps(specs_dict, ensure_ascii=False).replace("'", "''")
 
-def get_category_id(category_key):
-    category_map = {
-        'body': 'Máy ảnh Body',
-        'lens_sony': 'Ống kính Sony',
-        'lens_canon': 'Ống kính Canon',
-        'flash': 'Đèn Flash',
-        'accessory': 'Phụ kiện'
-    }
-    target_name = category_map.get(category_key, 'Phụ kiện')
-    cursor.execute("SELECT id FROM categories WHERE name = %s", (target_name,))
-    result = cursor.fetchone()
+    # Xử lý giá tiền (Quy đổi sơ bộ từ chuỗi '$60 for 3 days' sang tiền VNĐ/Ngày)
+    price_str = str(row["price"])
+    price_numbers = re.findall(r"\d+", price_str)
+    price_per_day_vnd = 400000.00  # Giá mặc định nếu không parse được
+    deposit_value_vnd = 15000000.00
 
-    if result:
-        return result[0]
+    if len(price_numbers) >= 2:
+        usd_amount = float(price_numbers[0])
+        days = float(price_numbers[1])
+        # Tính giá 1 ngày hệ USD * tỷ giá 25,000 VNĐ
+        price_per_day_vnd = round((usd_amount / days) * 25000, -3)
+        # Ước lượng giá trị máy để làm tiền cọc (giá thuê 3 ngày chiếm tầm 1.5% giá trị máy)
+        deposit_value_vnd = round(usd_amount * 60 * 25000, -4)
 
-    cursor.execute("SELECT id FROM categories LIMIT 1")
-    fallback = cursor.fetchone()
-    return fallback[0] if fallback else 1
+    # --- TẠO CÂU LỆNH SQL ---
 
+    # 1. Chèn vào bảng products
+    sql_products = f"INSERT INTO products (id, category_id, brand_id, name, slug, description, specifications, accessories_included, created_at, updated_at) VALUES ({prod_id}, {category_id}, {brand_id}, '{name}', '{slug}', '{description}', '{specs_json}', '{accessories}', NOW(), NOW());"
+    sql_statements.append(sql_products)
 
-def calculate_deposit(price_per_day, category_key):
-    multipliers = {'body': 50, 'lens_sony': 35, 'lens_canon': 35, 'flash': 20}
-    return price_per_day * multipliers.get(category_key, 15)
+    # 2. Chèn vào bảng product_items (Bơm một thiết bị mẫu vào kho cho thuê P2P)
+    serial_mock = f"SN-{first_word.upper()}-{100000 + prod_id}"
+    sql_items = f"INSERT INTO product_items (id, product_id, owner_id, serial_number, condition_percent, price_per_day, deposit_value, status, created_at, updated_at) VALUES ({item_id}, {prod_id}, {owner_id}, '{serial_mock}', 98, {price_per_day_vnd}, {deposit_value_vnd}, 'AVAILABLE', NOW(), NOW());"
+    sql_statements.append(sql_items)
 
+    # 3. Chèn ảnh chính (Primary Image)
+    if pd.notna(row["image"]):
+        sql_img_primary = f"INSERT INTO product_images (id, product_id, image_url, is_primary, created_at, updated_at) VALUES ({img_id}, {prod_id}, '{row['image']}', TRUE, NOW(), NOW());"
+        sql_statements.append(sql_img_primary)
+        img_id += 1
 
-# -------------------------------------------------------------------------
-# 4. ENGINE TẢI HTML (PROXY ROTATION)
-# -------------------------------------------------------------------------
-def fetch_html(url, max_retries=3):
-    """Đổi tên hàm giữ nguyên cấu trúc cũ nhưng chạy trực tiếp không qua proxy lỗi"""
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-    }
-    for attempt in range(max_retries):
-        try:
-            # Gửi request trực tiếp
-            response = requests.get(url, headers=headers, timeout=10)
-            if response.status_code == 200:
-                return response.text
-            print(f"⚠ Status {response.status_code}: {url}")
-        except Exception as e:
-            print(f"⚠ Lỗi kết nối lần {attempt + 1}: {e}")
-            time.sleep(2)
-    return None
+    # 4. Chèn loạt ảnh phụ từ chi tiết sản phẩm
+    if pd.notna(row["product_images"]):
+        sub_images = str(row["product_images"]).split(";")
+        for img_url in sub_images:
+            if img_url.strip() and img_url.strip() != str(row["image"]):
+                sql_img_sub = f"INSERT INTO product_images (id, product_id, image_url, is_primary, created_at, updated_at) VALUES ({img_id}, {prod_id}, '{img_url.strip()}', FALSE, NOW(), NOW());"
+                sql_statements.append(sql_img_sub)
+                img_id += 1
 
+    prod_id += 1
+    item_id += 1
 
-# -------------------------------------------------------------------------
-# 5. CÁC BỘ PHÂN TÍCH CÚ PHÁP (PARSERS)
-# -------------------------------------------------------------------------
-def parse_thiet_bi_gao(soup, url):
-    try:
-        product_name = soup.find('h1', class_='product_title').text.strip()
-        price_elem = soup.select_one('.price .amount') or soup.select_one('.rental-price .amount')
-        price_text = price_elem.text if price_elem else "0"
+sql_statements.append("\nSET FOREIGN_KEY_CHECKS = 1;")
 
-        desc_elem = soup.find('div', class_='woocommerce-product-details__short-description')
-        description = desc_elem.text.strip() if desc_elem else ""
+# Ghi ra file SQL hoàn chỉnh
+with open("import_cameras.sql", "w", encoding="utf-8") as f:
+    f.write("\n".join(sql_statements))
 
-        attributes = {}
-        spec_table = soup.find('table', class_='woocommerce-product-attributes')
-        if spec_table:
-            for row in spec_table.find_all('tr'):
-                label, value = row.find('th'), row.find('td')
-                if label and value:
-                    key = slugify(label.text.strip()).replace('-', '_')
-                    attributes[key] = value.text.strip()
-
-        brand = "Unknown"
-        for b in ['Sony', 'Canon', 'Nikon', 'Fujifilm', 'Godox', 'DJI']:
-            if b.lower() in product_name.lower(): brand = b; break
-
-        images = []
-        gallery = soup.find('div', class_='woocommerce-product-gallery')
-        if gallery:
-            for idx, img in enumerate(gallery.find_all('img')):
-                img_url = img.get('src') or img.get('data-src')
-                if img_url and img_url not in [i['url'] for i in images]:
-                    images.append({'url': img_url, 'is_primary': (idx == 0)})
-
-        return {
-            'name': product_name, 'price_raw': price_text, 'description': description,
-            'brand': brand, 'model': product_name.replace(brand, "").strip(),
-            'attributes': attributes, 'specifications': "", 'accessories': "Bộ thiết bị chuẩn kèm túi đựng",
-            'images': images
-        }
-    except Exception as e:
-        print(f"❌ Lỗi cấu trúc Thiết Bị Gáo tại {url}: {e}")
-        return None
-
-
-def parse_zshop_table_row(row_soup):
-    try:
-        columns = row_soup.find_all('td')
-        if len(columns) < 2: return None
-        product_name = columns[0].text.strip()
-        if not product_name or any(w in product_name for w in ["Thiết bị", "Sản phẩm", "Bảng giá"]): return None
-
-        price_text = columns[1].text.strip()
-        brand = "Unknown"
-        for b in ['Sony', 'Canon', 'Nikon', 'Fujifilm']:
-            if b.lower() in product_name.lower(): brand = b; break
-
-        return {
-            'name': product_name, 'price_raw': price_text, 'description': f"Dịch vụ thuê {product_name} tại zShop.",
-            'brand': brand, 'model': product_name.replace(brand, "").strip(),
-            'attributes': {"source": "zshop_table"}, 'specifications': "", 'accessories': "Cáp đậy, pin sạc cơ bản",
-            'images': [{'url': 'https://zshop.vn/images/logos/23/logo-zshop-2009-218x66.png', 'is_primary': True}]
-        }
-    except Exception as e:
-        print(f"❌ Lỗi dòng hàng zShop: {e}")
-        return None
-
-
-# -------------------------------------------------------------------------
-# 6. PIPELINE LƯU TRỮ HỢP NHẤT
-# -------------------------------------------------------------------------
-def save_to_database(parsed_data, category_key):
-    if not parsed_data: return False
-    current_time_utc = get_current_utc_time()
-    category_id = get_category_id(category_key)
-    owner_id = get_owner_id()
-
-    price_per_day = clean_price(parsed_data['price_raw'])
-    if price_per_day == 0: return False
-
-    unique_slug = generate_unique_slug(slugify(parsed_data['name']))
-    deposit_value = calculate_deposit(price_per_day, category_key)
-
-    try:
-        cursor.execute("""
-                       INSERT INTO products (category_id, owner_id, name, slug, description, price_per_day,
-                                             deposit_value, status, created_at, updated_at)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, 'AVAILABLE', %s, %s)
-                       """, (category_id, owner_id, parsed_data['name'], unique_slug, parsed_data['description'][:1000],
-                             price_per_day, deposit_value, current_time_utc, current_time_utc))
-
-        product_id = cursor.lastrowid
-
-        # Lưu JSON trực tiếp khớp với trường Map bên Java
-        attributes_json = json.dumps(parsed_data['attributes'], ensure_ascii=False)
-        cursor.execute("""
-                       INSERT INTO product_details (product_id, brand, model, attributes, specifications, accessories,
-                                                    created_at, updated_at)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                       """, (product_id, parsed_data['brand'], parsed_data['model'], attributes_json,
-                             parsed_data['specifications'], parsed_data['accessories'], current_time_utc,
-                             current_time_utc))
-
-        for img in parsed_data['images']:
-            cursor.execute("""
-                           INSERT INTO product_images (product_id, image_url, is_primary, created_at, updated_at)
-                           VALUES (%s, %s, %s, %s, %s)
-                           """, (product_id, img['url'], img['is_primary'], current_time_utc, current_time_utc))
-
-        db.commit()
-        print(f"✅ Đã lưu: {parsed_data['name']} (ID: {product_id})")
-        return True
-    except Exception as e:
-        print(f"❌ Lỗi ghi DB: {e}")
-        db.rollback()
-        return False
-
-
-# -------------------------------------------------------------------------
-# 7. ĐIỀU TỐC VẬN HÀNH PIPELINE
-# -------------------------------------------------------------------------
-if __name__ == "__main__":
-    print("🚀 PIPELINE KHỞI ĐỘNG...")
-
-    # Kịch bản 1: Cào thử một trang cụ thể của Thiết Bị Gáo
-    gao_url = "https://www.thietbigao.com/san-pham/chi-tiet-san-pham/sony-fx3-full-frame-cinema-camera.html"
-    html_gao = fetch_html(gao_url)
-    if html_gao:
-        data = parse_thiet_bi_gao(BeautifulSoup(html_gao, 'html.parser'), gao_url)
-        save_to_database(data, category_key='lens_sony')
-
-    random_delay()
-
-    # Kịch bản 2: Cào thử một bảng giá giả định từ zShop
-    # Trong thực tế bạn sẽ lấy soup của toàn bộ trang bài viết và tìm thẻ tr
-    sample_tr_html = "<tr><td>Sony Alpha A7 Mark IV</td><td>500.000 đ</td></tr>"
-    row_data = parse_zshop_table_row(BeautifulSoup(sample_tr_html, 'html.parser'))
-    save_to_database(row_data, category_key='body')
-
-    cursor.close()
-    db.close()
+print("Đã xử lý xong! File 'import_cameras.sql' đã sẵn sàng để import.")

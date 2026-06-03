@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS product_items;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS brands;
-DROP TABLE IF EXISTS user_addresses;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
 DROP TABLE IF EXISTS reviews;
@@ -27,9 +26,9 @@ CREATE TABLE users
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_name      VARCHAR(255) NOT NULL UNIQUE,
     password       VARCHAR(255) NOT NULL,
-    full_name      VARCHAR(255),
+    full_name      VARCHAR(255) NOT NULL,
     email          VARCHAR(255) NOT NULL UNIQUE,
-    phone_number   VARCHAR(20),
+    phone_number   VARCHAR(20) NOT NULL UNIQUE,
     id_card_number VARCHAR(16),
     trust_score    DECIMAL(3, 2)         DEFAULT 5.00,
     enabled        BOOLEAN      NOT NULL DEFAULT FALSE,
@@ -149,18 +148,4 @@ CREATE TABLE reviews
     created_at TIMESTAMP NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (author_id) REFERENCES users (id)
-);
-
-CREATE TABLE user_addresses
-(
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id        BIGINT       NOT NULL,
-    province       VARCHAR(100) NOT NULL,
-    district       VARCHAR(100) NOT NULL,
-    ward           VARCHAR(100) NOT NULL,
-    street_address VARCHAR(255) NOT NULL,
-    is_default     BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    created_at     TIMESTAMP    NOT NULL,
-    updated_at     TIMESTAMP    NOT NULL
 );

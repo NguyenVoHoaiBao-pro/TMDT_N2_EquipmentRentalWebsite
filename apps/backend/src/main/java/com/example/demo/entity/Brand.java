@@ -1,12 +1,12 @@
 package com.example.demo.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Table(name = "brands")
 @Entity
@@ -25,5 +25,9 @@ public class Brand extends BaseEntity implements Serializable {
 
     @Column(name = "slug", nullable = false, unique = true)
     private String slug;
+
+    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Product> products = new HashSet<>();
 
 }
