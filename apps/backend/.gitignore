@@ -44,3 +44,7 @@ build/
 
 # Python virtual environment (Not allowed to be committed to the repository)
 **/.venv/
+
+# Remain these file csv and script python gernerate data on local because of leaking private config and large size file:
+**.csv
+**.py
