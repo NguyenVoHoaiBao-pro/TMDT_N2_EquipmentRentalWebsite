@@ -1,0 +1,37 @@
+package com.example.demo.dto.product.request;
+
+import com.example.demo.enumValues.ProductItemStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ProductItemRequest {
+    @NotNull(message = "{product_id.not.null}")
+    private Long productId;
+
+    @NotBlank(message = "{serial_number.not.blank}")
+    private String serialNumber;
+
+    @NotNull(message = "{condition_percent.not.null}")
+    private Integer conditionPercent;
+
+    @NotNull(message = "{price_per_day.not.null}")
+    private BigDecimal pricePerDay;
+
+    @NotNull(message = "{deposit_value.not.null}")
+    private BigDecimal depositValue;
+
+    // Ảnh chính hiển thị ngoài danh sách (Bắt buộc là REAL_SHOT)
+    @NotBlank(message = "{primary_image.not.blank}")
+    private String primaryImageUrl;
+
+    // BỔ SUNG: Danh sách ảnh phụ bao gồm cả ảnh chụp góc cạnh và ảnh chứng minh số seri
+    private List<ItemImageRequest> subImages;
+}

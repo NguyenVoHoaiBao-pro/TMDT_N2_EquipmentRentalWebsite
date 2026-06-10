@@ -2,19 +2,14 @@ package com.example.demo.dto.product.response;
 
 import java.math.BigDecimal;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
-@Builder
-
-public class ProductResponse {
-    private Long id;
-    private String name;
-    private BigDecimal pricePerDay;
-    private String status;
-    private String categoryName;
-    private String primaryImageUrl;
+public record ProductResponse(
+    Long id,
+    String name,
+    String slug,
+    String categoryName,
+    String brandName,
+    String primaryImageUrl, // Ảnh hãng
+    BigDecimal minPricePerDay // Giá thấp nhất trong các máy đang APPROVED để thu hút người thuê
+) {
 }

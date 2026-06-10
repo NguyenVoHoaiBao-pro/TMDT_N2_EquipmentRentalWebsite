@@ -5,10 +5,10 @@ import lombok.Getter;
 @Getter
 public enum ProductItemStatus {
 
-    AVAILABLE("Available", "Product item is available"),
-    RENTED("Rented", "Product item is currently rented out"),
-    MAINTENANCE("Maintenance", "Product item is under maintenance and not available"),
-    DAMAGED("Damaged", "Product item is damaged and requires repair");
+    PENDING_APPROVAL("Pending Approval", "Product item is pending approval"),
+    APPROVED("Approved", "Product item has been approved"),
+    REJECTED("Rejected", "Product item has been rejected"),
+    HIDDEN("Hidden", "Product item is hidden from public view");
 
 
     private final String label;
