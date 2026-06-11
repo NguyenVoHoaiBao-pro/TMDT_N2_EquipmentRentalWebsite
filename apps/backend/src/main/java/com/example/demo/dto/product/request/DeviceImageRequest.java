@@ -3,7 +3,7 @@ package com.example.demo.dto.product.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
-public record ItemImageRequest(
+public record DeviceImageRequest(
     @NotBlank(message = "{image_url.not.blank}")
     String imageUrl,
 

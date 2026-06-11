@@ -1,6 +1,5 @@
 package com.example.demo.dto.product.request;
 
-import com.example.demo.enumValues.ProductItemStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -12,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductItemRequest {
+public class DeviceRequest {
     @NotNull(message = "{product_id.not.null}")
     private Long productId;
 
@@ -33,5 +32,5 @@ public class ProductItemRequest {
     private String primaryImageUrl;
 
     // BỔ SUNG: Danh sách ảnh phụ bao gồm cả ảnh chụp góc cạnh và ảnh chứng minh số seri
-    private List<ItemImageRequest> subImages;
+    private List<DeviceImageRequest> subImages;
 }

@@ -9,7 +9,8 @@ public record ProductResponse(
     String slug,
     String categoryName,
     String brandName,
-    String primaryImageUrl, // Ảnh hãng
-    BigDecimal minPricePerDay // Giá thấp nhất trong các máy đang APPROVED để thu hút người thuê
+    String primaryImageUrl,
+    BigDecimal minPricePerDay,
+    String status
 ) {
 }

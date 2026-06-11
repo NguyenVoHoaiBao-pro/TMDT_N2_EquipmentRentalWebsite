@@ -1,11 +1,11 @@
 package com.example.demo.dto.product.response;
 
-import com.example.demo.dto.product.request.ItemImageRequest;
+import com.example.demo.dto.product.request.DeviceImageRequest;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public record ProductItemManageResponse(
+public record DeviceManageResponse(
     Long id,
     Long productId,
     String productName,
@@ -14,6 +14,6 @@ public record ProductItemManageResponse(
     BigDecimal pricePerDay,
     BigDecimal depositValue,
     String status, // PENDING_APPROVAL, APPROVED, REJECTED
-    List<ItemImageRequest> allImages // Xem được cả ảnh SERIAL_PROOF để admin kiểm duyệt bài
+    List<DeviceImageRequest> allImages // Xem được cả ảnh SERIAL_PROOF để admin kiểm duyệt bài
 ) {
 }

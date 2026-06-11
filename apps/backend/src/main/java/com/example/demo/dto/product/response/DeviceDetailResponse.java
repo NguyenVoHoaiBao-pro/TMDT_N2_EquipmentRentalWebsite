@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-public record ProductItemDetailResponse(
+public record DeviceDetailResponse(
     Long id,
     String productName,
     String ownerName,
