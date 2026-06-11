@@ -7,9 +7,10 @@ public enum OrderStatus {
 
     PENDING("Pending", "Order is pending and awaiting confirmation"),
     CONFIRMED("Confirmed", "Order has been confirmed by the owner"),
+    PICKED_UP("Picked Up", "Order has been picked up by the renter"),
+    RETURNED("Returned", "Order has been returned by the renter"),
     CANCELLED("Cancelled", "Order has been cancelled by the renter or owner"),
-    COMPLETED("Completed", "Order has been completed successfully"),
-    ONGOING("Ongoing", "Order is currently ongoing and active");;
+    OVERDUE("Overdue", "Order has been overdue and needs attention");
 
     private final String label;
     private final String value;

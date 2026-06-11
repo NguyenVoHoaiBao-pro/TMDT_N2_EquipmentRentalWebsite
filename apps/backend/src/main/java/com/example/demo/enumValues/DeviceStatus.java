@@ -3,7 +3,7 @@ package com.example.demo.enumValues;
 import lombok.Getter;
 
 @Getter
-public enum ProductItemStatus {
+public enum DeviceStatus {
 
     PENDING_APPROVAL("Pending Approval", "Product item is pending approval"),
     APPROVED("Approved", "Product item has been approved"),
@@ -14,7 +14,7 @@ public enum ProductItemStatus {
     private final String label;
     private final String value;
 
-    ProductItemStatus(String label, String value) {
+    DeviceStatus(String label, String value) {
         this.label = label;
         this.value = value;
     }

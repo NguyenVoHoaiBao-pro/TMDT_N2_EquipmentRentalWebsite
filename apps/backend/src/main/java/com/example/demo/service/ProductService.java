@@ -4,12 +4,12 @@ import com.example.demo.dto.product.request.ProductFilterRequest;
 import com.example.demo.dto.product.response.ProductResponse;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductImage;
-import com.example.demo.entity.ProductItem;
-import com.example.demo.enumValues.ProductItemStatus;
+import com.example.demo.entity.Device;
+import com.example.demo.enumValues.DeviceStatus;
 import com.example.demo.repository.IProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -30,8 +29,9 @@ public class ProductService {
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "basePrice", "status");
 
+    @Transactional(readOnly = true)
     public Page<ProductResponse> getProducts(ProductFilterRequest filter, Pageable rawPageable) {
-        // 1. Validate and sanitize the pageable object
+        // 1. Validate và chuẩn hóa phân trang
         Pageable safePageable = paginationHelper.makeSafePagination(
             rawPageable,
             ALLOWED_SORT_FIELDS,
@@ -44,28 +44,42 @@ public class ProductService {
         Page<Product> productPaged = productRepository.findAll(spec, safePageable);
 
         return productPaged.map(product -> {
+            // 1. Retrieve primary image URL
             String primaryUrl = product.getImages().stream()
                 .filter(ProductImage::isPrimary)
                 .map(ProductImage::getImageUrl)
                 .findFirst()
                 .orElse(null);
 
-            return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .pricePerDay(product.getBasePrice() != null ? product.getBasePrice() : BigDecimal.ZERO)
-                .status(String.valueOf(product.getProductItems().stream()
-                    .map(ProductItem::getStatus)
-                    .anyMatch(status -> status == ProductItemStatus.AVAILABLE))
-                )
-                .categoryName(product.getCategory() != null ? product.getCategory().getName() : null)
-                .primaryImageUrl(primaryUrl)
-                .build();
+            // 2. Check if product has at least one approved device
+            boolean hasApprovedDevice = product.getDevices().stream()
+                .anyMatch(device -> device.getStatus() == DeviceStatus.APPROVED);
+
+            String statusText = hasApprovedDevice ? "AVAILABLE" : "OUT_OF_STOCK";
+
+            // 3. Build and return ProductResponse
+            return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getSlug(),
+                product.getCategory() != null ? product.getCategory().getName() : null,
+                product.getBrand() != null ? product.getBrand().getName() : null,
+                primaryUrl,
+                product.getBasePrice() != null ? product.getBasePrice() : BigDecimal.ZERO,
+                statusText
+            );
         });
+
     }
 
     private static Specification<Product> getProductSpecification(ProductFilterRequest filter) {
         return (root, query, cb) -> {
+            // TỐI ƯU HIỆU NĂNG: Khi đếm trang (Count Query) thì không Fetch, khi lấy data thì Fetch để chống N+1 Query
+            if (Long.class != query.getResultType()) {
+                root.fetch("images", jakarta.persistence.criteria.JoinType.LEFT);
+                root.fetch("category", jakarta.persistence.criteria.JoinType.LEFT);
+            }
+
             Predicate predicate = cb.conjunction();
 
             if (filter.categoryId() != null) {
@@ -99,20 +113,17 @@ public class ProductService {
 
     @Transactional
     public void updateBasePrice(Long productId) {
-
-        // 1. If no product is found, throw an exception
         Product product = productRepository.findById(productId).orElseThrow(
             () -> new EntityNotFoundException(String.format("Product with id %d not found", productId))
         );
 
-        // 2. Update the base price of the product
-        BigDecimal minPrice = product.getProductItems().stream()
-            .filter(item -> item.getStatus() == ProductItemStatus.AVAILABLE)
-            .map(ProductItem::getPricePerDay)
+        // Đổi getProductItems() -> getDevices()
+        BigDecimal minPrice = product.getDevices().stream()
+            .filter(device -> device.getStatus() == DeviceStatus.APPROVED)
+            .map(Device::getPricePerDay)
             .min(BigDecimal::compareTo)
             .orElse(BigDecimal.ZERO);
 
-        // 3. Save the base price of the product
         product.setBasePrice(minPrice);
         productRepository.save(product);
     }

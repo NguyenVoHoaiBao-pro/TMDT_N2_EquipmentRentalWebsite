@@ -1,18 +1,20 @@
-SET FOREIGN_KEY_CHECKS = 0;
+SET
+FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS user_roles;
-DROP TABLE IF EXISTS product_item_images;
-DROP TABLE IF EXISTS product_item_calendar;
+DROP TABLE IF EXISTS device_images;
+DROP TABLE IF EXISTS device_calendar;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS product_images;
-DROP TABLE IF EXISTS product_items;
+DROP TABLE IF EXISTS devices;
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS brands;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS roles;
-SET FOREIGN_KEY_CHECKS = 1;
+SET
+FOREIGN_KEY_CHECKS = 1;
 
 CREATE TABLE roles
 (
@@ -83,7 +85,7 @@ CREATE TABLE products
     FOREIGN KEY (brand_id) REFERENCES brands (id)
 );
 
-CREATE TABLE product_items
+CREATE TABLE devices
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,
     product_id        BIGINT         NOT NULL,
@@ -98,7 +100,7 @@ CREATE TABLE product_items
     updated_at        TIMESTAMP      NOT NULL,
     FOREIGN KEY (product_id) REFERENCES products (id),
     FOREIGN KEY (owner_id) REFERENCES users (id),
-    INDEX                idx_serial_number (serial_number)
+    INDEX             idx_serial_number (serial_number)
 );
 
 CREATE TABLE product_images
@@ -112,43 +114,43 @@ CREATE TABLE product_images
     FOREIGN KEY (product_id) REFERENCES products (id)
 );
 
-CREATE TABLE product_item_images
+CREATE TABLE device_images
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_item_id BIGINT       NOT NULL,
-    image_url       VARCHAR(255) NOT NULL,
-    image_type      ENUM('REAL_SHOT', 'SERIAL_PROOF') DEFAULT 'REAL_SHOT',
-    is_primary      BOOLEAN DEFAULT FALSE,
-    created_at      TIMESTAMP    NOT NULL,
-    updated_at      TIMESTAMP    NOT NULL,
-    FOREIGN KEY (product_item_id) REFERENCES product_items (id)
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    device_id  BIGINT       NOT NULL,
+    image_url  VARCHAR(255) NOT NULL,
+    image_type ENUM('REAL_SHOT', 'SERIAL_PROOF') DEFAULT 'REAL_SHOT',
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP    NOT NULL,
+    updated_at TIMESTAMP    NOT NULL,
+    FOREIGN KEY (device_id) REFERENCES devices (id)
 );
 
-CREATE TABLE product_item_calendar
+CREATE TABLE device_calendars
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_item_id BIGINT NOT NULL,
-    event_date      DATE   NOT NULL, -- Lưu chính xác từng ngày bận
-    status          ENUM('BOOKED', 'OWNER_BLOCK', 'MAINTENANCE') NOT NULL,
-    order_id        BIGINT NULL,     -- Null nếu do chủ máy tự khóa (OWNER_BLOCK)
-    created_at      TIMESTAMP NOT NULL,
-    FOREIGN KEY (product_item_id) REFERENCES product_items (id),
-    UNIQUE KEY uq_item_date (product_item_id, event_date) -- Khóa chặn không cho trùng ngày
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    device_id  BIGINT    NOT NULL,
+    event_date DATE      NOT NULL,                        -- Lưu chính xác từng ngày bận
+    status     ENUM('BOOKED', 'OWNER_BLOCK', 'MAINTENANCE') NOT NULL,
+    order_id   BIGINT NULL,                               -- Null nếu do chủ máy tự khóa (OWNER_BLOCK)
+    created_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (device_id) REFERENCES devices (id),
+    UNIQUE KEY uq_item_date (device_id, event_date) -- Khóa chặn không cho trùng ngày
 );
 
 CREATE TABLE orders
 (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    product_item_id BIGINT         NOT NULL,
-    renter_id       BIGINT         NOT NULL,
-    start_date      DATE           NOT NULL,
-    end_date        DATE           NOT NULL,
-    total_price     DECIMAL(10, 2) NOT NULL,
-    deposit_amount  DECIMAL(10, 2) DEFAULT 0.00,
-    status          ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
-    created_at      TIMESTAMP      NOT NULL,
-    updated_at      TIMESTAMP      NOT NULL,
-    FOREIGN KEY (product_item_id) REFERENCES product_items (id),
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    device_id      BIGINT         NOT NULL,
+    renter_id      BIGINT         NOT NULL,
+    start_date     DATE           NOT NULL,
+    end_date       DATE           NOT NULL,
+    total_price    DECIMAL(10, 2) NOT NULL,
+    deposit_amount DECIMAL(10, 2) DEFAULT 0.00,
+    status         ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
+    created_at     TIMESTAMP      NOT NULL,
+    updated_at     TIMESTAMP      NOT NULL,
+    FOREIGN KEY (device_id) REFERENCES devices (id),
     FOREIGN KEY (renter_id) REFERENCES users (id)
 );
 
