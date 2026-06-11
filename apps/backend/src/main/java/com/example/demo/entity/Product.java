@@ -55,7 +55,7 @@ public class Product extends BaseEntity implements Serializable {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Builder.Default
-    private Set<ProductItem> productItems = new HashSet<>();
+    private Set<Device> devices = new HashSet<>();
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Builder.Default

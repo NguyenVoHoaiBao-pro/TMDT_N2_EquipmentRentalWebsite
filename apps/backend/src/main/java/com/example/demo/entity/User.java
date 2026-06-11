@@ -55,7 +55,7 @@ public class User extends BaseEntity implements Serializable {
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     @Builder.Default
-    private Set<ProductItem> ownedItems = new HashSet<>();
+    private Set<Device> ownedItems = new HashSet<>();
 
     @Column(nullable = false)
     @Builder.Default

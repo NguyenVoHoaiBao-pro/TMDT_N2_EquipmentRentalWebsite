@@ -1,32 +1,36 @@
 package com.example.demo.entity;
 
-import com.example.demo.enumValues.ProductItemCalendarStatus;
+import com.example.demo.enumValues.CalendarStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serial;
 import java.time.LocalDate;
 
-@Table(name = "product_item_calendar")
+@Table(name = "device_calendars")
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProductItemCalendar extends BaseEntity {
+public class DeviceCalendar extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_item_id", nullable = false)
-    private ProductItem productItem;
+    @JoinColumn(name = "device_id", nullable = false)
+    private Device device;
 
     @Column(name = "event_date", nullable = false)
     private LocalDate eventDate;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ProductItemCalendarStatus status;
+    private CalendarStatus status;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 }

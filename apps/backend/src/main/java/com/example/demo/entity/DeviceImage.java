@@ -1,11 +1,12 @@
 package com.example.demo.entity;
 
+import com.example.demo.enumValues.ImageType;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.io.Serial;
 
-@Table(name = "product_item_images")
+@Table(name = "device_images")
 @Entity
 @Getter
 @Setter
@@ -13,17 +14,21 @@ import java.io.Serial;
 @AllArgsConstructor
 @Builder
 
-public class ProductItemImage extends BaseEntity {
+public class DeviceImage extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_item_id", nullable = false)
-    private ProductItem productItem;
+    @JoinColumn(name = "device_id", nullable = false)
+    private Device device;
 
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "image_type", nullable = false)
+    private ImageType imageType;
 
     @Column(name = "is_primary", nullable = false)
     @Builder.Default

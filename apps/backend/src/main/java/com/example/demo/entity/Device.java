@@ -1,20 +1,17 @@
 package com.example.demo.entity;
 
-import com.example.demo.enumValues.ProductItemStatus;
+import com.example.demo.enumValues.DeviceStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
-@Table(name = "product_items")
+@Table(name = "devices")
 @Entity
 @Getter
 @Setter
@@ -22,7 +19,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 
-public class ProductItem extends BaseEntity implements Serializable {
+public class Device extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -49,14 +46,14 @@ public class ProductItem extends BaseEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private ProductItemStatus status;
+    private DeviceStatus status;
 
-    @OneToMany(mappedBy = "productItem", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
     @Builder.Default
-    private Set<ProductItemImage> productItemImages = new HashSet<>();
+    private Set<DeviceImage> deviceImages = new HashSet<>();
 
-    @OneToMany(mappedBy = "productItem", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
     @Builder.Default
     @BatchSize(size = 50)
-    private Set<ProductItemCalendar> productItemCalendar = new HashSet<>();
+    private Set<DeviceCalendar> deviceCalendar = new HashSet<>();
 }
