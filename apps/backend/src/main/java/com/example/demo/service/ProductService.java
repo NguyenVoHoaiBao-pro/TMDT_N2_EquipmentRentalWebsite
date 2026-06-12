@@ -6,6 +6,7 @@ import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductImage;
 import com.example.demo.entity.Device;
 import com.example.demo.enumValues.DeviceStatus;
+import com.example.demo.repository.IDeviceRepository;
 import com.example.demo.repository.IProductRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
@@ -25,6 +26,7 @@ import java.util.Set;
 public class ProductService {
 
     private final IProductRepository productRepository;
+    private final IDeviceRepository deviceRepository;
     private final PaginationHelper paginationHelper;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "basePrice", "status");
@@ -113,15 +115,10 @@ public class ProductService {
 
     @Transactional
     public void updateBasePrice(Long productId) {
-        Product product = productRepository.findById(productId).orElseThrow(
-            () -> new EntityNotFoundException(String.format("Product with id %d not found", productId))
-        );
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
-        // Đổi getProductItems() -> getDevices()
-        BigDecimal minPrice = product.getDevices().stream()
-            .filter(device -> device.getStatus() == DeviceStatus.APPROVED)
-            .map(Device::getPricePerDay)
-            .min(BigDecimal::compareTo)
+        BigDecimal minPrice = deviceRepository.findMinPriceByProductId(productId)
             .orElse(BigDecimal.ZERO);
 
         product.setBasePrice(minPrice);

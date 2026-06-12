@@ -35,26 +35,15 @@ public class ProductController extends BaseController {
         @RequestParam(required = false) String sortBy,
         @RequestParam(defaultValue = "ASC") String orderBy,
 
-        // Filter params:
-        @RequestParam(required = false) Long categoryId,
-        @RequestParam(required = false) String search,
-        @RequestParam(required = false) BigDecimal minPrice,
-        @RequestParam(required = false) BigDecimal maxPrice
+        ProductFilterRequest filter
     ) {
         Sort.Direction direction = "DESC".equalsIgnoreCase(orderBy) ? Sort.Direction.DESC : Sort.Direction.ASC;
-
 
         Pageable rawPageable = (sortBy != null && !sortBy.trim().isEmpty())
             ? PageRequest.of(page, size, Sort.by(direction, sortBy))
             : PageRequest.of(page, size);
 
-        ProductFilterRequest filter = new ProductFilterRequest(
-            categoryId,
-            search,
-            minPrice,
-            maxPrice
-        );
-
         return createResponse(HttpStatus.OK, 1000, "Success", productService.getProducts(filter, rawPageable));
     }
+
 }

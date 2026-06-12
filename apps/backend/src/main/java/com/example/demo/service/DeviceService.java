@@ -17,25 +17,25 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeviceService {
 
-    private final IDeviceRepository productItemRepository;
+    private final IDeviceRepository deviceRepository;
     private final IProductRepository productRepository;
     private final IUserRepository userRepository;
 
-    private final DeviceImageService itemImageService;
-    private final ProductService productService; // Để cập nhật giá thấp nhất của dòng máy cha
+    private final DeviceImageService deviceImageService;
+    private final ProductService productService;
 
-    // LUỒNG 1: CHỦ MÁY ĐĂNG BÀI
+    // Owner posts a new device item
     @Transactional
     public void createProductItem(DeviceRequest request, Long authenticatedUserId) {
-        // 1. Kiểm tra dòng máy cha có tồn tại không
+        // 1. Check if the product exists
         Product product = productRepository.findById(request.getProductId())
-            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy dòng máy hệ thống"));
+            .orElseThrow(() -> new EntityNotFoundException("Not found product with id: " + request.getProductId()));
 
-        // 2. Lấy thông tin user đang đăng nhập (Bảo mật: Lấy từ Token chứ không lấy từ Request body)
+        // 2. Retrieve the authenticated user that logged in
         User owner = userRepository.findById(authenticatedUserId)
-            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thông tin tài khoản"));
+            .orElseThrow(() -> new EntityNotFoundException("Not found user with id: " + authenticatedUserId));
 
-        // 3. Tạo thực thể ProductItem với trạng thái chờ duyệt
+        // 3. Build and save the new device item
         Device newItem = Device.builder()
             .product(product)
             .owner(owner)
@@ -43,27 +43,27 @@ public class DeviceService {
             .conditionPercent(request.getConditionPercent())
             .pricePerDay(request.getPricePerDay())
             .depositValue(request.getDepositValue())
-            .status(DeviceStatus.PENDING_APPROVAL) // Mặc định chờ Admin duyệt
+            .status(DeviceStatus.PENDING_APPROVAL) // Needed for admin approval
             .build();
 
-        Device savedItem = productItemRepository.save(newItem);
+        Device savedItem = deviceRepository.save(newItem);
 
-        // 4. Gọi ImageService bổ trợ để bóc tách và lưu ảnh thực tế đính kèm
-        itemImageService.saveItemImages(savedItem, request.getPrimaryImageUrl(), request.getSubImages());
+        // 4. Save the primary image and sub images
+        deviceImageService.saveItemImages(savedItem, request.getPrimaryImageUrl(), request.getSubImages());
     }
 
-    // LUỒNG 2: ADMIN DUYỆT BÀI ĐĂNG
+    // Admin approve a device item
     @Transactional
     public void approveProductItem(Long itemId) {
-        Device item = productItemRepository.findById(itemId)
+        // 1. Chỉ cập nhật đúng chiếc máy cần duyệt thông qua ID
+        Device item = deviceRepository.findById(itemId)
             .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy bài đăng thiết bị"));
 
-        // 1. Chuyển trạng thái sang APPROVED
         item.setStatus(DeviceStatus.APPROVED);
-        productItemRepository.save(item);
+        deviceRepository.save(item); // Hoặc để Dirty Checking tự lo
 
-        // 2. TRIGGER: Gọi ProductService cập nhật lại giá sàn thấp nhất (base_price) cho dòng máy chung
-        // Việc này giúp trang chủ hiển thị đúng mức giá thuê "chỉ từ X.000đ/ngày" của dòng máy đó
+        // 2. Tách biệt hoàn toàn luồng: Gọi sang ProductService để tính lại giá sàn
+        // Bản thân hàm updateBasePrice sẽ tự SELECT mới hoàn toàn từ DB nên dữ liệu luôn chính xác
         productService.updateBasePrice(item.getProduct().getId());
     }
 }
