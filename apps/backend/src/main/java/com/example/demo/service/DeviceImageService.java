@@ -3,7 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.product.request.DeviceImageRequest;
 import com.example.demo.entity.Device;
 import com.example.demo.entity.DeviceImage;
-import com.example.demo.enumValues.ImageType; // ENUM: REAL_SHOT, SERIAL_PROOF
+import com.example.demo.enumValues.ImageType;
 import com.example.demo.repository.IDeviceImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,12 +14,11 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DeviceImageService {
-
     private final IDeviceImageRepository itemImageRepository;
 
     @Transactional
     public void saveItemImages(Device device, String primaryImageUrl, List<DeviceImageRequest> subImages) {
-        // 1. Lưu ảnh chính (Bắt buộc là REAL_SHOT và isPrimary = true)
+        // Store primary image
         DeviceImage primaryImg = DeviceImage.builder()
             .device(device)
             .imageUrl(primaryImageUrl)
@@ -28,18 +27,17 @@ public class DeviceImageService {
             .build();
         itemImageRepository.save(primaryImg);
 
-        // 2. Duyệt qua danh sách ảnh phụ từ Request và lưu vào DB
+        // Iterate through sub-images and save them
         if (subImages != null && !subImages.isEmpty()) {
-            List<DeviceImage> itemImages = subImages.stream().map(imgReq ->
-                DeviceImage.builder()
+            for (DeviceImageRequest imgReq : subImages) {
+                DeviceImage subImg = DeviceImage.builder()
                     .device(device)
                     .imageUrl(imgReq.imageUrl())
-                    .imageType(ImageType.valueOf(imgReq.imageType())) // Convert String sang Enum
+                    .imageType(ImageType.valueOf(imgReq.imageType()))
                     .isPrimary(false)
-                    .build()
-            ).toList();
-
-            itemImageRepository.saveAll(itemImages);
+                    .build();
+                itemImageRepository.save(subImg);
+            }
         }
     }
 }

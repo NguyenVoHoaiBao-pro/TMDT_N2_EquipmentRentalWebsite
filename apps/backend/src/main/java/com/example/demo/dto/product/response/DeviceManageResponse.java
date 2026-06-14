@@ -9,11 +9,11 @@ public record DeviceManageResponse(
     Long id,
     Long productId,
     String productName,
-    String serialNumber, // Hiện đầy đủ để đối chiếu
+    String serialNumber,
     Integer conditionPercent,
     BigDecimal pricePerDay,
     BigDecimal depositValue,
     String status, // PENDING_APPROVAL, APPROVED, REJECTED
-    List<DeviceImageRequest> allImages // Xem được cả ảnh SERIAL_PROOF để admin kiểm duyệt bài
+    List<DeviceImageRequest> allImages
 ) {
 }

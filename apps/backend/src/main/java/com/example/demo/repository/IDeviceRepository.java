@@ -10,7 +10,5 @@ import java.util.Optional;
 
 public interface IDeviceRepository extends JpaRepository<Device, Long> {
 
-    @Query("SELECT MIN(d.pricePerDay) FROM Device d " +
-        "WHERE d.product.id = :productId AND d.status = 'APPROVED'")
-    Optional<BigDecimal> findMinPriceByProductId(@Param("productId") Long productId);
+
 }

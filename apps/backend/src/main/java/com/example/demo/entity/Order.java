@@ -39,10 +39,10 @@ public class Order extends BaseEntity implements Serializable {
     @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "total_price", precision = 10, scale = 2)
+    @Column(name = "total_price", precision = 15, scale = 2)
     private BigDecimal totalPrice;
 
-    @Column(name = "deposit_amount", precision = 10, scale = 2)
+    @Column(name = "deposit_amount", precision = 15, scale = 2)
     private BigDecimal depositAmount;
 
     @Enumerated(EnumType.STRING)

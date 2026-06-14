@@ -8,12 +8,12 @@ public record DeviceDetailResponse(
     Long id,
     String productName,
     String ownerName,
-    BigDecimal trustScore, // Điểm uy tín của chủ máy
+    BigDecimal trustScore,
     Integer conditionPercent,
     BigDecimal pricePerDay,
     BigDecimal depositValue,
     String primaryImageUrl,
-    List<String> realShotSubImages, // Chỉ lấy các ảnh có loại là REAL_SHOT
-    List<LocalDate> blockedDates // Danh sách các ngày bận để đưa vào UI Calendar
+    List<String> realShotSubImages,
+    List<LocalDate> blockedDates
 ) {
 }

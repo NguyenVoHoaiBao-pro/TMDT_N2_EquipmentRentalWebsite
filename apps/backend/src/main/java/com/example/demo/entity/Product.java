@@ -43,14 +43,14 @@ public class Product extends BaseEntity implements Serializable {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "base_price", nullable = false, precision = 10, scale = 2)
+    @Column(name = "base_price", nullable = false, precision = 15, scale = 2)
     private BigDecimal basePrice;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "specifications")
     private Map<String, Object> specifications;
 
-    @Column(name = "accessories_included", nullable = true)
+    @Column(name = "accessories_included")
     private String accessoriesIncluded;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)

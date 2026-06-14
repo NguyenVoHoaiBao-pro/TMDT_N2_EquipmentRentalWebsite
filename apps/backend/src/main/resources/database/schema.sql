@@ -2,7 +2,7 @@ SET
 FOREIGN_KEY_CHECKS = 0;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS device_images;
-DROP TABLE IF EXISTS device_calendar;
+DROP TABLE IF EXISTS device_calendars;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS orders;
@@ -75,7 +75,7 @@ CREATE TABLE products
     name                 VARCHAR(255)   NOT NULL,
     slug                 VARCHAR(255)   NOT NULL UNIQUE,
     description          TEXT,
-    base_price           DECIMAL(10, 2) NOT NULL,
+    base_price           DECIMAL(15, 2) NOT NULL,
     specifications       JSON,
     accessories_included TEXT,
     INDEX                idx_base_price (base_price),
@@ -92,8 +92,8 @@ CREATE TABLE devices
     owner_id          BIGINT         NOT NULL,
     serial_number     VARCHAR(100)   NOT NULL,
     condition_percent INT            NOT NULL DEFAULT 100,
-    price_per_day     DECIMAL(10, 2) NOT NULL,
-    deposit_value     DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    price_per_day     DECIMAL(15, 2) NOT NULL,
+    deposit_value     DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     -- P2P: Cần trạng thái kiểm duyệt bài đăng của chủ máy
     status            ENUM('PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'HIDDEN') DEFAULT 'PENDING_APPROVAL',
     created_at        TIMESTAMP      NOT NULL,
@@ -145,8 +145,8 @@ CREATE TABLE orders
     renter_id      BIGINT         NOT NULL,
     start_date     DATE           NOT NULL,
     end_date       DATE           NOT NULL,
-    total_price    DECIMAL(10, 2) NOT NULL,
-    deposit_amount DECIMAL(10, 2) DEFAULT 0.00,
+    total_price    DECIMAL(15, 2) NOT NULL,
+    deposit_amount DECIMAL(15, 2) DEFAULT 0.00,
     status         ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
     created_at     TIMESTAMP      NOT NULL,
     updated_at     TIMESTAMP      NOT NULL,
@@ -158,7 +158,7 @@ CREATE TABLE payments
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     order_id       BIGINT         NOT NULL,
-    amount         DECIMAL(10, 2) NOT NULL,
+    amount         DECIMAL(15, 2) NOT NULL,
     payment_method ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
     status         ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
     transaction_id VARCHAR(100),

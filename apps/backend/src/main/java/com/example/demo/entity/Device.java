@@ -38,10 +38,10 @@ public class Device extends BaseEntity implements Serializable {
     @Column(name = "condition_percent", nullable = false)
     private Integer conditionPercent;
 
-    @Column(name = "price_per_day", nullable = false, precision = 10, scale = 2)
+    @Column(name = "price_per_day", nullable = false, precision = 15, scale = 2)
     private BigDecimal pricePerDay;
 
-    @Column(name = "deposit_value", nullable = false, precision = 10, scale = 2)
+    @Column(name = "deposit_value", nullable = false, precision = 15, scale = 2)
     private BigDecimal depositValue;
 
     @Enumerated(EnumType.STRING)
