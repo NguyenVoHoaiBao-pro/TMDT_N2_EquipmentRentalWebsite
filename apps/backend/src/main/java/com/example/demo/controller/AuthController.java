@@ -3,7 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.auth.request.*;
 import com.example.demo.dto.auth.response.TokenRefreshResponse;
-import com.example.demo.dto.user.UserResponse;
+import com.example.demo.dto.user.response.UserResponse;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

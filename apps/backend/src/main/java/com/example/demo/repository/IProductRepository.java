@@ -1,13 +1,13 @@
 package com.example.demo.repository;
 
 import com.example.demo.entity.Product;
-import com.example.demo.enumValues.ProductStatus;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import java.util.List;
+import java.math.BigDecimal;
 
-public interface IProductRepository extends JpaRepository<Product, Long> {
+public interface IProductRepository extends JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
-    // Helper methods:
-    List<Product> findByStatus(ProductStatus status);
 }

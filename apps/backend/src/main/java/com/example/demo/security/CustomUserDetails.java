@@ -14,7 +14,7 @@ import lombok.Getter;
 
 @Getter
 public class CustomUserDetails implements UserDetails {
-    private final Integer id;
+    private final Long id;
     private final String username;
     private final String password;
     private final String email;

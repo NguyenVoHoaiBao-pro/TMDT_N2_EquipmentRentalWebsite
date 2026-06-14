@@ -4,6 +4,9 @@ import com.example.demo.enumValues.RoleType;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 @Entity
 @Table(name = "roles")
 @Getter
@@ -11,7 +14,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Role extends BaseEntity{
+public class Role extends BaseEntity implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role_name", unique = true, nullable = false)
