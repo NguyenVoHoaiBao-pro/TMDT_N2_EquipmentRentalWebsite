@@ -4,7 +4,7 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ForgotPassword } from '@/pages/auth/ForgotPassword.tsx';
 import { ResetPassword } from '@/pages/auth/ResetPassword.tsx';
-import { ProductCatalogPage } from '@/pages/products/ProductCatalogPage.tsx';
+import ProductCatalogPage from '@/pages/products/ProductCatalogPage.tsx';
 
 function App() {
   return (
