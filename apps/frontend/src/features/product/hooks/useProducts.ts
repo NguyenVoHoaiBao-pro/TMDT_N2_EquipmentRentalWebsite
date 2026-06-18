@@ -1,66 +1,103 @@
+// @/features/product/hooks/useProducts.ts
 import type { Product } from '@/features/product/types/product.types.ts';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { DEFAULT_PRICE_RANGE, ITEMS_PER_PAGE } from '@/features/product/constants/defaultValues.ts';
+import { useSearchParams } from 'react-router-dom';
 
 export function useProductFilter(products: Product[]) {
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // State for filtering products
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>(DEFAULT_PRICE_RANGE);
+  // --- 1. Read URL Params ---
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const selectedCategory = searchParams.get('category') || 'All';
 
-  const [sortField, setSortField] =
-    useState<'name' | 'price'>('name');
+  const selectedBrands = useMemo(() => {
+    const brandsRaw = searchParams.get('brands');
+    return brandsRaw ? brandsRaw.split(',') : [];
+  }, [searchParams]);
 
-  const [sortDirection, setSortDirection] =
-    useState<'asc' | 'desc'>('asc');
+  const priceRange = useMemo<[number, number]>(() => {
+    const min = searchParams.get('minPrice');
+    const max = searchParams.get('maxPrice');
+    return min && max ? [Number(min), Number(max)] : DEFAULT_PRICE_RANGE;
+  }, [searchParams]);
 
-  // Current page state
-  const [currentPage, setCurrentPage] = useState<number>(1);
+  const sortField = (searchParams.get('sortField') as 'name' | 'price') || 'name';
+  const sortDirection = (searchParams.get('sortDirection') as 'asc' | 'desc') || 'asc';
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedCategory, selectedBrands, priceRange, sortField, sortDirection]);
 
+  // --- 2. Method to update URL Params ---
+  const setUrlParam = (key: string, value: string | null) => {
+    setSearchParams((prev) => {
+      if (!value || value === 'All' || value === '') {
+        prev.delete(key);
+      } else {
+        prev.set(key, value);
+      }
+      if (key !== 'page') {
+        prev.set('page', '1');
+      }
+      return prev;
+    });
+  };
+
+  const setCurrentPage = (page: number) => {
+    setUrlParam('page', page.toString());
+  };
+
+  const setSelectedCategory = (category: string) => {
+    setUrlParam('category', category);
+  };
+
+  const setSelectedBrands = (brands: string[]) => {
+    setUrlParam('brands', brands.length > 0 ? brands.join(',') : null);
+  };
+
+  const setPriceRange = (range: [number, number]) => {
+    setSearchParams((prev) => {
+      prev.set('minPrice', range[0].toString());
+      prev.set('maxPrice', range[1].toString());
+      prev.set('page', '1');
+      return prev;
+    });
+  };
+
+  const setSortField = (field: 'name' | 'price') => {
+    setUrlParam('sortField', field);
+  };
+
+  const toggleSortDirection = () => {
+    const nextDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+    setUrlParam('sortDirection', nextDirection);
+  };
+
+  const resetFilters = () => {
+    setSearchParams({}); // Clear all URL params
+  };
+
+
+  // --- 3. Compute filtered, sorted, and paginated products ---
   const filteredProducts = useMemo(() => {
     const result = products.filter((p) => {
-      const categoryMatch =
-        selectedCategory === 'All' || p.category === selectedCategory;
-
-      const brandMatch =
-        selectedBrands.length === 0 || selectedBrands.includes(p.brand);
-
-      const priceMatch =
-        p.price >= priceRange[0] && p.price <= priceRange[1];
+      const categoryMatch = selectedCategory === 'All' || p.category === selectedCategory;
+      const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(p.brand);
+      const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
 
       return categoryMatch && brandMatch && priceMatch;
     });
 
     const productSorted = [...result];
-
     productSorted.sort((a, b) => {
       if (sortField === 'price') {
-        return sortDirection === 'asc'
-          ? a.price - b.price
-          : b.price - a.price;
+        return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
       }
-
-      return sortDirection === 'asc'
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name);
+      return sortDirection === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
     });
 
     return productSorted;
-
   }, [products, selectedCategory, selectedBrands, priceRange, sortField, sortDirection]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-
-  const toggleSortDirection = () => {
-    setSortDirection((prev) =>
-      prev === 'asc' ? 'desc' : 'asc',
-    );
-  };
 
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -68,16 +105,7 @@ export function useProductFilter(products: Product[]) {
   }, [filteredProducts, currentPage]);
 
 
-  const resetFilters = () => {
-    setSelectedCategory('All');
-    setSelectedBrands([]);
-    setPriceRange(DEFAULT_PRICE_RANGE);
-    setSortField('name');
-    setSortDirection('asc');
-    setCurrentPage(1); // Reset to first page
-  };
-
-  // Export state for UI components
+  // --- 4. Export results ---
   return {
     selectedCategory,
     setSelectedCategory,
@@ -93,10 +121,8 @@ export function useProductFilter(products: Product[]) {
     sortDirection,
     toggleSortDirection,
 
-    // Pagination state
     currentPage,
     setCurrentPage,
     totalPages,
   };
 }
-
