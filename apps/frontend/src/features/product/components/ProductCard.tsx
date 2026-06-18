@@ -17,7 +17,7 @@ export default function ProductCard({ product }: ProductProps) {
         )}
       </div>
 
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1 space-y-2">
         <span className="text-blue-600 uppercase text-xs">{product.brand}</span>
 
         <h3 className="font-semibold text-lg line-clamp-2">{product.name}</h3>

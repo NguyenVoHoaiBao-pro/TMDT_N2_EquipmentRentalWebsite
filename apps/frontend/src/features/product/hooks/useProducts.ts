@@ -7,6 +7,8 @@ import { useSearchParams } from 'react-router-dom';
 export function useProductFilter(products: Product[]) {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  const searchQuery = searchParams.get('keyword') || '';
+
   // --- 1. Read URL Params ---
   const currentPage = Number(searchParams.get('page')) || 1;
   const selectedCategory = searchParams.get('category') || 'All';
@@ -40,6 +42,16 @@ export function useProductFilter(products: Product[]) {
       return prev;
     });
   };
+
+  const setSearchQuery = (
+    keyword: string,
+  ) => {
+    setUrlParam(
+      'keyword',
+      keyword,
+    );
+  };
+
 
   const setCurrentPage = (page: number) => {
     setUrlParam('page', page.toString());
@@ -83,7 +95,14 @@ export function useProductFilter(products: Product[]) {
       const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(p.brand);
       const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
 
-      return categoryMatch && brandMatch && priceMatch;
+      const keyword = searchQuery.toLowerCase();
+
+      const searchMatch =
+        p.name.toLowerCase().includes(keyword) ||
+        p.brand.toLowerCase().includes(keyword) ||
+        p.category.toLowerCase().includes(keyword);
+
+      return categoryMatch && brandMatch && priceMatch && searchMatch;
     });
 
     const productSorted = [...result];
@@ -95,7 +114,7 @@ export function useProductFilter(products: Product[]) {
     });
 
     return productSorted;
-  }, [products, selectedCategory, selectedBrands, priceRange, sortField, sortDirection]);
+  }, [products, selectedCategory, selectedBrands, priceRange, searchQuery, sortField, sortDirection]);
 
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
 
@@ -113,6 +132,8 @@ export function useProductFilter(products: Product[]) {
     setSelectedBrands,
     priceRange,
     setPriceRange,
+    searchQuery,
+    setSearchQuery,
     filteredProducts,
     paginatedProducts,
     resetFilters,
