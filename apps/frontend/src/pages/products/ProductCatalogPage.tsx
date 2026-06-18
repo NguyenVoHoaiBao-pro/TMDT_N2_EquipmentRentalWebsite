@@ -6,13 +6,23 @@ import ProductGrid from '@/features/product/components/ProductGrid';
 import { ProductSort } from '@/features/product/components/ProductSort';
 import { products } from '@/features/product/data/products.ts';
 import Sidebar from '@/components/layout/Sidebar';
-import { Fragment, useState } from 'react';
+import { Fragment } from 'react';
 import BackToTop from '@/components/layout/BackToTop.tsx';
 import Pagination from '@/features/product/components/Pagination.tsx';
+import { useProductFilter } from '@/features/product/hooks/useProducts.ts';
 
 export default function ProductCatalogPage() {
 
-  // const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const {
+    selectedCategory,
+    setSelectedCategory,
+    selectedBrands,
+    setSelectedBrands,
+    priceRange,
+    setPriceRange,
+    filteredProducts,
+    resetFilters,
+  } = useProductFilter(products);
 
   return (
     <Fragment>
@@ -20,7 +30,15 @@ export default function ProductCatalogPage() {
 
       <div className="flex flex-col lg:flex-row">
         <Sidebar>
-          <ProductFilters />
+          <ProductFilters
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+            selectedBrands={selectedBrands}
+            onBrandChange={setSelectedBrands}
+            priceRange={priceRange}
+            onPriceRangeChange={setPriceRange}
+            resetFilters={resetFilters}
+          />
         </Sidebar>
 
         <main className="flex-1 p-4">
@@ -34,7 +52,10 @@ export default function ProductCatalogPage() {
             <ProductSort />
           </div>
 
-          <ProductGrid products={products} />
+          <ProductGrid
+            products={filteredProducts}
+          />
+
 
           <Pagination />
         </main>

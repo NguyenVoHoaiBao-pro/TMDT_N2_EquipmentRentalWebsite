@@ -1,1 +1,1 @@
-export const categories = ['All', 'Cameras', 'Lenses', 'Accessories'];
+export const categories = ['All', 'Cameras', 'Lens', 'Accessories'];

@@ -6,6 +6,7 @@ export const products: Product[] = [
   // =========================
   {
     id: 1,
+    category: 'Cameras',
     brand: 'Sony',
     name: 'Sony Alpha A7 IV',
     image: 'https://....',
@@ -15,6 +16,7 @@ export const products: Product[] = [
   },
   {
     id: 2,
+    category: 'Cameras',
     brand: 'Sony',
     name: 'Sony Alpha A7R V',
     image: 'https://....',
@@ -24,6 +26,7 @@ export const products: Product[] = [
   },
   {
     id: 3,
+    category: 'Cameras',
     brand: 'Sony',
     name: 'Sony FX3',
     image: 'https://....',
@@ -33,6 +36,7 @@ export const products: Product[] = [
   },
   {
     id: 4,
+    category: 'Cameras',
     brand: 'Canon',
     name: 'Canon EOS R6 Mark II',
     image: 'https://....',
@@ -42,6 +46,7 @@ export const products: Product[] = [
   },
   {
     id: 5,
+    category: 'Cameras',
     brand: 'Canon',
     name: 'Canon EOS R5',
     image: 'https://....',
@@ -51,6 +56,7 @@ export const products: Product[] = [
   },
   {
     id: 6,
+    category: 'Cameras',
     brand: 'Canon',
     name: 'Canon C70',
     image: 'https://....',
@@ -60,6 +66,7 @@ export const products: Product[] = [
   },
   {
     id: 7,
+    category: 'Cameras',
     brand: 'Nikon',
     name: 'Nikon Z6 II',
     image: 'https://....',
@@ -69,6 +76,7 @@ export const products: Product[] = [
   },
   {
     id: 8,
+    category: 'Cameras',
     brand: 'Nikon',
     name: 'Nikon Z8',
     image: 'https://....',
@@ -78,6 +86,7 @@ export const products: Product[] = [
   },
   {
     id: 9,
+    category: 'Cameras',
     brand: 'Fujifilm',
     name: 'Fujifilm X-T5',
     image: 'https://....',
@@ -87,6 +96,7 @@ export const products: Product[] = [
   },
   {
     id: 10,
+    category: 'Cameras',
     brand: 'Fujifilm',
     name: 'Fujifilm X-H2S',
     image: 'https://....',
@@ -96,6 +106,7 @@ export const products: Product[] = [
   },
   {
     id: 11,
+    category: 'Cameras',
     brand: 'Panasonic',
     name: 'Lumix S5 II',
     image: 'https://....',
@@ -105,6 +116,7 @@ export const products: Product[] = [
   },
   {
     id: 12,
+    category: 'Cameras',
     brand: 'Blackmagic',
     name: 'Pocket Cinema Camera 6K Pro',
     image: 'https://....',
@@ -118,6 +130,7 @@ export const products: Product[] = [
   // =========================
   {
     id: 13,
+    category: 'Lens',
     brand: 'Sony',
     name: 'FE 24-70mm f/2.8 GM II',
     image: 'https://....',
@@ -127,6 +140,7 @@ export const products: Product[] = [
   },
   {
     id: 14,
+    category: 'Lens',
     brand: 'Sony',
     name: 'FE 70-200mm f/2.8 GM OSS II',
     image: 'https://....',
@@ -136,6 +150,7 @@ export const products: Product[] = [
   },
   {
     id: 15,
+    category: 'Lens',
     brand: 'Sony',
     name: 'FE 35mm f/1.4 GM',
     image: 'https://....',
@@ -145,6 +160,7 @@ export const products: Product[] = [
   },
   {
     id: 16,
+    category: 'Lens',
     brand: 'Sony',
     name: 'FE 50mm f/1.2 GM',
     image: 'https://....',
@@ -154,6 +170,7 @@ export const products: Product[] = [
   },
   {
     id: 17,
+    category: 'Lens',
     brand: 'Canon',
     name: 'RF 24-70mm f/2.8L IS USM',
     image: 'https://....',
@@ -163,6 +180,7 @@ export const products: Product[] = [
   },
   {
     id: 18,
+    category: 'Lens',
     brand: 'Canon',
     name: 'RF 70-200mm f/2.8L IS USM',
     image: 'https://....',
@@ -172,6 +190,7 @@ export const products: Product[] = [
   },
   {
     id: 19,
+    category: 'Lens',
     brand: 'Canon',
     name: 'RF 50mm f/1.2L USM',
     image: 'https://....',
@@ -181,6 +200,7 @@ export const products: Product[] = [
   },
   {
     id: 20,
+    category: 'Lens',
     brand: 'Canon',
     name: 'RF 15-35mm f/2.8L IS USM',
     image: 'https://....',
@@ -190,6 +210,7 @@ export const products: Product[] = [
   },
   {
     id: 21,
+    category: 'Lens',
     brand: 'Sigma',
     name: '24-70mm f/2.8 DG DN Art',
     image: 'https://....',
@@ -199,6 +220,7 @@ export const products: Product[] = [
   },
   {
     id: 22,
+    category: 'Lens',
     brand: 'Sigma',
     name: '85mm f/1.4 DG DN Art',
     image: 'https://....',
@@ -208,6 +230,7 @@ export const products: Product[] = [
   },
   {
     id: 23,
+    category: 'Lens',
     brand: 'Sigma',
     name: '14-24mm f/2.8 DG DN Art',
     image: 'https://....',
@@ -217,6 +240,7 @@ export const products: Product[] = [
   },
   {
     id: 24,
+    category: 'Lens',
     brand: 'Tamron',
     name: '28-75mm f/2.8 G2',
     image: 'https://....',
@@ -226,6 +250,7 @@ export const products: Product[] = [
   },
   {
     id: 25,
+    category: 'Lens',
     brand: 'Tamron',
     name: '35-150mm f/2-2.8',
     image: 'https://....',
@@ -235,6 +260,7 @@ export const products: Product[] = [
   },
   {
     id: 26,
+    category: 'Lens',
     brand: 'Nikon',
     name: 'NIKKOR Z 24-70mm f/2.8 S',
     image: 'https://....',
@@ -244,6 +270,7 @@ export const products: Product[] = [
   },
   {
     id: 27,
+    category: 'Lens',
     brand: 'Nikon',
     name: 'NIKKOR Z 85mm f/1.2 S',
     image: 'https://....',
@@ -253,6 +280,7 @@ export const products: Product[] = [
   },
   {
     id: 28,
+    category: 'Lens',
     brand: 'Fujifilm',
     name: 'XF 16-55mm f/2.8 R LM WR II',
     image: 'https://....',
@@ -262,6 +290,7 @@ export const products: Product[] = [
   },
   {
     id: 29,
+    category: 'Lens',
     brand: 'Fujifilm',
     name: 'XF 56mm f/1.2 R WR',
     image: 'https://....',
@@ -271,6 +300,7 @@ export const products: Product[] = [
   },
   {
     id: 30,
+    category: 'Lens',
     brand: 'Laowa',
     name: '15mm f/4.5 Zero-D Shift',
     image: 'https://....',
