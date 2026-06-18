@@ -15,6 +15,7 @@ interface ProductFiltersProps {
 }
 
 export function ProductFilters({
+
                                  selectedCategory,
                                  onCategoryChange,
                                  selectedBrands,

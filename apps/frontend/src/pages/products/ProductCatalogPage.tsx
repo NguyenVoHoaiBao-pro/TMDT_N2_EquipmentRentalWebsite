@@ -21,11 +21,16 @@ export default function ProductCatalogPage() {
     priceRange,
     setPriceRange,
     filteredProducts,
+    paginatedProducts,
     resetFilters,
     sortField,
     setSortField,
     sortDirection,
     toggleSortDirection,
+
+    currentPage,
+    setCurrentPage,
+    totalPages,
   } = useProductFilter(products);
 
   return (
@@ -69,11 +74,15 @@ export default function ProductCatalogPage() {
           </div>
 
           <ProductGrid
-            products={filteredProducts}
+            products={paginatedProducts}
           />
 
 
-          <Pagination />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </main>
       </div>
 

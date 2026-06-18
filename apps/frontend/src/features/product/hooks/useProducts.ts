@@ -1,6 +1,6 @@
 import type { Product } from '@/features/product/types/product.types.ts';
-import { useMemo, useState } from 'react';
-import { DEFAULT_PRICE_RANGE } from '@/features/product/constants/defaultValues.ts';
+import { useEffect, useMemo, useState } from 'react';
+import { DEFAULT_PRICE_RANGE, ITEMS_PER_PAGE } from '@/features/product/constants/defaultValues.ts';
 
 export function useProductFilter(products: Product[]) {
 
@@ -14,6 +14,13 @@ export function useProductFilter(products: Product[]) {
 
   const [sortDirection, setSortDirection] =
     useState<'asc' | 'desc'>('asc');
+
+  // Current page state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedBrands, priceRange, sortField, sortDirection]);
 
   const filteredProducts = useMemo(() => {
     const result = products.filter((p) => {
@@ -47,11 +54,18 @@ export function useProductFilter(products: Product[]) {
 
   }, [products, selectedCategory, selectedBrands, priceRange, sortField, sortDirection]);
 
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+
   const toggleSortDirection = () => {
     setSortDirection((prev) =>
       prev === 'asc' ? 'desc' : 'asc',
     );
   };
+
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredProducts, currentPage]);
 
 
   const resetFilters = () => {
@@ -60,6 +74,7 @@ export function useProductFilter(products: Product[]) {
     setPriceRange(DEFAULT_PRICE_RANGE);
     setSortField('name');
     setSortDirection('asc');
+    setCurrentPage(1); // Reset to first page
   };
 
   // Export state for UI components
@@ -71,11 +86,17 @@ export function useProductFilter(products: Product[]) {
     priceRange,
     setPriceRange,
     filteredProducts,
+    paginatedProducts,
     resetFilters,
     sortField,
     setSortField,
     sortDirection,
     toggleSortDirection,
+
+    // Pagination state
+    currentPage,
+    setCurrentPage,
+    totalPages,
   };
 }
 
