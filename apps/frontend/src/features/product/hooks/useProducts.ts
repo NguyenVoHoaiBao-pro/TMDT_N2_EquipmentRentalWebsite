@@ -9,8 +9,14 @@ export function useProductFilter(products: Product[]) {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>(DEFAULT_PRICE_RANGE);
 
+  const [sortField, setSortField] =
+    useState<'name' | 'price'>('name');
+
+  const [sortDirection, setSortDirection] =
+    useState<'asc' | 'desc'>('asc');
+
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    const result = products.filter((p) => {
       const categoryMatch =
         selectedCategory === 'All' || p.category === selectedCategory;
 
@@ -22,12 +28,38 @@ export function useProductFilter(products: Product[]) {
 
       return categoryMatch && brandMatch && priceMatch;
     });
-  }, [products, selectedCategory, selectedBrands, priceRange]);
+
+    const productSorted = [...result];
+
+    productSorted.sort((a, b) => {
+      if (sortField === 'price') {
+        return sortDirection === 'asc'
+          ? a.price - b.price
+          : b.price - a.price;
+      }
+
+      return sortDirection === 'asc'
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    });
+
+    return productSorted;
+
+  }, [products, selectedCategory, selectedBrands, priceRange, sortField, sortDirection]);
+
+  const toggleSortDirection = () => {
+    setSortDirection((prev) =>
+      prev === 'asc' ? 'desc' : 'asc',
+    );
+  };
+
 
   const resetFilters = () => {
     setSelectedCategory('All');
     setSelectedBrands([]);
     setPriceRange(DEFAULT_PRICE_RANGE);
+    setSortField('name');
+    setSortDirection('asc');
   };
 
   // Export state for UI components
@@ -40,6 +72,10 @@ export function useProductFilter(products: Product[]) {
     setPriceRange,
     filteredProducts,
     resetFilters,
+    sortField,
+    setSortField,
+    sortDirection,
+    toggleSortDirection,
   };
 }
 

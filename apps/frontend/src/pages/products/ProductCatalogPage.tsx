@@ -22,6 +22,10 @@ export default function ProductCatalogPage() {
     setPriceRange,
     filteredProducts,
     resetFilters,
+    sortField,
+    setSortField,
+    sortDirection,
+    toggleSortDirection,
   } = useProductFilter(products);
 
   return (
@@ -49,7 +53,19 @@ export default function ProductCatalogPage() {
               <p className="text-sm text-gray-500">Our products are carefully selected...</p>
             </div>
 
-            <ProductSort />
+            <ProductSort
+              totalItems={
+                filteredProducts.length
+              }
+              sortField={sortField}
+              sortDirection={sortDirection}
+              onSortFieldChange={
+                setSortField
+              }
+              onSortDirectionToggle={
+                toggleSortDirection
+              }
+            />
           </div>
 
           <ProductGrid
