@@ -36,3 +36,4 @@ Thumbs.db
 .m2/
 
 docker-compose.override.yml
+**/.secrets

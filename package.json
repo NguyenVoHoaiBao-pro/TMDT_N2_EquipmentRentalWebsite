@@ -15,7 +15,11 @@
     "test:ci": "npm run test:ci --workspaces --if-present",
     "install:all": "npm install && npm install --workspaces",
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
-    "check-updates": "ncu -f nx"
+    "check-updates": "ncu -f nx",
+    "// Act Local CI": "-------------------------------------------------",
+    "act:frontend": "npx dotenv-cli -- act -j frontend",
+    "act:backend": "npx dotenv-cli -- act -j backend",
+    "act:all": "npx dotenv-cli -- act"
   },
   "keywords": [
     "monorepo",
