@@ -18,9 +18,10 @@
     "check-updates": "ncu -f nx",
     "// Act Local CI": "-------------------------------------------------",
     "Add artifact to stimulate server": "-------------------------------------------------",
-    "act:frontend": "powershell -Command \"Remove-Item -Recurse -Force ./artifacts -ErrorAction SilentlyContinue; npx dotenv-cli -- act -j frontend --secret-file .env --artifact-server-path ./artifacts --no-docker-config\"",
-    "act:backend": "powershell -Command \"Remove-Item -Recurse -Force ./artifacts -ErrorAction SilentlyContinue; npx dotenv-cli -- act -j backend --secret-file .env --artifact-server-path ./artifacts --no-docker-config\"",
-    "act:all": "powershell -Command \"Remove-Item -Recurse -Force ./artifacts -ErrorAction SilentlyContinue; npx dotenv-cli -- act --secret-file .env --artifact-server-path ./artifacts --no-docker-config\""
+    "docker:pull-act": "docker pull catthehacker/ubuntu:act-latest",
+    "act:frontend": "powershell -Command \"Remove-Item -Recurse -Force ./artifacts -ErrorAction SilentlyContinue; npx dotenv-cli -- act -j frontend --secret-file .env --artifact-server-path ./artifacts --pull=false\"",
+    "act:backend": "powershell -Command \"Remove-Item -Recurse -Force ./artifacts -ErrorAction SilentlyContinue; npx dotenv-cli -- act -j backend --secret-file .env --artifact-server-path ./artifacts --pull=false\"",
+    "act:all": "powershell -Command \"Remove-Item -Recurse -Force ./artifacts -ErrorAction SilentlyContinue; npx dotenv-cli -- act --secret-file .env --artifact-server-path ./artifacts --pull=false\""
   },
   "keywords": [
     "monorepo",
