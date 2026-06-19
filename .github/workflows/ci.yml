@@ -41,6 +41,7 @@ jobs:
         with:
           name: backend-test-results
           path: apps/backend/target/surefire-reports/
+          retention-days: 1 # Keep reports for 1 day
 
   # Frontend Build & Lint
   frontend:

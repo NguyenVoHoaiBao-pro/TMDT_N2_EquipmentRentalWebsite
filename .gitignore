@@ -30,10 +30,13 @@ logs/
 *.log
 
 # OS
-.DS_Store
 Thumbs.db
 
 # Maven
 .m2/
 
 docker-compose.override.yml
+**/.secrets
+
+# Act Local Artifacts
+**/artifacts/
