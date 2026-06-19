@@ -17,9 +17,10 @@
     "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
     "check-updates": "ncu -f nx",
     "// Act Local CI": "-------------------------------------------------",
-    "act:frontend": "npx dotenv-cli -- act -j frontend --secret-file .env",
-    "act:backend": "npx dotenv-cli -- act -j backend --secret-file .env",
-    "act:all": "npx dotenv-cli -- act --secret-file .env"
+    "Add artifact to stimulate server": "-------------------------------------------------",
+    "act:frontend": "npx dotenv-cli -- act -j frontend --secret-file .env --artifact-server-path ./artifacts",
+    "act:backend": "npx dotenv-cli -- act -j backend --secret-file .env --artifact-server-path ./artifacts",
+    "act:all": "npx dotenv-cli -- act --secret-file .env --artifact-server-path ./artifacts"
   },
   "keywords": [
     "monorepo",

@@ -31,5 +31,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+    chunkSizeWarningLimit: 1500, // Adjust this value as needed to fix waring chunk size limit js files
   },
 });
