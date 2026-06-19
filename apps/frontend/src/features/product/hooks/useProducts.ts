@@ -90,12 +90,16 @@ export function useProductFilter(products: Product[]) {
 
   // --- 3. Compute filtered, sorted, and paginated products ---
   const filteredProducts = useMemo(() => {
+
+    // Ensure keyword is only check once per render
+    const keyword = searchQuery.trim().toLowerCase();
+
+
     const result = products.filter((p) => {
       const categoryMatch = selectedCategory === 'All' || p.category === selectedCategory;
       const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(p.brand);
       const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
 
-      const keyword = searchQuery.toLowerCase();
 
       const searchMatch =
         p.name.toLowerCase().includes(keyword) ||

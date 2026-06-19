@@ -1,6 +1,6 @@
 import { Logo } from '@/components/layout/Logo';
 import { Navigation } from '@/components/layout/Navigation';
-import { SearchInput } from '@/features/product/components/SearchInput';
+import { SearchInput } from '@/components/layout/SearchInput.tsx';
 import { HeaderActions } from '@/components/layout/HeaderActions';
 
 interface HeaderProps {
