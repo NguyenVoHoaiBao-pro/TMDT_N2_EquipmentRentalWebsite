@@ -37,3 +37,6 @@ Thumbs.db
 
 docker-compose.override.yml
 **/.secrets
+
+# Act Local Artifacts
+**/artifacts/
