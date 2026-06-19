@@ -31,6 +31,5 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    cssMinify: 'esbuild', // Use esbuild for CSS minification
   },
 });
