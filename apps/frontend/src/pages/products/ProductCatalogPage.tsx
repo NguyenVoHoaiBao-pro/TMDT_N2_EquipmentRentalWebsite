@@ -37,7 +37,7 @@ export default function ProductCatalogPage() {
   return (
     <Fragment>
       {/* Header with Logo + Navigation + Search + HeaderActions */}
-      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <Header showSearch={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
       <div className="flex flex-col lg:flex-row">
         {/* Sidebar Filters */}
@@ -58,7 +58,7 @@ export default function ProductCatalogPage() {
           {/* Catalog Title + Sort */}
           <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
             <div>
-              <h1 className="text-3xl font-bold">Product Catalog</h1>
+              <h2 className="text-3xl font-bold">Product Catalog</h2>
               <p className="text-sm text-gray-500">
                 Our products are carefully selected...
               </p>

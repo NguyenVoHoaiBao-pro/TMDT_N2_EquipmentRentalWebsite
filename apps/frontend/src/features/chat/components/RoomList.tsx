@@ -9,9 +9,8 @@ export default function RoomList() {
   const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    fetchRooms().then(r => {
-      console.log('Error when fetch rooms: ', r);
-    });
+    fetchRooms().then(r => console.log(r))
+      .catch(e => console.log('Error while fetching rooms: ', e.message.split('')));
   }, [fetchRooms]);
 
   return (

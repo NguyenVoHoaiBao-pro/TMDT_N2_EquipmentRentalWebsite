@@ -31,7 +31,7 @@ export default function ChatWindow() {
   const isRenter = currentUser?.username === currentRoom?.renterName;
   const partnerName = isRenter ? currentRoom?.ownerName : currentRoom?.renterName;
 
-  const handleSend = (e: React.FormEvent) => {
+  const handleSend = (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!text.trim()) return;
     sendMessage(text.trim());

@@ -1,8 +1,9 @@
-import { Fragment, useState } from 'react';
+import React, { Fragment, useState } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import BackToTop from '@/components/layout/BackToTop';
 import { Button } from '@/shared_components/ui/button';
+import { DeviceIdentification } from '@/features/device-registration/components/DeviceIdentification.tsx';
 
 export default function RegisterDevicePage() {
   // Gom State tập trung để quản lý cho toàn bộ form
@@ -46,22 +47,10 @@ export default function RegisterDevicePage() {
               <h2 className="text-lg font-semibold text-slate-900 mb-4">Device Identification</h2>
 
               {/* Thử nghiệm Mockup Thanh trượt Trạng thái thiết bị */}
-              <div className="mt-4">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-sm font-medium text-gray-700">Device Condition</label>
-                  <span className="text-xs font-semibold bg-teal-50 text-teal-700 px-2.5 py-1 rounded-md">
-                    Excellent ({condition}%)
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="50"
-                  max="100"
-                  value={condition}
-                  onChange={(e) => setCondition(Number(e.target.value))}
-                  className="w-full accent-teal-600 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
+              <DeviceIdentification
+                condition={condition}
+                onConditionChange={setCondition}
+              />
             </div>
 
             {/* Bottom Action Buttons */}

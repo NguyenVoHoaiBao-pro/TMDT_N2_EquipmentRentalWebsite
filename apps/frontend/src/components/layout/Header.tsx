@@ -4,13 +4,15 @@ import { SearchInput } from '@/components/layout/SearchInput.tsx';
 import { HeaderActions } from '@/components/layout/HeaderActions';
 
 interface HeaderProps {
-  searchQuery: string;
-  setSearchQuery: (value: string) => void;
+  searchQuery?: string;
+  setSearchQuery?: (value: string) => void;
+  showSearch?: boolean;
 }
 
 export default function Header({
-                                 searchQuery,
+                                 searchQuery = '',
                                  setSearchQuery,
+                                 showSearch = false,
                                }:
                                HeaderProps,
 ) {
@@ -23,7 +25,15 @@ export default function Header({
         {/* Navigation + Search */}
         <div className="flex items-center gap-4 flex-1 justify-center">
           <Navigation />
-          <SearchInput value={searchQuery} onChange={setSearchQuery} />
+          {
+            showSearch &&
+            setSearchQuery && (
+              <SearchInput
+                value={searchQuery}
+                onChange={setSearchQuery}
+              />
+            )
+          }
         </div>
 
         {/* Header Actions */}

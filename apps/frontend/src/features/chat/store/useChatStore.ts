@@ -99,7 +99,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const socket = new SockJS('http://localhost:8080/ws');
     const client = new Client({
       webSocketFactory: () => socket,
-      // Nạp Token sạch hoàn toàn sau khi đã tự cấu trúc lại phía trên
+      // Put token refresh totally from above here
       connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       debug: (str) => console.log(str),
       onConnect: () => {
