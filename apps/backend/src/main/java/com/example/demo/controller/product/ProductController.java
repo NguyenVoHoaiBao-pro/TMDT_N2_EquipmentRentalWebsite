@@ -1,9 +1,10 @@
-package com.example.demo.controller;
+package com.example.demo.controller.product;
 
+import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.product.request.ProductFilterRequest;
 import com.example.demo.dto.product.response.ProductResponse;
-import com.example.demo.service.ProductService;
+import com.example.demo.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
@@ -16,8 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/products")

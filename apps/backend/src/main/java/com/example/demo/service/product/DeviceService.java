@@ -1,13 +1,13 @@
-package com.example.demo.service;
+package com.example.demo.service.product;
 
 import com.example.demo.dto.product.request.DeviceRequest;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.Device;
 import com.example.demo.entity.User;
 import com.example.demo.enumValues.DeviceStatus;
-import com.example.demo.repository.IDeviceRepository;
-import com.example.demo.repository.IProductRepository;
-import com.example.demo.repository.IUserRepository; // Giả định hệ thống có repo này
+import com.example.demo.repository.product.DeviceRepository;
+import com.example.demo.repository.product.ProductRepository;
+import com.example.demo.repository.UserRepository; // Giả định hệ thống có repo này
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class DeviceService {
-    private final IDeviceRepository deviceRepository;
-    private final IProductRepository productRepository;
-    private final IUserRepository userRepository;
+    private final DeviceRepository deviceRepository;
+    private final ProductRepository productRepository;
+    private final UserRepository userRepository;
     private final DeviceImageService deviceImageService;
     private final ProductService productService;
 

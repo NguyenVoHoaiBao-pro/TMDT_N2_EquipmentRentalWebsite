@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.service.product;
 
 import com.example.demo.dto.product.request.ProductFilterRequest;
 import com.example.demo.dto.product.response.ProductResponse;
@@ -6,7 +6,8 @@ import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductImage;
 import com.example.demo.entity.Device;
 import com.example.demo.enumValues.DeviceStatus;
-import com.example.demo.repository.IProductRepository;
+import com.example.demo.repository.product.ProductRepository;
+import com.example.demo.service.PaginationHelper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class ProductService {
-    private final IProductRepository productRepository;
+    private final ProductRepository productRepository;
     private final PaginationHelper paginationHelper;
 
     private static final Set<String> ALLOWED_SORT_FIELDS = Set.of("id", "name", "basePrice", "status");
