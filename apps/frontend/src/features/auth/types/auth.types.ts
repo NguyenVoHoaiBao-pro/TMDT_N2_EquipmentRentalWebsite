@@ -1,3 +1,4 @@
+// auth.types.ts
 // Interface for API requests
 
 export interface RegisterRequest {

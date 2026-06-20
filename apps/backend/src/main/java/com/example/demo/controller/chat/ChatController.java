@@ -72,13 +72,13 @@ public class ChatController extends BaseController {
     @MessageMapping("/chat.sendMessage")
     public void handleWebSocketMessage(@Valid ChatMessageRequest request) {
         // 1. Mock senderId (Websocket current not pass throught JWT)
-        // Sau này khi cấu hình nâng cao ChannelInterceptor, bạn sẽ lấy ID từ Principal/Token bảo mật.
+        // One day, we will use JWT to pass senderId
         Long mockSenderId = 1L;
 
         // 2. Call service to save a message
         ChatMessageResponse savedMessage = chatService.saveMessage(mockSenderId, request);
 
-        // 3. Distribute message to all users in the room (topic)
+        // 3. Distribute a message to all users in the room (topic)
         // Even owner and user who subcribe to the room with /topic/room.{roomId} will receive the message at once
         messagingTemplate.convertAndSend("/topic/room." + request.getRoomId(), savedMessage);
     }
