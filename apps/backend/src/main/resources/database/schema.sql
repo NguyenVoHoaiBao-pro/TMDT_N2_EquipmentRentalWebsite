@@ -1,13 +1,20 @@
 SET
 FOREIGN_KEY_CHECKS = 0;
+-- 1. Drop sub tables (contain foreign keys)
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS device_images;
 DROP TABLE IF EXISTS device_calendars;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS reviews;
 DROP TABLE IF EXISTS orders;
+
+DROP TABLE IF EXISTS chat_messages;
+DROP TABLE IF EXISTS chat_rooms;
+
 DROP TABLE IF EXISTS product_images;
 DROP TABLE IF EXISTS devices;
+
+-- 2. Drop main tables
 DROP TABLE IF EXISTS products;
 DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS brands;
@@ -130,9 +137,9 @@ CREATE TABLE device_calendars
 (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY,
     device_id  BIGINT    NOT NULL,
-    event_date DATE      NOT NULL,                        -- Lưu chính xác từng ngày bận
+    event_date DATE      NOT NULL,                  -- Lưu chính xác từng ngày bận
     status     ENUM('BOOKED', 'OWNER_BLOCK', 'MAINTENANCE') NOT NULL,
-    order_id   BIGINT NULL,                               -- Null nếu do chủ máy tự khóa (OWNER_BLOCK)
+    order_id   BIGINT NULL,                         -- Null nếu do chủ máy tự khóa (OWNER_BLOCK)
     created_at TIMESTAMP NOT NULL,
     FOREIGN KEY (device_id) REFERENCES devices (id),
     UNIQUE KEY uq_item_date (device_id, event_date) -- Khóa chặn không cho trùng ngày
@@ -181,3 +188,32 @@ CREATE TABLE reviews
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (author_id) REFERENCES users (id)
 );
+
+-- 1. Table manages chat rooms
+CREATE TABLE chat_rooms
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    renter_id  BIGINT    NOT NULL,
+    owner_id   BIGINT    NOT NULL,
+    product_id BIGINT    NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (renter_id) REFERENCES users (id),
+    FOREIGN KEY (owner_id) REFERENCES users (id),
+    FOREIGN KEY (product_id) REFERENCES products (id),
+    UNIQUE KEY uq_chat_room (renter_id, owner_id, product_id) -- Avoid duplicate rooms
+);
+
+-- 2. Table stores chat messages
+CREATE TABLE chat_messages
+(
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    room_id      BIGINT    NOT NULL,
+    sender_id    BIGINT    NOT NULL,
+    message_text TEXT      NOT NULL,
+    is_read      BOOLEAN DEFAULT FALSE,
+    created_at   TIMESTAMP NOT NULL,
+    FOREIGN KEY (room_id) REFERENCES chat_rooms (id),
+    FOREIGN KEY (sender_id) REFERENCES users (id),
+    INDEX        idx_room_time (room_id, created_at)
+);
+

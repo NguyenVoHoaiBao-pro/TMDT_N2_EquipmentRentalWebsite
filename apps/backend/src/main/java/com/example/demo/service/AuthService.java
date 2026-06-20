@@ -9,7 +9,7 @@ import com.example.demo.dto.auth.response.TokenRefreshResponse;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
-import com.example.demo.repository.IUserRepository;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtTokenProvider;
 import com.example.demo.security.UserTokenInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class AuthService {
     private final AuthenticationManager manager;
     private final JwtTokenProvider tokenProvider;
-    private final IUserRepository userRepository;
+    private final UserRepository userRepository;
 
     private final ObjectMapper objectMapper;
 
@@ -215,7 +215,7 @@ public class AuthService {
             log.warn("User with email {} not found", email);
             return;
         }
-        
+
         User user = userOptional.get();
         String resetToken = UUID.randomUUID().toString();
 
