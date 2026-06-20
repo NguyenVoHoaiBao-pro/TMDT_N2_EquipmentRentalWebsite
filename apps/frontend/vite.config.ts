@@ -9,6 +9,9 @@ export default defineConfig({
     react(),
     tailwindcss(), // Add Tailwind CSS plugin
   ],
+  define: {
+    global: 'window', // Define global variable for window object
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

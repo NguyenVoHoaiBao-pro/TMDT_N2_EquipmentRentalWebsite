@@ -1,4 +1,4 @@
-package com.example.demo.repository;
+package com.example.demo.repository.product;
 
 import com.example.demo.entity.DeviceCalendar;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface IDeviceCalendarRepository extends JpaRepository<DeviceCalendar, Long> {
+public interface DeviceCalendarRepository extends JpaRepository<DeviceCalendar, Long> {
 
     // Query to count blocked dates basic:
     @Query("SELECT COUNT(c) FROM DeviceCalendar c WHERE c.device.id = :itemId AND c.eventDate IN :requestedDates")

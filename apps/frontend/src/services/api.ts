@@ -1,3 +1,4 @@
+// api.ts
 import axios from 'axios';
 import type { AxiosInstance, AxiosError } from 'axios';
 import type {
@@ -53,7 +54,7 @@ apiClient.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // GLOBAL STATE FOR TOKEN REFRESH FLOW
@@ -136,7 +137,7 @@ apiClient.interceptors.response.use(
     try {
       const { data } = await axios.post<MyApiResponse<TokenRefreshResponse>>(
         `${API_BASE_URL}/auth/refresh-token`,
-        { refreshToken }
+        { refreshToken },
       );
 
       const { accessToken, refreshToken: newRefresh } = data.result;
@@ -163,7 +164,7 @@ apiClient.interceptors.response.use(
       window.location.href = '/login';
       return Promise.reject(refreshError);
     }
-  }
+  },
 );
 
 // API ENDPOINTS DEFINITION

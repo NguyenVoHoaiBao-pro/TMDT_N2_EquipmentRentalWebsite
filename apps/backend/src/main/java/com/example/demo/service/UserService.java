@@ -8,8 +8,8 @@ import com.example.demo.enumValues.RoleType;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mappers.IUserMapper;
-import com.example.demo.repository.IRoleRepository;
-import com.example.demo.repository.IUserRepository;
+import com.example.demo.repository.RoleRepository;
+import com.example.demo.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,8 +21,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final IUserRepository userRepository;
-    private final IRoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final IUserMapper userMapper;
 
