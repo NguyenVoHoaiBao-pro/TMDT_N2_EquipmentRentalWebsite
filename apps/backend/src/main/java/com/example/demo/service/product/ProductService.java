@@ -1,6 +1,7 @@
 package com.example.demo.service.product;
 
 import com.example.demo.dto.product.request.ProductFilterRequest;
+import com.example.demo.dto.product.response.PriceRangeResponse;
 import com.example.demo.dto.product.response.ProductResponse;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductImage;
@@ -9,6 +10,7 @@ import com.example.demo.enumValues.DeviceStatus;
 import com.example.demo.repository.product.ProductRepository;
 import com.example.demo.service.PaginationHelper;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -65,9 +69,27 @@ public class ProductService {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
 
-            if (filter.categoryId() != null) {
-                predicate = cb.and(predicate, cb.equal(root.get("category").get("id"), filter.categoryId()));
+            // 1. Lọc theo Tên Danh Mục (So sánh chuỗi text)
+            if (filter.categoryName() != null && !filter.categoryName().isBlank()) {
+                predicate = cb.and(predicate,
+                    cb.equal(root.get("category").get("name"), filter.categoryName())
+                );
             }
+
+            // 2. Lọc theo nhiều Thương Hiệu (Dùng cơ chế IN của SQL)
+            if (filter.brandNames() != null && !filter.brandNames().isBlank()) {
+                // Cắt chuỗi "Sony,Canon" thành mảng ["Sony", "Canon"]
+                String[] brandArray = filter.brandNames().split(",");
+
+                // Tạo câu lệnh: root.get("brand").get("name") IN ('Sony', 'Canon')
+                CriteriaBuilder.In<String> inClause = cb.in(root.get("brand").get("name"));
+                for (String brand : brandArray) {
+                    inClause.value(brand.trim());
+                }
+                predicate = cb.and(predicate, inClause);
+            }
+
+            // 3. Các bộ lọc tìm kiếm text và khoảng giá giữ nguyên mộc mạc
             if (filter.search() != null && !filter.search().isBlank()) {
                 String keyword = "%" + filter.search().toLowerCase() + "%";
                 predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), keyword));
@@ -78,9 +100,30 @@ public class ProductService {
             if (filter.maxPrice() != null) {
                 predicate = cb.and(predicate, cb.lessThanOrEqualTo(root.get("basePrice"), filter.maxPrice()));
             }
+
             return predicate;
         };
     }
+
+    @Transactional(readOnly = true)
+    public PriceRangeResponse getProductPriceRange() {
+        List<Product> allProducts = productRepository.findAll();
+
+        BigDecimal min = allProducts.stream()
+            .map(Product::getBasePrice)
+            .filter(price -> price != null && price.compareTo(BigDecimal.ZERO) > 0)
+            .min(BigDecimal::compareTo)
+            .orElse(BigDecimal.valueOf(10000)); // Default value
+
+        BigDecimal max = allProducts.stream()
+            .map(Product::getBasePrice)
+            .filter(Objects::nonNull)
+            .max(BigDecimal::compareTo)
+            .orElse(BigDecimal.valueOf(5000000)); // Default value
+
+        return new PriceRangeResponse(min, max);
+    }
+
 
     @Transactional
     public void updateBasePrice(Long productId) {
