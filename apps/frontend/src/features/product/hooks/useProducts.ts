@@ -1,15 +1,16 @@
 // @/features/product/hooks/useProducts.ts
-import type { Product } from '@/features/product/types/product.types.ts';
 import { useMemo } from 'react';
-import { DEFAULT_PRICE_RANGE, ITEMS_PER_PAGE } from '@/features/product/constants/defaultValues.ts';
 import { useSearchParams } from 'react-router-dom';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { productService } from '../services/product.service';
+import { DEFAULT_PRICE_RANGE, ITEMS_PER_PAGE } from '../constants/defaultValues';
+import type { Product, SpringPageResponse } from '../types/product.types';
 
-export function useProductFilter(products: Product[]) {
+export function useProductFilter() {
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // --- 1. Synchronize State with URL Params ---
   const searchQuery = searchParams.get('keyword') || '';
-
-  // --- 1. Read URL Params ---
   const currentPage = Number(searchParams.get('page')) || 1;
   const selectedCategory = searchParams.get('category') || 'All';
 
@@ -24,130 +25,74 @@ export function useProductFilter(products: Product[]) {
     return min && max ? [Number(min), Number(max)] : DEFAULT_PRICE_RANGE;
   }, [searchParams]);
 
-  const sortField = (searchParams.get('sortField') as 'name' | 'price') || 'name';
+  const sortField = (searchParams.get('sortField') as 'name' | 'price') || 'price';
   const sortDirection = (searchParams.get('sortDirection') as 'asc' | 'desc') || 'asc';
 
-
-  // --- 2. Method to update URL Params ---
-  const setUrlParam = (key: string, value: string | null) => {
+  // --- 2. Helper method to update URL Params ---
+  const updateParams = (updates: Record<string, string | string[] | null>) => {
     setSearchParams((prev) => {
-      if (!value || value === 'All' || value === '') {
-        prev.delete(key);
-      } else {
-        prev.set(key, value);
-      }
-      if (key !== 'page') {
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === 'All' || value === '') {
+          prev.delete(key);
+        } else if (Array.isArray(value)) {
+          if (value.length === 0) prev.delete(key);
+          else prev.set(key, value.join(','));
+        } else {
+          prev.set(key, value);
+        }
+      });
+      if (!('page' in updates)) {
         prev.set('page', '1');
       }
       return prev;
     });
   };
 
-  const setSearchQuery = (
-    keyword: string,
-  ) => {
-    setUrlParam(
-      'keyword',
-      keyword,
-    );
-  };
-
-
-  const setCurrentPage = (page: number) => {
-    setUrlParam('page', page.toString());
-  };
-
-  const setSelectedCategory = (category: string) => {
-    setUrlParam('category', category);
-  };
-
-  const setSelectedBrands = (brands: string[]) => {
-    setUrlParam('brands', brands.length > 0 ? brands.join(',') : null);
-  };
-
+  // --- 3. Dispatchers interactive with UI --
+  const setSearchQuery = (keyword: string) => updateParams({ keyword });
+  const setCurrentPage = (page: number) => updateParams({ page: page.toString() });
+  const setSelectedCategory = (category: string) => updateParams({ category });
+  const setSelectedBrands = (brands: string[]) => updateParams({ brands });
+  const setSortField = (field: 'name' | 'price') => updateParams({ sortField: field });
   const setPriceRange = (range: [number, number]) => {
-    setSearchParams((prev) => {
-      prev.set('minPrice', range[0].toString());
-      prev.set('maxPrice', range[1].toString());
-      prev.set('page', '1');
-      return prev;
-    });
+    updateParams({ minPrice: range[0].toString(), maxPrice: range[1].toString() });
   };
-
-  const setSortField = (field: 'name' | 'price') => {
-    setUrlParam('sortField', field);
-  };
-
   const toggleSortDirection = () => {
-    const nextDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-    setUrlParam('sortDirection', nextDirection);
+    updateParams({ sortDirection: sortDirection === 'asc' ? 'desc' : 'asc' });
   };
+  const resetFilters = () => setSearchParams({});
 
-  const resetFilters = () => {
-    setSearchParams({}); // Clear all URL params
-  };
+  // --- 4. Call API through tanstack/react-query ---
+  const { data, isLoading, isError } = useQuery<SpringPageResponse<Product>>({
+    queryKey: ['products', searchQuery, currentPage, selectedCategory, selectedBrands, priceRange, sortField, sortDirection],
+    queryFn: () => productService.getProducts({
+      page: currentPage,
+      size: ITEMS_PER_PAGE,
+      keyword: searchQuery,
+      category: selectedCategory !== 'All' ? selectedCategory : undefined,
+      brands: selectedBrands.length > 0 ? selectedBrands : undefined,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      sortField,
+      sortDirection,
+    }),
+    placeholderData: keepPreviousData, // Keep previous data while loading new data
+  });
 
-
-  // --- 3. Compute filtered, sorted, and paginated products ---
-  const filteredProducts = useMemo(() => {
-
-    // Ensure keyword is only check once per render
-    const keyword = searchQuery.trim().toLowerCase();
-
-
-    const result = products.filter((p) => {
-      const categoryMatch = selectedCategory === 'All' || p.category === selectedCategory;
-      const brandMatch = selectedBrands.length === 0 || selectedBrands.includes(p.brand);
-      const priceMatch = p.price >= priceRange[0] && p.price <= priceRange[1];
-
-
-      const searchMatch =
-        p.name.toLowerCase().includes(keyword) ||
-        p.brand.toLowerCase().includes(keyword) ||
-        p.category.toLowerCase().includes(keyword);
-
-      return categoryMatch && brandMatch && priceMatch && searchMatch;
-    });
-
-    const productSorted = [...result];
-    productSorted.sort((a, b) => {
-      if (sortField === 'price') {
-        return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
-      }
-      return sortDirection === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-    });
-
-    return productSorted;
-  }, [products, selectedCategory, selectedBrands, priceRange, searchQuery, sortField, sortDirection]);
-
-  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-
-  const paginatedProducts = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredProducts.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredProducts, currentPage]);
-
-
-  // --- 4. Export results ---
   return {
-    selectedCategory,
-    setSelectedCategory,
-    selectedBrands,
-    setSelectedBrands,
-    priceRange,
-    setPriceRange,
-    searchQuery,
-    setSearchQuery,
-    filteredProducts,
-    paginatedProducts,
+    selectedCategory, setSelectedCategory,
+    selectedBrands, setSelectedBrands,
+    priceRange, setPriceRange,
+    searchQuery, setSearchQuery,
     resetFilters,
-    sortField,
-    setSortField,
-    sortDirection,
-    toggleSortDirection,
+    sortField, setSortField,
+    sortDirection, toggleSortDirection,
+    currentPage, setCurrentPage,
 
-    currentPage,
-    setCurrentPage,
-    totalPages,
+    paginatedProducts: data?.content || [],
+    filteredProducts: { length: data?.totalElements || 0 },
+    totalPages: data?.totalPages || 1,
+    isLoading,
+    isError,
   };
 }
