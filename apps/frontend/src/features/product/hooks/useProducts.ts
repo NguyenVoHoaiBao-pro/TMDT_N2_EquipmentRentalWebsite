@@ -41,7 +41,7 @@ export function useProductFilter() {
           prev.set(key, value);
         }
       });
-      if (!('page' in updates)) {
+      if (!('page' in updates)) { // If the user changes filter criteria, reset to page 1
         prev.set('page', '1');
       }
       return prev;

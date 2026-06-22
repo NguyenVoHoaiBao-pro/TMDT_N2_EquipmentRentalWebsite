@@ -5,6 +5,7 @@ import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ForgotPassword } from '@/pages/auth/ForgotPassword.tsx';
 import { ResetPassword } from '@/pages/auth/ResetPassword.tsx';
 import ProductCatalogPage from '@/pages/products/ProductCatalogPage.tsx';
+import RegisterDevicePage from '@/pages/device-registration/RegisterDevicePage.tsx';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
       <Route path="/products" element={<ProductCatalogPage />} />
 
       {/* Device Registration Pages */}
-      {/*<Route path="/register-device" element={<RegisterDevicePage />} />*/}
+      <Route path="/register-device" element={<RegisterDevicePage />} />
     </Routes>
   );
 }

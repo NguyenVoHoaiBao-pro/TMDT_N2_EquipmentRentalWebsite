@@ -9,6 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/shared_components/ui/pagination';
+import { DEFAULT_MAX_VISIBLE_PAGES } from '@/features/product/constants/defaultValues.ts';
 
 interface PaginationProps {
   currentPage: number;
@@ -21,38 +22,51 @@ export default function ProductPagination({ currentPage, totalPages, onPageChang
 
   const renderPageNumbers = () => {
     const pages: React.ReactNode[] = [];
-    const maxVisiblePages = 5; // Maximum number of visible page links
+    const maxVisiblePages = DEFAULT_MAX_VISIBLE_PAGES;
 
+    // Case 1: If totalPages <= maxVisiblePages, render all pages
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(renderLink(i));
       }
-    } else {
-      // Always show the first page
+      return pages;
+    }
+
+    // Case 2: If totalPages > maxVisiblePages, render 5 pages around the current page, floating windows
+    let start = currentPage - 2;
+    let end = currentPage + 2;
+
+    // If the start is less than 1, adjust it to 1 and adjust end accordingly
+    if (start < 1) {
+      start = 1;
+      end = maxVisiblePages;
+    }
+
+    // If the end is greater than totalPages, adjust it to totalPages and adjust start accordingly
+    if (end > totalPages) {
+      end = totalPages;
+      start = totalPages - maxVisiblePages + 1;
+    }
+
+    // Add ellipsis if the start is greater than 1
+    if (start > 1) {
       pages.push(renderLink(1));
+      pages.push(<PaginationItem key="ellipsis-start"><PaginationEllipsis /></PaginationItem>);
+    }
 
-      if (currentPage > 3) {
-        pages.push(<PaginationItem key="ellipsis-start"><PaginationEllipsis /></PaginationItem>);
-      }
+    for (let i = start; i <= end; i++) {
+      pages.push(renderLink(i));
+    }
 
-      // Render pages around the current page
-      const start = Math.max(2, currentPage - 1);
-      const end = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(renderLink(i));
-      }
-
-      if (currentPage < totalPages - 2) {
-        pages.push(<PaginationItem key="ellipsis-end"><PaginationEllipsis /></PaginationItem>);
-      }
-
-      // Always show the last page
+    // If reach the end of the loop, add ellipsis if end is less than totalPages
+    if (end < totalPages) {
+      pages.push(<PaginationItem key="ellipsis-end"><PaginationEllipsis /></PaginationItem>);
       pages.push(renderLink(totalPages));
     }
 
     return pages;
   };
+
 
   const renderLink = (page: number) => (
     <PaginationItem key={page}>
@@ -71,7 +85,7 @@ export default function ProductPagination({ currentPage, totalPages, onPageChang
 
   return (
     <ShadcnPagination className="mt-8">
-      <PaginationContent>
+      <PaginationContent className="w-full justify-between md:justify-center md:gap-1">
         {/* Previous Page */}
         <PaginationItem>
           <PaginationPrevious
@@ -84,8 +98,13 @@ export default function ProductPagination({ currentPage, totalPages, onPageChang
           />
         </PaginationItem>
 
-        {/* List of Page Links */}
-        {renderPageNumbers()}
+        <span className="text-sm font-medium md:hidden text-muted-foreground select-none">
+          Trang {currentPage} / {totalPages}
+        </span>
+
+        <div className="hidden md:flex items-center gap-1">
+          {renderPageNumbers()}
+        </div>
 
         {/* Next Page */}
         <PaginationItem>
