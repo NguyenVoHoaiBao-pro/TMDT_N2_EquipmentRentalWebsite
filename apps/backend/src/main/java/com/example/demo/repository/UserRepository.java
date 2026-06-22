@@ -3,8 +3,9 @@ package com.example.demo.repository;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import com.example.demo.entity.User;
 
 @Repository
@@ -16,4 +17,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUsername(String username);
 
     boolean existsByEmail(String email);
+
+    // TÌM KIẾM MỚI: Lấy thông tin User dựa trên nhà cung cấp mạng xã hội và ID từ mạng xã hội đó
+    @Query("SELECT u FROM User u JOIN u.socialAccounts s WHERE s.provider = :provider AND s.providerUserId = :providerUserId")
+    Optional<User> findBySocialProviderAndUserId(@Param("provider") String provider, @Param("providerUserId") String providerUserId);
 }

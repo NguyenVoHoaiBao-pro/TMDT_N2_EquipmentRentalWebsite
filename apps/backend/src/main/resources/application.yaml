@@ -60,13 +60,33 @@ spring:
       enabled: true
       path: /h2-console
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope:
+              - profile
+              - email
+          facebook:
+            client-id: ${FACEBOOK_CLIENT_ID:your-facebook-client-id}
+            client-secret: ${FACEBOOK_CLIENT_SECRET:your-facebook-client-secret}
+            scope:
+              - public_profile
+              - email
+
 # JWT Configuration (from .env)
 app:
   jwt:
-    # Secret key for signing JWT tokens
     secretKey: ${JWT_SECRET:MySecretKeyThatIsAtLeast32CharactersLongForHS256}
-    accessTokenExpirationMs: ${JWT_ACCESS_EXPIRATION_MS:900000} # 15 minutes
-    refreshTokenExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:604800000} # 7 days
+    accessTokenExpirationMs: ${JWT_ACCESS_EXPIRATION_MS:900000}
+    refreshTokenExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+
+  oauth2:
+    authorized-redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:3000/oauth2/redirect}
+
 
 # Logging Configuration (from .env)
 logging:
