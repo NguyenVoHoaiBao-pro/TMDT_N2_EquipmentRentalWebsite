@@ -111,7 +111,7 @@ public class ChatService {
         return ChatRoomResponse.builder()
             .id(room.getId())
             .renterId(room.getRenter().getId())
-            .renterName(room.getRenter().getFullName()) // Hoặc getUserName() tùy bạn hiển thị tên nào
+            .renterName(room.getRenter().getFullName()) // Alternative: room.getRenter().getUsername()
             .ownerId(room.getOwner().getId())
             .ownerName(room.getOwner().getFullName())
             .productId(room.getProduct().getId())
