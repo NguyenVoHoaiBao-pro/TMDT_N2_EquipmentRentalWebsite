@@ -1,4 +1,4 @@
-package com.example.demo.security;
+package com.example.demo.security.jwt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import javax.crypto.SecretKey;
 
+import com.example.demo.security.CustomUserDetails;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;

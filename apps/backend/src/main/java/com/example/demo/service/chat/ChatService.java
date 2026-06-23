@@ -87,12 +87,12 @@ public class ChatService {
      * Store a new message in the database
      */
     @Transactional
-    public ChatMessageResponse saveMessage(Long senderId, ChatMessageRequest request) {
+    public ChatMessageResponse saveMessage(String username, ChatMessageRequest request) {
         ChatRoom room = chatRoomRepository.findById(request.getRoomId())
             .orElseThrow(() -> new RuntimeException("Chat room not found with ID: " + request.getRoomId()));
 
-        User sender = userRepository.findById(senderId)
-            .orElseThrow(() -> new RuntimeException("Sender not found with ID: " + senderId));
+        User sender = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("Sender not found with ID: " + username));
 
         ChatMessage newMessage = ChatMessage.builder()
             .room(room)

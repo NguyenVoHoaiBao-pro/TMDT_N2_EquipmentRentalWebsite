@@ -6,6 +6,8 @@ import com.example.demo.dto.chat.request.ChatMessageRequest;
 import com.example.demo.dto.chat.response.ChatMessageResponse;
 import com.example.demo.dto.chat.request.ChatRoomRequest;
 import com.example.demo.dto.chat.response.ChatRoomResponse;
+import com.example.demo.exception.AppException;
+import com.example.demo.exception.ErrorCode;
 import com.example.demo.service.chat.ChatService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -70,16 +73,20 @@ public class ChatController extends BaseController {
      * Destination: /app/chat.sendMessage (the prefix "/app" is defined in WebSocketConfig)
      */
     @MessageMapping("/chat.sendMessage")
-    public void handleWebSocketMessage(@Valid ChatMessageRequest request) {
-        // 1. Mock senderId (Websocket current not pass throught JWT)
-        // One day, we will use JWT to pass senderId
-        Long mockSenderId = 1L;
+    public void handleWebSocketMessage(Principal principal, @Valid ChatMessageRequest request) {
+
+        // Throw an exception if the user is not authenticated
+        if (principal == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String currentUsername = principal.getName();
 
         // 2. Call service to save a message
-        ChatMessageResponse savedMessage = chatService.saveMessage(mockSenderId, request);
+        ChatMessageResponse savedMessage = chatService.saveMessage(currentUsername, request);
 
         // 3. Distribute a message to all users in the room (topic)
-        // Even owner and user who subcribe to the room with /topic/room.{roomId} will receive the message at once
+        // Even owner and user who subscribe to the room with /topic/room.{roomId} will receive the message at once
         messagingTemplate.convertAndSend("/topic/room." + request.getRoomId(), savedMessage);
     }
 }

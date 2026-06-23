@@ -10,7 +10,7 @@ import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.repository.UserRepository;
-import com.example.demo.security.JwtTokenProvider;
+import com.example.demo.security.jwt.JwtTokenProvider;
 import com.example.demo.security.UserTokenInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -100,9 +99,7 @@ public class AuthService {
                 .type("Bearer")
                 .expiresIn(tokenProvider.getExpirationTime())
                 .username(user.getUsername())
-                .role(user.getRoles().stream()
-                    .map(r -> r.getRole().name())
-                    .collect(Collectors.joining(",")))
+                .role(roles)
                 .refreshToken(refreshToken)
                 .build();
         } catch (AuthenticationException e) {
@@ -171,10 +168,9 @@ public class AuthService {
             UserTokenInfo userInfo = objectMapper.readValue(jsonTokenInfo, UserTokenInfo.class);
 
             // 3. Generate a new Access Token and Refresh Token
-            String rolesString = String.join(",", userInfo.getRoles());
             String newAccessToken = tokenProvider.generateTokenFromUsername(
                 userInfo.getUsername(),
-                rolesString,
+                userInfo.getRoles(),
                 userInfo.getEmail()
             );
 
