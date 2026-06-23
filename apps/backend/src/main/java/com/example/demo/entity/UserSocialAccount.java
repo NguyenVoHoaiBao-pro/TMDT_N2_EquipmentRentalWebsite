@@ -3,12 +3,9 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.Instant;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_social_accounts",
@@ -35,15 +32,4 @@ public class UserSocialAccount extends BaseEntity implements Serializable {
 
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
-
-    @Column(name = "linked_at", nullable = false, updatable = false)
-    private Instant linkedAt;
-
-    @Override
-    protected void onCreate() {
-        super.onCreate();
-        if (this.linkedAt == null) {
-            this.linkedAt = Instant.now();
-        }
-    }
 }

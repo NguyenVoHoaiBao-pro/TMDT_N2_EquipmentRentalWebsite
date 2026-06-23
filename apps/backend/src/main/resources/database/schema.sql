@@ -57,8 +57,8 @@ CREATE TABLE user_social_accounts
     provider         VARCHAR(50)  NOT NULL,              -- 'GOOGLE', 'FACEBOOK'
     provider_user_id VARCHAR(255) NOT NULL,              -- ID độc nhất (sub/id) nhận từ phía Google/Facebook
     avatar_url       VARCHAR(255) NULL,                  -- Đường dẫn ảnh đại diện từ mạng xã hội
-    linked_at        TIMESTAMP    NOT NULL,
-
+    created_at       TIMESTAMP    NOT NULL,
+    updated_at       TIMESTAMP    NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     UNIQUE KEY uq_provider_user (provider, provider_user_id) -- Đảm bảo không bị trùng lặp tài khoản social
 );

@@ -42,7 +42,6 @@ services:
       dockerfile: ./apps/backend/Dockerfile
     container_name: equipment-rental-backend
     restart: unless-stopped
-    # Only remain internal network access to backend, remove port mapping to avoid exposing it directly
     environment:
       JAVA_OPTS: '-Xmx512m -Xms256m'
       DB_HOST: mysql
@@ -50,6 +49,14 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SERVER_PORT: 8080
+      # --- ADD YOUR LOGGING PROPERTIES HERE ---
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: "DEBUG"
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: "DEBUG"
+      # --- ADD YOUR OAUTH KEYS HERE (Matches your .properties or .env variables) ---
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_ID: "${FACEBOOK_CLIENT_ID}"
+      SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_SECRET: "${FACEBOOK_CLIENT_SECRET}"
     ports:
       - '8080:8080'
     depends_on:
@@ -59,6 +66,7 @@ services:
         condition: service_healthy
     networks:
       - equipment-rental-network
+
 
   frontend:
     build:

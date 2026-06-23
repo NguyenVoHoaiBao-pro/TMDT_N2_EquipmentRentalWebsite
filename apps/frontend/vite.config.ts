@@ -26,12 +26,6 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/equipment_rental/api'),
       },
-      '/oauth2': {
-        target: 'http://equipment-rental-backend:8080',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/oauth2/, '/equipment_rental/oauth2'),
-      }, // Separate proxy for OAuth2 endpoints to avoid conflicts with API endpoints
-
       '/ws-chat': {
         target: 'http://equipment-rental-backend:8080',
         ws: true, // Required for WebSocket connections

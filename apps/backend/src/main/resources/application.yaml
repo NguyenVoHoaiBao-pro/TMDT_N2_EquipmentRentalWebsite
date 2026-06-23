@@ -68,15 +68,18 @@ spring:
           google:
             client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
             client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
             scope:
               - profile
               - email
           facebook:
             client-id: ${FACEBOOK_CLIENT_ID:your-facebook-client-id}
             client-secret: ${FACEBOOK_CLIENT_SECRET:your-facebook-client-secret}
+            redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
             scope:
               - public_profile
               - email
+
 
 # JWT Configuration (from .env)
 app:
@@ -94,6 +97,8 @@ logging:
   level:
     root: ${LOG_LEVEL:INFO}
     '[com.example]': ${APP_LOG_LEVEL:INFO}
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
   pattern:
     console: '%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
 
@@ -102,6 +107,10 @@ server:
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: /equipment_rental
+    session:
+      cookie:
+        same-site: lax
+        secure: false
 
 # Swagger UI / SpringDoc Configuration
 springdoc:

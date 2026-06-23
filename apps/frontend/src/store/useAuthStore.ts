@@ -1,9 +1,10 @@
+// store/useAuthStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface AuthUser {
   username: string;
-  role: string;
+  roles: string[];
 }
 
 interface AuthStore {
@@ -36,6 +37,6 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'auth-storage',
-    }
-  )
+    },
+  ),
 );

@@ -37,19 +37,16 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    /**
-     * Tạo JWT Token tự động nhận diện luồng mà KHÔNG CẦN ÉP KIỂU CỨNG
-     */
     public String generateToken(Authentication authentication) {
         Date expiryDate = new Date(System.currentTimeMillis() + accessTokenExpirationMs);
-        String username = authentication.getName(); // Lấy username từ bất kỳ luồng đăng nhập nào
+        String username = authentication.getName();
 
         List<String> roles = authentication.getAuthorities()
             .stream()
             .map(GrantedAuthority::getAuthority)
             .toList();
 
-        // Tự động bốc tách Email an toàn từ Principal chung của hệ thống
+        // Auto Unboxing email from Principal
         String email = extractEmailFromPrincipal(authentication.getPrincipal());
 
         return Jwts.builder()

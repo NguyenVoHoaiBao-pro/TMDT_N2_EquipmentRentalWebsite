@@ -72,20 +72,20 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     let token = localStorage.getItem('token');
     const refreshToken = localStorage.getItem('refreshToken');
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Đang là '/api' theo file .env của bạn
 
     // Check if token is expired and refresh if possible
     if (isTokenExpired(token) && refreshToken) {
       console.log('Token expired. Attempting to refresh token before WebSocket Handshake...');
       try {
-        // Call the refresh endpoint directly
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken });
-        const { accessToken: newAccess, refreshToken: newRefresh } = data.result;
+
+        const { accessToken: newAccess, refreshToken: newRefresh } = data;
 
         // Update local storage with new tokens
         localStorage.setItem('token', newAccess);
         localStorage.setItem('refreshToken', newRefresh);
-        token = newAccess; // Assign the new token by the new one
+        token = newAccess;
         console.log('Refresh Token successful for WebSocket!');
       } catch (refreshError) {
         console.error('Refresh token failed. Redirecting to login...', refreshError);
@@ -96,10 +96,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       }
     }
 
-    const socket = new SockJS('http://localhost:8080/ws');
+    const socket = new SockJS('/ws-chat');
+
     const client = new Client({
       webSocketFactory: () => socket,
-      // Put token refresh totally from above here
       connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       debug: (str) => console.log(str),
       onConnect: () => {

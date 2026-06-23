@@ -21,11 +21,11 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private final Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes; // Lưu trữ payload thô từ Google/Facebook
 
-    // Constructor cho luồng Đăng nhập truyền thống (Form Login)
+    // Constructor for traditional login
     public CustomUserDetails(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
-        this.password = user.getPassword(); // Chấp nhận NULL một cách an toàn nếu là tài khoản Social
+        this.password = user.getPassword(); // Only accept null for OAuth2
         this.email = user.getEmail();
         this.enabled = user.isEnabled();
 
@@ -38,7 +38,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         this.authorities = authList;
     }
 
-    // Constructor cho luồng Đăng nhập mạng xã hội (OAuth2)
+    // Constructor for OAuth2 login
     public CustomUserDetails(User user, Map<String, Object> attributes) {
         this(user);
         this.attributes = attributes;
@@ -54,7 +54,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         return username;
     }
 
-    // --- CÁC PHƯƠNG THỨC ĐỊNH DANH CỦA OAUTH2USER ---
+    // --- Method Identifier of OAuth2User ---
     @Override
     public Map<String, Object> getAttributes() {
         return this.attributes;

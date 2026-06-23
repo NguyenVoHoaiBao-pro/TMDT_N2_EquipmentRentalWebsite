@@ -28,33 +28,31 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        // Kiểm tra nếu là lệnh CONNECT (khi React bắt đầu thiết lập kết nối realtime)
+        // Check if the message is a CONNECT command
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // Lấy chuỗi Authorization từ Header của gói tin STOMP
+            // Retrieve the Authorization header from STOMP
             String bearerToken = accessor.getFirstNativeHeader("Authorization");
 
             if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
                 String token = bearerToken.substring(7);
 
                 try {
-                    // 1. Gọi hàm validateToken có sẵn của bạn để kiểm tra tính hợp lệ
+
                     if (tokenProvider.validateToken(token)) {
+
                         String username = tokenProvider.getUsernameFromToken(token);
 
-                        // 2. Tải thông tin người dùng từ hệ thống lên
                         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-                        // 3. Tạo đối tượng Authentication chứng thực
                         UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                        // 4. Đính kèm thông tin User vào context riêng biệt của WebSocket phiên làm việc này
+                        // Set the authenticated user in the accessor
                         accessor.setUser(authentication);
                         log.info("WebSocket Authenticated thành công cho user: {}", username);
                     }
                 } catch (Exception e) {
                     log.error("Xác thực JWT trên WebSocket thất bại: {}", e.getMessage());
-                    // Bạn có thể quăng lỗi tại đây nếu muốn ngắt kết nối ngay lập tức khi token giả mạo
                 }
             }
         }

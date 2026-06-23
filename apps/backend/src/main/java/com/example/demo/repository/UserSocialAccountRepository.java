@@ -9,9 +9,9 @@ import com.example.demo.entity.UserSocialAccount;
 @Repository
 public interface UserSocialAccountRepository extends JpaRepository<UserSocialAccount, Long> {
 
-    // Tìm kiếm liên kết dựa trên loại mạng xã hội và ID người dùng của mạng xã hội đó
+    // Find user social account by provider and provider user id
     Optional<UserSocialAccount> findByProviderAndProviderUserId(String provider, String providerUserId);
 
-    // Kiểm tra xem ID mạng xã hội này đã có ai đăng ký liên kết trên hệ thống chưa
+    // Check if a social account already exists for the given provider and user id
     boolean existsByProviderAndProviderUserId(String provider, String providerUserId);
 }
