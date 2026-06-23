@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { useDebounce } from '@/features/auth/hooks/auth.hooks.ts';
 import type { RegisterFormData } from '@/features/auth/utils/register.schema.ts';
 import { registerSchema } from '@/features/auth/utils/register.schema.ts';
+import { api } from '@/services/api.ts';
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -53,7 +54,7 @@ export function RegisterForm() {
   // 3. Pass values to the checkDuplicateUsername and checkDuplicateEmail hooks
   const { data: usernameCheck, isLoading: usernameLoading } = useCheckDuplicateUsername(
     debouncedUsername,
-    { enabled: isUsernameReadyToCheck && debouncedUsername.length >= 3 }
+    { enabled: isUsernameReadyToCheck && debouncedUsername.length >= 3 },
   );
 
   const { data: emailCheck, isLoading: emailLoading } = useCheckDuplicateEmail(debouncedEmail, {
@@ -86,8 +87,17 @@ export function RegisterForm() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = api.auth.googleLoginUrl;
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = api.auth.facebookLoginUrl;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-100 flex items-center justify-center p-6">
+    <div
+      className="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50 to-blue-100 flex items-center justify-center p-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
         {/* Left Side */}
         <div className="hidden md:flex relative">
@@ -347,7 +357,9 @@ export function RegisterForm() {
 
             {/* Social Login */}
             <div className="grid grid-cols-2 gap-4">
-              <button className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
+              <button
+                onClick={handleGoogleLogin}
+                className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
                 <img
                   src="https://img.icons8.com/3d-fluency/1200/google-logo.jpg"
                   alt="Google Icon"
@@ -356,7 +368,9 @@ export function RegisterForm() {
                 Google
               </button>
 
-              <button className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
+              <button
+                onClick={handleFacebookLogin}
+                className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
                 <img
                   src="https://img.magnific.com/premium-psd/facebook-logo-icon_705838-12833.jpg?semt=ais_hybrid&w=740&q=80"
                   alt="Facebook Icon"

@@ -7,6 +7,7 @@ import { useLoginMutation } from '@/features/auth/services/auth.service.ts';
 import { passwordRegex } from '@/features/auth/utils/auth.utils.ts';
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import { api } from '@/services/api.ts';
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required' }),
@@ -49,8 +50,17 @@ export function LoginForm() {
     }
   };
 
+  const handleGoogleLogin = () => {
+    window.location.href = api.auth.googleLoginUrl;
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = api.auth.facebookLoginUrl;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center p-6">
+    <div
+      className="min-h-screen bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 flex items-center justify-center p-6">
       <div className="w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
         {/* Left Side - Image */}
         <div className="relative hidden md:block">
@@ -193,7 +203,9 @@ export function LoginForm() {
 
             {/* Social Login */}
             <div className="grid grid-cols-2 gap-4">
-              <button className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
+              <button
+                onClick={handleGoogleLogin}
+                className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
                 <img
                   src="https://img.icons8.com/3d-fluency/1200/google-logo.jpg"
                   alt="Google Icon"
@@ -202,7 +214,9 @@ export function LoginForm() {
                 Google
               </button>
 
-              <button className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
+              <button
+                onClick={handleFacebookLogin}
+                className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
                 <img
                   src="https://img.magnific.com/premium-psd/facebook-logo-icon_705838-12833.jpg?semt=ais_hybrid&w=740&q=80"
                   alt="Facebook Icon"
