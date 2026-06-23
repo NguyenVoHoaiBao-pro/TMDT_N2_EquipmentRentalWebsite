@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -37,9 +38,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = defaultUserService.loadUser(userRequest); //
+        OAuth2User oAuth2User = defaultUserService.loadUser(userRequest);
+        log.info("OAuth2 provider = {}", userRequest.getClientRegistration().getRegistrationId());
+        String currentEmail = oAuth2User.getAttribute("email");
+        log.info("OAuth2 email = {}", currentEmail);
 
-        String provider = userRequest.getClientRegistration().getRegistrationId().toUpperCase(); //
+        String provider = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
         String providerUserId = null;
         String avatarUrl = null;
 
@@ -47,18 +51,24 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             // Identifier of Google user is the 'sub' attribute
             providerUserId = oAuth2User.getAttribute("sub");
             avatarUrl = oAuth2User.getAttribute("picture");
+
         } else if ("FACEBOOK".equals(provider)) {
             // Identifier of Facebook user is the 'id' attribute
             providerUserId = oAuth2User.getAttribute("id");
 
-            // Extract a Nested JSON object to get a picture attribute
-            Map<String, Object> pictureObj = oAuth2User.getAttribute("picture");
-            if (pictureObj != null && pictureObj.containsKey("data")) {
-                Map<String, Object> dataObj = (Map<String, Object>) pictureObj.get("data");
-                if (dataObj != null) {
-                    avatarUrl = (String) dataObj.get("url");
-                }
+            Object pictureAttr = oAuth2User.getAttribute("picture");
+
+            // Check if the response contains the 'picture' attribute
+            if (pictureAttr instanceof Map<?, ?> pictureObj && pictureObj.get("data") instanceof Map<?, ?> dataObj) {
+                avatarUrl = (String) dataObj.get("url");
             }
+
+            // Fallback to the old Facebook API if 'picture' is not available
+            if (avatarUrl == null && providerUserId != null) {
+                avatarUrl = "https://facebook.com" + providerUserId + "/picture?type=large";
+            }
+
+
         }
 
         String email = oAuth2User.getAttribute("email");
@@ -115,7 +125,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         //  and we will require the user to update it later
         User newUser = User.builder()
             .username(generatedUsername)
-            .password(null) // Luồng OAuth2 không tạo mật khẩu tĩnh
+            .password(null) // null password for OAuth2 users
             .fullName(fullName != null ? fullName : baseUsername)
             .email(email)
             .phoneNumber(null)

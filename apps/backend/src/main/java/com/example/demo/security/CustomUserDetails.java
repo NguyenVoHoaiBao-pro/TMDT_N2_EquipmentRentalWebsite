@@ -65,7 +65,6 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         return this.username;
     }
 
-    // --- CÁC TRẠNG THÁI TÀI KHOẢN CỦA USERDETAILS ---
     @Override
     public boolean isAccountNonExpired() {
         return true;

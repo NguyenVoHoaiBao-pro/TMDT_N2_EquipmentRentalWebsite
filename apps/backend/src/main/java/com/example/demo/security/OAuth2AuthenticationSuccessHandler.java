@@ -48,10 +48,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         log.info("OAuth2 Đăng nhập thành công! Tiến hành khởi tạo Token và cấu trúc Redis.");
 
-        // 1. Tạo Access Token chuẩn từ hệ thống
+        // 1. Create JWT Token
         String accessToken = jwtTokenProvider.generateToken(authentication);
 
-        // 2. Lấy thông tin User từ Database dựa vào tên đăng nhập mạng xã hội
+        // 2. Extract User information from the Authentication object
         String username = authentication.getName();
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> new ServletException("Không tìm thấy người dùng mạng xã hội trong hệ thống."));
@@ -60,7 +60,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             .map(r -> r.getRole().name())
             .toList();
 
-        // 3. Đóng gói thông tin UserTokenInfo để đẩy vào Redis (Khớp 100% logic Token Refresh Flow của bạn)
+        // 3. Build UserTokenInfo object
         UserTokenInfo userInfo = UserTokenInfo.builder()
             .username(user.getUsername())
             .email(user.getEmail())
@@ -69,15 +69,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         String jsonTokenInfo = objectMapper.writeValueAsString(userInfo);
 
-        // 4. Sinh UUID Refresh Token và lưu vào Redis giống hệt luồng Login thường
+        // 4. Generate Refresh Token and store in Redis
         String refreshToken = UUID.randomUUID().toString();
         long ttl = jwtTokenProvider.getRefreshTokenExpirationTime();
         redisTemplate.opsForValue().set("refresh_token:" + refreshToken, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
 
-        // Chuỗi danh sách quyền phân tách bằng dấu phẩy (Ví dụ: "ROLE_USER,ROLE_ADMIN")
         String rolesString = String.join(",", rolesList);
 
-        // 5. Build URL tuyệt đối trả về đầy đủ 4 tham số mà React đang đợi
+        // 5. Build URL with query parameters
         String targetUrl = UriComponentsBuilder.fromUriString(authorizedRedirectUri)
             .queryParam("token", accessToken)
             .queryParam("refreshToken", refreshToken)
@@ -85,7 +84,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             .queryParam("roles", rolesString)
             .build().toUriString();
 
-        // 6. Thực hiện chuyển hướng trình duyệt về React
+        // 6. Redirect to the target URL
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }
