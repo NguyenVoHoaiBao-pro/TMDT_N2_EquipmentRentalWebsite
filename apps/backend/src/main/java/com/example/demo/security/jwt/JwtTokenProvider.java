@@ -1,6 +1,7 @@
 package com.example.demo.security;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import javax.crypto.SecretKey;
@@ -73,17 +74,18 @@ public class JwtTokenProvider {
         return null;
     }
 
-    public String generateTokenFromUsername(String username, String role, String email) {
+    public String generateTokenFromUsername(String username, Collection<String> roles, String email) {
         Date expiryDate = new Date(System.currentTimeMillis() + accessTokenExpirationMs);
         return Jwts.builder()
             .subject(username)
-            .claim("roles", role)
+            .claim("roles", roles) // Lưu mảng các roles thay vì chuỗi đơn
             .claim("email", email)
             .issuedAt(new Date())
             .expiration(expiryDate)
             .signWith(getSigningKey())
             .compact();
     }
+
 
     public String getUsernameFromToken(String token) {
         try {
