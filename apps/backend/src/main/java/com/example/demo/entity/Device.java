@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import com.example.demo.enumValues.DeviceStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.BatchSize;
 
 import java.io.Serial;
@@ -17,7 +18,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 
 public class Device extends BaseEntity implements Serializable {
 

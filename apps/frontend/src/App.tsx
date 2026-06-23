@@ -6,6 +6,7 @@ import { ForgotPassword } from '@/pages/auth/ForgotPassword.tsx';
 import { ResetPassword } from '@/pages/auth/ResetPassword.tsx';
 import ProductCatalogPage from '@/pages/products/ProductCatalogPage.tsx';
 import RegisterDevicePage from '@/pages/device-registration/RegisterDevicePage.tsx';
+import { OAuth2RedirectHandler } from '@/features/auth/components/OAuth2RedirectHandler.tsx';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+
+      <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
 
       {/* Product Pages */}
       <Route path="/products" element={<ProductCatalogPage />} />

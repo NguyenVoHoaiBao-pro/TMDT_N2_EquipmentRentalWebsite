@@ -26,6 +26,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/equipment_rental/api'),
       },
+      '/ws-chat': {
+        target: 'http://equipment-rental-backend:8080',
+        ws: true, // Required for WebSocket connections
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ws-chat/, '/equipment_rental/ws-chat'),
+      },
     },
     watch: {
       usePolling: true,

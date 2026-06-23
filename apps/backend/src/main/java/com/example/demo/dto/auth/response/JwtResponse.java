@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -16,6 +18,6 @@ public class JwtResponse {
     private String type;
     private Long expiresIn;
     private String username;
-    private String role;
+    private List<String> role;
     private String refreshToken;
 }

@@ -23,7 +23,7 @@ export const useLoginMutation = () => {
     },
 
     onSuccess: (user) => {
-      loginSuccess({ username: user.username, role: user.role }, user.token, user.refreshToken);
+      loginSuccess({ username: user.username, roles: user.roles }, user.token, user.refreshToken);
 
       toast.success(`Welcome, ${user.username}!`);
       navigate('/home');

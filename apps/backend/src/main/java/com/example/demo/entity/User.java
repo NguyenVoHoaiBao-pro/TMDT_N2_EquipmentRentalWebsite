@@ -1,11 +1,8 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,7 +16,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class User extends BaseEntity implements Serializable {
 
     @Serial
@@ -28,7 +25,7 @@ public class User extends BaseEntity implements Serializable {
     @Column(name = "user_name", nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
 
     @Column(name = "full_name", nullable = false)
@@ -37,7 +34,7 @@ public class User extends BaseEntity implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phone_number", nullable = false, unique = true, length = 10)
+    @Column(name = "phone_number", nullable = true, unique = true, length = 20)
     private String phoneNumber;
 
     @Column(name = "id_card_number", length = 16)
@@ -46,12 +43,18 @@ public class User extends BaseEntity implements Serializable {
     @Column(name = "trust_score", precision = 3, scale = 2)
     private BigDecimal trustScore;
 
-    @ManyToMany(fetch = FetchType.EAGER) // FetchType.EAGER to eagerly load roles
-    @JoinTable(name = "user_roles",
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id"))
-    @Builder.Default // Ensure roles are initialized with an empty set but not null
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<UserSocialAccount> socialAccounts = new HashSet<>();
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     @Builder.Default

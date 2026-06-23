@@ -1,6 +1,7 @@
 SET
 FOREIGN_KEY_CHECKS = 0;
 -- 1. Drop sub tables (contain foreign keys)
+DROP TABLE IF EXISTS user_social_accounts;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS device_images;
 DROP TABLE IF EXISTS device_calendars;
@@ -35,15 +36,31 @@ CREATE TABLE users
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_name      VARCHAR(255) NOT NULL UNIQUE,
-    password       VARCHAR(255) NOT NULL,
+    password       VARCHAR(255) NULL,                    -- Đổi thành NULLABLE vì tài khoản mạng xã hội không có mật khẩu gốc
     full_name      VARCHAR(255) NOT NULL,
     email          VARCHAR(255) NOT NULL UNIQUE,
-    phone_number   VARCHAR(20)  NOT NULL UNIQUE,
-    id_card_number VARCHAR(16),
+    phone_number   VARCHAR(20)  NULL UNIQUE,             -- Đổi thành NULLABLE vì Google/Facebook không trả về số điện thoại mặc định
+    id_card_number VARCHAR(16)  NULL,
     trust_score    DECIMAL(3, 2)         DEFAULT 5.00,
     enabled        BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at     TIMESTAMP    NOT NULL,
-    updated_at     TIMESTAMP    NOT NULL
+    updated_at     TIMESTAMP    NOT NULL,
+
+    INDEX idx_email (email),
+    INDEX idx_username (user_name)
+);
+
+CREATE TABLE user_social_accounts
+(
+    id               BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id          BIGINT       NOT NULL,
+    provider         VARCHAR(50)  NOT NULL,              -- 'GOOGLE', 'FACEBOOK'
+    provider_user_id VARCHAR(255) NOT NULL,              -- ID độc nhất (sub/id) nhận từ phía Google/Facebook
+    avatar_url       VARCHAR(255) NULL,                  -- Đường dẫn ảnh đại diện từ mạng xã hội
+    created_at       TIMESTAMP    NOT NULL,
+    updated_at       TIMESTAMP    NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    UNIQUE KEY uq_provider_user (provider, provider_user_id) -- Đảm bảo không bị trùng lặp tài khoản social
 );
 
 CREATE TABLE user_roles

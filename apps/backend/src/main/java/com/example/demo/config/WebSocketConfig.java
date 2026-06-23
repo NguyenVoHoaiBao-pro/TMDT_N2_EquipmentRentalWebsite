@@ -1,30 +1,37 @@
 package com.example.demo.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import com.example.demo.security.jwt.JwtChannelInterceptor;
 
 @Configuration
-@EnableWebSocketMessageBroker // Kích hoạt tính năng Message Broker cho WebSocket STOMP
+@EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+    private final JwtChannelInterceptor jwtChannelInterceptor;
+
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-            .setAllowedOriginPatterns("http://localhost:5173")
-            .withSockJS(); // Alternatively, if the user browser doesn't support WebSocket, fallback to SockJS'
+    public void configureMessageBroker(MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic"); // Routing from client to server
+        config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Routing for messages sent from the client to the server starting with "/app"
-        // E.g: /app/chat.sendMessage
-        registry.setApplicationDestinationPrefixes("/app");
+    public void registerStompEndpoints(StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws-chat") // Original endpoint
+            .setAllowedOriginPatterns("*")
+            .withSockJS(); // Support SockJS (Alternative to WebSocket)
+    }
 
-        // Routing for incoming messages to specific topics or queues
-        // E.g: /topic/room.1
-        registry.enableSimpleBroker("/topic", "/queue");
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        // Add JwtChannelInterceptor to the head of package received from client
+        registration.interceptors(jwtChannelInterceptor);
     }
 }
