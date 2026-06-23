@@ -2,10 +2,12 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,15 +17,11 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class UserSocialAccount implements Serializable {
+@SuperBuilder
+public class UserSocialAccount extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -33,12 +31,19 @@ public class UserSocialAccount implements Serializable {
     private String provider; // Lưu 'GOOGLE' hoặc 'FACEBOOK'
 
     @Column(name = "provider_user_id", nullable = false, length = 255)
-    private String providerUserId; // ID độc nhất nhận từ Google (sub) hoặc Facebook (id)
+    private String providerUserId;
 
     @Column(name = "avatar_url", length = 255)
     private String avatarUrl;
 
-    @CreationTimestamp
     @Column(name = "linked_at", nullable = false, updatable = false)
-    private LocalDateTime linkedAt;
+    private Instant linkedAt;
+
+    @Override
+    protected void onCreate() {
+        super.onCreate();
+        if (this.linkedAt == null) {
+            this.linkedAt = Instant.now();
+        }
+    }
 }

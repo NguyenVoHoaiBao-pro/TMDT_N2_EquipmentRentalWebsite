@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import com.example.demo.enumValues.ImageType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 
@@ -12,7 +13,7 @@ import java.io.Serial;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 
 public class DeviceImage extends BaseEntity {
 

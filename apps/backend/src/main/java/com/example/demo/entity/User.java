@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -15,20 +16,16 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class User extends BaseEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
     @Column(name = "user_name", nullable = false, unique = true)
     private String username;
 
-    @Column(nullable = true) // Đã chuyển thành NULLABLE cho OAuth2
+    @Column(nullable = true)
     private String password;
 
     @Column(name = "full_name", nullable = false)
@@ -38,7 +35,6 @@ public class User extends BaseEntity implements Serializable {
     private String email;
 
     @Column(name = "phone_number", nullable = true, unique = true, length = 20)
-    // Đã chuyển thành NULLABLE vì OAuth2 không có sẵn phone
     private String phoneNumber;
 
     @Column(name = "id_card_number", length = 16)
@@ -56,7 +52,6 @@ public class User extends BaseEntity implements Serializable {
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
-    // Mối quan hệ mới: Một user có thể liên kết nhiều tài khoản mạng xã hội (Google, Facebook,...)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<UserSocialAccount> socialAccounts = new HashSet<>();

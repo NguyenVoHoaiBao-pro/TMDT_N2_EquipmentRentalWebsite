@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import com.example.demo.enumValues.CalendarStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.time.LocalDate;
@@ -13,7 +14,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class DeviceCalendar extends BaseEntity {
 
     @Serial
