@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client';
 import axios from 'axios'; // Use Axios for token refresh, avoid infinite loop
 import type { ChatRoomResponse, ChatMessageResponse } from '@/features/chat/types/chat.types.ts';
 import { chatService } from '../services/chat.service';
+import { useAuthStore } from '@/store/useAuthStore.ts';
 
 interface ChatState {
   rooms: ChatRoomResponse[];
@@ -71,26 +72,24 @@ export const useChatStore = create<ChatState>((set, get) => ({
     get().disconnectWebSocket();
 
     let token = localStorage.getItem('token');
-    const refreshToken = localStorage.getItem('refreshToken');
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL; // Đang là '/api' theo file .env của bạn
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-    // Check if token is expired and refresh if possible
-    if (isTokenExpired(token) && refreshToken) {
+    // Check if the token is expired and refresh if possible
+    if (isTokenExpired(token)) {
       console.log('Token expired. Attempting to refresh token before WebSocket Handshake...');
       try {
-        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, { refreshToken });
+        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true });
 
-        const { accessToken: newAccess, refreshToken: newRefresh } = data;
+        const { accessToken: newAccess } = data;
 
         // Update local storage with new tokens
         localStorage.setItem('token', newAccess);
-        localStorage.setItem('refreshToken', newRefresh);
         token = newAccess;
         console.log('Refresh Token successful for WebSocket!');
       } catch (refreshError) {
         console.error('Refresh token failed. Redirecting to login...', refreshError);
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+        useAuthStore.getState().logoutSuccess();
         window.location.href = '/login';
         return;
       }

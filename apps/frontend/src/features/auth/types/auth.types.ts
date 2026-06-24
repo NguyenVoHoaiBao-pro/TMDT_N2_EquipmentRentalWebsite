@@ -45,10 +45,8 @@ export interface JwtResponse {
   expiresIn: number;
   username: string;
   roles: string[];
-  refreshToken: string;
 }
 
 export interface TokenRefreshResponse {
   accessToken: string;
-  refreshToken: string;
 }

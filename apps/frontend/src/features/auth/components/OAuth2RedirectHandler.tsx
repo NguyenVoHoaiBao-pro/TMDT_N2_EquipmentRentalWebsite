@@ -10,20 +10,22 @@ export function OAuth2RedirectHandler() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    const refreshToken = searchParams.get('refreshToken');
     const username = searchParams.get('username');
     const rolesString = searchParams.get('roles');
 
-    if (token && refreshToken && username && rolesString) {
+    if (token && username && rolesString) {
       const roles = rolesString.split(',');
 
-      loginSuccess({ username, roles }, token, refreshToken);
+      loginSuccess({ username, roles }, token);
 
-      toast.success(`Đăng nhập mạng xã hội thành công! Chào mừng ${username}`);
-      navigate('/home');
+      const savedRedirectUrl = sessionStorage.getItem('redirectAfterLogin') || '/home';
+      sessionStorage.removeItem('redirectAfterLogin');
+
+      // Navegate to the saved redirect URL or default to home
+      navigate(savedRedirectUrl, { replace: true });
     } else {
       toast.error('Đăng nhập mạng xã hội thất bại. Vui lòng thử lại!');
-      navigate('/login');
+      navigate('/login?error=oauth2_failed');
     }
   }, [searchParams, loginSuccess, navigate]);
 
