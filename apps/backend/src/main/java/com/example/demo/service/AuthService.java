@@ -8,7 +8,7 @@ import com.example.demo.dto.auth.response.TokenRefreshResponse;
 import com.example.demo.entity.User;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.user.UserRepository;
 import com.example.demo.security.jwt.JwtTokenProvider;
 import com.example.demo.security.UserTokenInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;

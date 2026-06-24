@@ -27,10 +27,10 @@ public class DeviceRequest {
     @NotNull(message = "{deposit_value.not.null}")
     private BigDecimal depositValue;
 
-    // Ảnh chính hiển thị ngoài danh sách (Bắt buộc là REAL_SHOT)
+    // Primary image with type REAL_SHOT
     @NotBlank(message = "{primary_image.not.blank}")
     private String primaryImageUrl;
 
-    // BỔ SUNG: Danh sách ảnh phụ bao gồm cả ảnh chụp góc cạnh và ảnh chứng minh số seri
+    // Additional images with type REAL_SHOT or SERIAL_PROOF
     private List<DeviceImageRequest> subImages;
 }

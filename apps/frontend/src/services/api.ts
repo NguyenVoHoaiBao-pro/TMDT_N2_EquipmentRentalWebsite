@@ -186,6 +186,14 @@ export const api = {
     googleLoginUrl: 'http://localhost:8080/equipment_rental/oauth2/authorization/google',
     facebookLoginUrl: 'http://localhost:8080/equipment_rental/oauth2/authorization/facebook',
   },
+  user: {
+    updateProfile: (formData: FormData): Promise<string> =>
+      apiClient.put('/users/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }),
+  },
 };
 
 export default apiClient;

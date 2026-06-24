@@ -2,6 +2,7 @@ SET
 FOREIGN_KEY_CHECKS = 0;
 -- 1. Drop sub tables (contain foreign keys)
 DROP TABLE IF EXISTS user_social_accounts;
+DROP TABLE IF EXISTS user_kyc_verifications;
 DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS device_images;
 DROP TABLE IF EXISTS device_calendars;
@@ -36,32 +37,47 @@ CREATE TABLE users
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_name      VARCHAR(255) NOT NULL UNIQUE,
-    password       VARCHAR(255) NULL,                    -- Đổi thành NULLABLE vì tài khoản mạng xã hội không có mật khẩu gốc
+    password       VARCHAR(255) NULL,       -- Đổi thành NULLABLE vì tài khoản mạng xã hội không có mật khẩu gốc
     full_name      VARCHAR(255) NOT NULL,
     email          VARCHAR(255) NOT NULL UNIQUE,
-    phone_number   VARCHAR(20)  NULL UNIQUE,             -- Đổi thành NULLABLE vì Google/Facebook không trả về số điện thoại mặc định
-    id_card_number VARCHAR(16)  NULL,
+    phone_number   VARCHAR(10) NULL UNIQUE, -- Đổi thành NULLABLE vì Google/Facebook không trả về số điện thoại mặc định
+    avatar_url     VARCHAR(255) NULL,
     trust_score    DECIMAL(3, 2)         DEFAULT 5.00,
     enabled        BOOLEAN      NOT NULL DEFAULT FALSE,
     created_at     TIMESTAMP    NOT NULL,
     updated_at     TIMESTAMP    NOT NULL,
 
-    INDEX idx_email (email),
-    INDEX idx_username (user_name)
+    INDEX          idx_email (email),
+    INDEX          idx_username (user_name)
 );
 
 CREATE TABLE user_social_accounts
 (
     id               BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id          BIGINT       NOT NULL,
-    provider         VARCHAR(50)  NOT NULL,              -- 'GOOGLE', 'FACEBOOK'
-    provider_user_id VARCHAR(255) NOT NULL,              -- ID độc nhất (sub/id) nhận từ phía Google/Facebook
-    avatar_url       VARCHAR(255) NULL,                  -- Đường dẫn ảnh đại diện từ mạng xã hội
+    provider         VARCHAR(50)  NOT NULL,                  -- 'GOOGLE', 'FACEBOOK'
+    provider_user_id VARCHAR(255) NOT NULL,                  -- ID độc nhất (sub/id) nhận từ phía Google/Facebook
+    avatar_url       VARCHAR(255) NULL,                      -- Đường dẫn ảnh đại diện từ mạng xã hội
     created_at       TIMESTAMP    NOT NULL,
     updated_at       TIMESTAMP    NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id),
     UNIQUE KEY uq_provider_user (provider, provider_user_id) -- Đảm bảo không bị trùng lặp tài khoản social
 );
+
+CREATE TABLE user_kyc_verifications
+(
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id           BIGINT      NOT NULL,
+    id_card_number    VARCHAR(12) NULL,
+    id_card_image_url VARCHAR(255) NULL,
+    status            ENUM('PENDING','VERIFIED','REJECTED') NOT NULL DEFAULT 'PENDING',
+    verified_by       BIGINT NULL, -- admin nào duyệt
+    verified_at       TIMESTAMP NULL,
+    created_at        TIMESTAMP   NOT NULL,
+    updated_at        TIMESTAMP   NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
 
 CREATE TABLE user_roles
 (

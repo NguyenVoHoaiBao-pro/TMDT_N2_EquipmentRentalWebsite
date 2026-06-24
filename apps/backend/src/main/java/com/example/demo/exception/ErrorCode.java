@@ -18,8 +18,8 @@ public enum ErrorCode {
     VALIDATION_ERROR(1006, "error.validation", HttpStatus.BAD_REQUEST),
     FORBIDDEN(1007, "error.forbidden", HttpStatus.FORBIDDEN),
     UNPROCESSABLE(1008, "error.unprocessable", HttpStatus.UNPROCESSABLE_CONTENT),
-    SERVICE_UNAVAILABLE(1009, "error.service_unavailable", HttpStatus.SERVICE_UNAVAILABLE);
-
+    SERVICE_UNAVAILABLE(1009, "error.service_unavailable", HttpStatus.SERVICE_UNAVAILABLE),
+    KYC_ALREADY_PENDING(1010, "error.kyc_already_pending", HttpStatus.CONFLICT);
     private final int code;            // Internal code
     private final String keyMessage;   // Key for multi-language
     private final HttpStatusCode statusCode; // Real status code

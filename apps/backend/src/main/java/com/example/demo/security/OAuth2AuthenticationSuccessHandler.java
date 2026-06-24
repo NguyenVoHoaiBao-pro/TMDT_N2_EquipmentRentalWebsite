@@ -1,9 +1,8 @@
 package com.example.demo.security;
 
 import com.example.demo.entity.User;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.user.UserRepository;
 import com.example.demo.security.jwt.JwtTokenProvider;
-import com.example.demo.security.UserTokenInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;

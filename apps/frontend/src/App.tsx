@@ -10,6 +10,7 @@ import RegisterDevicePage from '@/pages/device-registration/RegisterDevicePage.t
 import { OAuth2RedirectHandler } from '@/features/auth/components/OAuth2RedirectHandler.tsx';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
+import { ProfilePage } from '@/pages/profile/ProfilePage.tsx';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         {/* 2. Protected Routes: need user logged in */}
         <Route element={<ProtectedRoute />}>
           <Route path="/register-device" element={<RegisterDevicePage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           {/* Other protected routes */}
         </Route>
 

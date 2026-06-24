@@ -1,4 +1,4 @@
-package com.example.demo.repository;
+package com.example.demo.repository.user;
 
 import java.util.Optional;
 
@@ -21,4 +21,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Find user by social provider and user ID
     @Query("SELECT u FROM User u JOIN u.socialAccounts s WHERE s.provider = :provider AND s.providerUserId = :providerUserId")
     Optional<User> findBySocialProviderAndUserId(@Param("provider") String provider, @Param("providerUserId") String providerUserId);
+
+    // Find user with roles and kyc verifications
+    @Query("SELECT u FROM User u " +
+        "LEFT JOIN FETCH u.roles " +
+        "LEFT JOIN FETCH u.kycVerifications " +
+        "WHERE u.username = :username")
+    Optional<User> findUserWithKycAndRolesByUsername(@Param("username") String username);
 }
