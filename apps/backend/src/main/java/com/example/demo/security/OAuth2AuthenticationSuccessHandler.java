@@ -5,6 +5,7 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.security.jwt.JwtTokenProvider;
 import com.example.demo.security.UserTokenInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -42,7 +43,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                                         @NonNull Authentication authentication) throws IOException, ServletException {
 
         if (response.isCommitted()) {
-            log.debug("Response has already been committed. Unable to redirect to " + authorizedRedirectUri);
+            log.debug("Response has already been committed. Unable to redirect to {}", authorizedRedirectUri);
             return;
         }
 
@@ -70,21 +71,29 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String jsonTokenInfo = objectMapper.writeValueAsString(userInfo);
 
         // 4. Generate Refresh Token and store in Redis
-        String refreshToken = UUID.randomUUID().toString();
+        String tokenUuid = UUID.randomUUID().toString();
+        String redisKey = String.format("refresh_token:%s:%s", user.getUsername(), tokenUuid);
         long ttl = jwtTokenProvider.getRefreshTokenExpirationTime();
-        redisTemplate.opsForValue().set("refresh_token:" + refreshToken, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(redisKey, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
+
+        // 5. Put the redisKey into Cookie:
+        Cookie cookie = new Cookie("refreshToken", redisKey);
+        cookie.setHttpOnly(true); // Prevents client-side JavaScript from accessing the cookie
+        cookie.setSecure(false); // Set to true if using HTTPS
+        cookie.setPath("/"); // Set the cookie path to the root of the application
+        cookie.setMaxAge((int) (ttl / 1000)); // Convert milliseconds to seconds
+        response.addCookie(cookie);
 
         String rolesString = String.join(",", rolesList);
 
-        // 5. Build URL with query parameters
+        // 6. Build URL with query parameters
         String targetUrl = UriComponentsBuilder.fromUriString(authorizedRedirectUri)
             .queryParam("token", accessToken)
-            .queryParam("refreshToken", refreshToken)
             .queryParam("username", user.getUsername())
             .queryParam("roles", rolesString)
             .build().toUriString();
 
-        // 6. Redirect to the target URL
+        // 7. Redirect to the target URL
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

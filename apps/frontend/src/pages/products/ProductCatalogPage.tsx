@@ -17,7 +17,6 @@ export default function ProductCatalogPage() {
     selectedCategory, setSelectedCategory,
     selectedBrands, setSelectedBrands,
     priceRange, setPriceRange,
-    searchQuery, setSearchQuery,
     paginatedProducts,
     filteredProducts,
     resetFilters,
@@ -52,7 +51,7 @@ export default function ProductCatalogPage() {
 
   return (
     <Fragment>
-      <Header showSearch={true} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+      <Header showSearch={true} />
 
       <div className="flex flex-col lg:flex-row">
         <Sidebar>

@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import com.example.demo.dto.auth.request.ForgotPasswordReq;
 import com.example.demo.dto.auth.request.ResetPasswordReq;
-import com.example.demo.dto.auth.request.TokenRefreshRequest;
 import com.example.demo.dto.auth.response.JwtResponse;
 import com.example.demo.dto.auth.request.LoginRequest;
 import com.example.demo.dto.auth.response.TokenRefreshResponse;
@@ -17,6 +16,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -50,7 +51,7 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private final PasswordEncoder passwordEncoder;
 
-    public JwtResponse login(LoginRequest loginRequest) {
+    public JwtResponse login(LoginRequest loginRequest, HttpServletResponse response) {
         try {
             // 1. Verify User Credentials with username and password
             Authentication authentication = manager.authenticate(
@@ -70,9 +71,10 @@ public class AuthService {
 
             /*
             We will use new Object to store user's role and email' in redis
-            so that we not need to query the database every time we need to get user's role and email.
+            so that we not need to query the database every time we need to get the user's role and email.
              */
 
+            // 4. Convert User object to UserTokenInfo object
             List<String> roles = user.getRoles().stream()
                 .map(r -> r.getRole().name())
                 .toList();
@@ -85,22 +87,28 @@ public class AuthService {
 
             String jsonTokenInfo = objectMapper.writeValueAsString(userInfo);
 
-            // Create and add a refresh token to the response
-            String refreshToken = UUID.randomUUID().toString();
+            // Create a refresh token and store it in Redis
+            String tokenUuid = UUID.randomUUID().toString();
+            String redisKey = String.format("refresh_token:%s:%s", user.getUsername(), tokenUuid);
             long ttl = tokenProvider.getRefreshTokenExpirationTime();
 
-            redisTemplate.opsForValue().set("refresh_token:" + refreshToken, jsonTokenInfo,
-                ttl, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(redisKey, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
 
+            // 5. Set redisKey to Cookie
+            Cookie cookie = new Cookie("refreshToken", redisKey);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(false);
+            cookie.setPath("/");
+            cookie.setMaxAge((int) (ttl / 1000));
+            response.addCookie(cookie);
 
-            // 4. Build and return JWT response
+            // 6. Build and return JWT response
             return JwtResponse.builder()
                 .token(token)
                 .type("Bearer")
                 .expiresIn(tokenProvider.getExpirationTime())
                 .username(user.getUsername())
-                .role(roles)
-                .refreshToken(refreshToken)
+                .roles(roles)
                 .build();
         } catch (AuthenticationException e) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -110,7 +118,7 @@ public class AuthService {
         }
     }
 
-    public void logout(String authorizationHeader, String refreshToken) {
+    public void logout(String authorizationHeader, String redisKeyFromCookie, HttpServletResponse response) {
         // 1. Check and throw Exception if the token is invalid or expired
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -132,12 +140,18 @@ public class AuthService {
                     TimeUnit.MILLISECONDS);
             }
 
-            // 3. Release the refresh token from redis
-            if (StringUtils.hasText(refreshToken)) {
-                String redisKey = "refresh_token:" + refreshToken;
-                redisTemplate.delete(redisKey);
+            // 3. Delete key from redis according to the value get from Cookie
+            if (StringUtils.hasText(redisKeyFromCookie)) {
+                redisTemplate.delete(redisKeyFromCookie);
                 log.info("Refresh token has been released from Redis.");
             }
+
+            // 4. Delete Cookie from a client:
+            Cookie cookie = new Cookie("refresh_token", null); // Set to null to delete the cookie
+            cookie.setPath("/");
+            cookie.setHttpOnly(true);
+            cookie.setMaxAge(0); // Set the cookie's expiration date to 0 to delete it'
+            response.addCookie(cookie);
 
             // the jjwt exception class:
         } catch (ExpiredJwtException e) {
@@ -152,12 +166,14 @@ public class AuthService {
 
     }
 
-    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
-        String requestTokenRequest = request.getRefreshToken();
-        String redisKey = "refresh_token:" + requestTokenRequest;
+    public TokenRefreshResponse refreshToken(String redisKeyFromCookie, HttpServletResponse response) {
+
+        if (redisKeyFromCookie == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
 
         // 1. Retrieve json from redis
-        String jsonTokenInfo = redisTemplate.opsForValue().get(redisKey);
+        String jsonTokenInfo = redisTemplate.opsForValue().get(redisKeyFromCookie);
 
         if (jsonTokenInfo == null) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -174,23 +190,34 @@ public class AuthService {
                 userInfo.getEmail()
             );
 
-            String newRefreshToken = UUID.randomUUID().toString();
+            /*
+            Create a turn around cycle of new Token by deleting and then creating a new one:
+             */
 
             // 4. Delete the old Refresh Token from Redis
-            redisTemplate.delete(redisKey);
+            redisTemplate.delete(redisKeyFromCookie);
 
-            // 5. Store the new refresh token with new expiration time in Redis
+            // 5. Create a new Refresh Token and store it in Redis
+            String tokenUuid = UUID.randomUUID().toString();
+            String redisKey = String.format("refresh_token:%s:%s", userInfo.getUsername(), tokenUuid);
             long ttl = tokenProvider.getRefreshTokenExpirationTime();
-            redisTemplate.opsForValue().set("refresh_token:" + newRefreshToken, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(redisKey, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
 
-            // 6. Return the new Access Token and Refresh Token to the client
+            // 6. Set redisKey to Cookie:
+            Cookie cookie = new Cookie("refreshToken", redisKey);
+            cookie.setHttpOnly(true);
+            cookie.setSecure(false);
+            cookie.setPath("/");
+            cookie.setMaxAge((int) (ttl / 1000));
+            response.addCookie(cookie);
+
+            // 7. Return the new Access Token and Refresh Token to the client
             return TokenRefreshResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(newRefreshToken)
                 .build();
 
         } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-            log.error("Failed to parse JSON from Redis: {}", redisKey, e);
+            log.error("Failed to parse JSON from Redis: {}", redisKeyFromCookie, e);
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
     }

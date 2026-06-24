@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmail(String email);
 
-    // TÌM KIẾM MỚI: Lấy thông tin User dựa trên nhà cung cấp mạng xã hội và ID từ mạng xã hội đó
+    // Find user by social provider and user ID
     @Query("SELECT u FROM User u JOIN u.socialAccounts s WHERE s.provider = :provider AND s.providerUserId = :providerUserId")
     Optional<User> findBySocialProviderAndUserId(@Param("provider") String provider, @Param("providerUserId") String providerUserId);
 }

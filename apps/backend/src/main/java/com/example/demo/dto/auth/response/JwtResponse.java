@@ -18,6 +18,5 @@ public class JwtResponse {
     private String type;
     private Long expiresIn;
     private String username;
-    private List<String> role;
-    private String refreshToken;
+    private List<String> roles;
 }

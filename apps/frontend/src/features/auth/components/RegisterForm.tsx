@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   useCheckDuplicateEmail,
   useCheckDuplicateUsername,
-  useRegisterMutation,
+  useRegisterMutation, useSocialLogin,
 } from '@/features/auth/services/auth.service.ts';
 import { type RegisterRequest } from '@/features/auth/types/auth.types.ts';
 import { Eye, EyeOff } from 'lucide-react';
@@ -12,13 +12,15 @@ import { useState } from 'react';
 import { useDebounce } from '@/features/auth/hooks/auth.hooks.ts';
 import type { RegisterFormData } from '@/features/auth/utils/register.schema.ts';
 import { registerSchema } from '@/features/auth/utils/register.schema.ts';
-import { api } from '@/services/api.ts';
+import { SocialLogin } from '@/components/layout/SocialLogin.tsx';
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const registerMutation = useRegisterMutation();
+
+  const { loginWithGoogle, loginWithFacebook } = useSocialLogin();
 
   const {
     register,
@@ -87,13 +89,6 @@ export function RegisterForm() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = api.auth.googleLoginUrl;
-  };
-
-  const handleFacebookLogin = () => {
-    window.location.href = api.auth.facebookLoginUrl;
-  };
 
   return (
     <div
@@ -355,30 +350,10 @@ export function RegisterForm() {
               <div className="flex-1 h-px bg-gray-200"></div>
             </div>
 
-            {/* Social Login */}
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                onClick={handleGoogleLogin}
-                className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
-                <img
-                  src="https://img.icons8.com/3d-fluency/1200/google-logo.jpg"
-                  alt="Google Icon"
-                  className="w-5 h-5 mr-2 inline-block"
-                />{' '}
-                Google
-              </button>
-
-              <button
-                onClick={handleFacebookLogin}
-                className="border border-gray-300 rounded-xl py-3 font-medium hover:bg-gray-50 transition">
-                <img
-                  src="https://img.magnific.com/premium-psd/facebook-logo-icon_705838-12833.jpg?semt=ais_hybrid&w=740&q=80"
-                  alt="Facebook Icon"
-                  className="w-8 h-8 mr-2 inline-block"
-                />{' '}
-                Facebook
-              </button>
-            </div>
+            <SocialLogin
+              onGoogleLogin={loginWithGoogle}
+              onFacebookLogin={loginWithFacebook}
+            />
 
             {/* Footer */}
             <p className="text-center text-sm text-gray-500 mt-8">

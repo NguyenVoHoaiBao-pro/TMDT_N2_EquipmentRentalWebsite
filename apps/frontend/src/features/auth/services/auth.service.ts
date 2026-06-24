@@ -1,6 +1,7 @@
 // auth.service.ts
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '@/services/api';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -15,7 +16,13 @@ import { useQuery } from '@tanstack/react-query';
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Get the user location for redirection
   const loginSuccess = useAuthStore((state) => state.loginSuccess);
+
+  // If yes, redirect to the previous page or else redirect to the home page
+  const from = (location.state as { from?: { pathname: string; search: string } })?.from;
+  const redirectUrl = from ? `${from.pathname}${from.search}` : '/home';
+
 
   return useMutation({
     mutationFn: (loginData: LoginRequest) => {
@@ -23,10 +30,10 @@ export const useLoginMutation = () => {
     },
 
     onSuccess: (user) => {
-      loginSuccess({ username: user.username, roles: user.roles }, user.token, user.refreshToken);
+      loginSuccess({ username: user.username, roles: user.roles }, user.token);
 
       toast.success(`Welcome, ${user.username}!`);
-      navigate('/home');
+      navigate(redirectUrl, { replace: true }); // Replace the current history entry
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -106,8 +113,7 @@ export const useLogoutMutation = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const refreshToken = localStorage.getItem('refreshToken');
-      return await api.auth.logout({ refreshToken });
+      return await api.auth.logout();
     },
     onSettled: () => {
       logoutSuccess();
@@ -117,7 +123,6 @@ export const useLogoutMutation = () => {
   });
 };
 
-// auth.service.ts
 export const useCheckDuplicateEmail = (email: string, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['checkEmail', email],
@@ -132,4 +137,23 @@ export const useCheckDuplicateUsername = (username: string, options?: { enabled?
     queryFn: () => api.auth.checkDuplicateUsername(username),
     enabled: !!username && options?.enabled !== false,
   });
+};
+
+export const useSocialLogin = () => {
+  const location = useLocation();
+
+  const from = (location.state as { from?: { pathname: string; search: string } })?.from;
+  const redirectUrl = from ? `${from.pathname}${from.search}` : '/home';
+
+  const loginWithGoogle = () => {
+    sessionStorage.setItem('redirectAfterLogin', redirectUrl);
+    window.location.href = api.auth.googleLoginUrl;
+  };
+
+  const loginWithFacebook = () => {
+    sessionStorage.setItem('redirectAfterLogin', redirectUrl);
+    window.location.href = api.auth.facebookLoginUrl;
+  };
+
+  return { loginWithGoogle, loginWithFacebook };
 };

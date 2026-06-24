@@ -12,6 +12,7 @@ import type {
   UserResponse,
 } from '@/features/auth/types/auth.types.ts';
 import type { InternalAxiosRequestConfig } from 'axios';
+import { useAuthStore } from '@/store/useAuthStore.ts';
 
 /**
  * API CLIENT OVERVIEW
@@ -38,6 +39,7 @@ export const apiClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // This ensures cookies are sent with requests
 });
 
 /**
@@ -103,15 +105,8 @@ apiClient.interceptors.response.use(
     }
 
     originalRequest._retry = true;
-    const refreshToken = localStorage.getItem('refreshToken');
 
-    // Token root lost: Refresh token missing (completely expired) -> Clear storage and force logout
-    if (!refreshToken) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
-      window.location.href = '/login';
-      return Promise.reject(error);
-    }
+    // Token is valid or not now will be checked in the backend, so don't do it here
 
     // QUEUING SCENARIO: Another request is already refreshing the token.
     // Wrap the current request in a Promise and push it to the queue until resolved.
@@ -135,16 +130,15 @@ apiClient.interceptors.response.use(
     // PIONEER FLOW: The first request detecting 401 wins the right to refresh the token
     isRefreshing = true;
     try {
+      // Enable credential for axios auto attach http cookie only to this endpoint
       const { data } = await axios.post<MyApiResponse<TokenRefreshResponse>>(
-        `${API_BASE_URL}/auth/refresh-token`,
-        { refreshToken },
+        `${API_BASE_URL}/auth/refresh-token`, {}, { withCredentials: true },
       );
 
-      const { accessToken, refreshToken: newRefresh } = data.result;
+      const { accessToken } = data.result;
 
-      // Update storage with fresh tokens
+      // Update storage with the token from the response:
       localStorage.setItem('token', accessToken);
-      localStorage.setItem('refreshToken', newRefresh);
       isRefreshing = false;
 
       // Release and retry all queued requests waiting in line
@@ -159,8 +153,7 @@ apiClient.interceptors.response.use(
       // Total failure (e.g., Refresh Token expired on server): Cancel all pending requests and force logout
       processQueue(refreshError, null);
       isRefreshing = false;
-      localStorage.removeItem('token');
-      localStorage.removeItem('refreshToken');
+      useAuthStore.getState().logoutSuccess();
       window.location.href = '/login';
       return Promise.reject(refreshError);
     }
@@ -181,8 +174,8 @@ export const api = {
     resetPassword: (data: ResetPasswordRequest): Promise<void> =>
       apiClient.post('/auth/reset-password', data),
 
-    logout: (data: { refreshToken: string | null }): Promise<void> =>
-      apiClient.post('/auth/logout', data),
+    logout: () =>
+      apiClient.post('/auth/logout'),
 
     checkDuplicateEmail: (email: string): Promise<boolean> =>
       apiClient.get('/auth/check-email', { params: { email } }),

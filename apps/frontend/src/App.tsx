@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+// App.tsx
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from '@/pages/home/HomePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
@@ -7,26 +8,36 @@ import { ResetPassword } from '@/pages/auth/ResetPassword.tsx';
 import ProductCatalogPage from '@/pages/products/ProductCatalogPage.tsx';
 import RegisterDevicePage from '@/pages/device-registration/RegisterDevicePage.tsx';
 import { OAuth2RedirectHandler } from '@/features/auth/components/OAuth2RedirectHandler.tsx';
+import { MainLayout } from '@/components/layout/MainLayout';
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
 
 function App() {
   return (
     <Routes>
-      {/* Main Home Page */}
-      <Route path="/home" element={<HomePage />} />
+      {/* 1. Public Routes: no need to be logged in */}
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<HomePage />} />
+        <Route path="/products" element={<ProductCatalogPage />} />
 
-      {/* Auth Pages */}
+        {/* 2. Protected Routes: need user logged in */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/register-device" element={<RegisterDevicePage />} />
+          {/* Other protected routes */}
+        </Route>
+
+        {/* If we have admin routes, add it here */}
+        {/* <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+        </Route> */}
+      </Route>
+
+      {/* 3. Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
-
       <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
-
-      {/* Product Pages */}
-      <Route path="/products" element={<ProductCatalogPage />} />
-
-      {/* Device Registration Pages */}
-      <Route path="/register-device" element={<RegisterDevicePage />} />
     </Routes>
   );
 }
