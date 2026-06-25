@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.example.demo.config.crypto.AesDataConverter;
 import com.example.demo.enumValues.KycStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class UserKycVerification extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Convert(converter = AesDataConverter.class) // Encrypt the ID card number
     @Column(name = "id_card_number")
     private String idCardNumber;
 

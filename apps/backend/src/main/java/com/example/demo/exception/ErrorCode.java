@@ -16,10 +16,12 @@ public enum ErrorCode {
     USER_EXISTED(1002, "error.user.existed", HttpStatus.CONFLICT),
     USER_NOT_FOUND(1003, "error.user.not_found", HttpStatus.NOT_FOUND),
     PASSWORD_INCORRECT(1004, "error.password.incorrect", HttpStatus.BAD_REQUEST),
-    UNAUTHORIZED(1005, "error.unauthorized", HttpStatus.UNAUTHORIZED),
-    FORBIDDEN(1007, "error.forbidden", HttpStatus.FORBIDDEN),
-    VALIDATION_ERROR(1006, "error.validation", HttpStatus.BAD_REQUEST),
-    UNPROCESSABLE(1008, "error.unprocessable", HttpStatus.UNPROCESSABLE_CONTENT),
+    PASSWORD_REQUIRED(1005, "error.password.required", HttpStatus.BAD_REQUEST),
+    PASSWORD_NOT_SET(1006, "error.password.not_set", HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED(1007, "error.unauthorized", HttpStatus.UNAUTHORIZED),
+    FORBIDDEN(1008, "error.forbidden", HttpStatus.FORBIDDEN),
+    VALIDATION_ERROR(1009, "error.validation", HttpStatus.BAD_REQUEST),
+    UNPROCESSABLE(1010, "error.unprocessable", HttpStatus.UNPROCESSABLE_CONTENT),
 
     EMAIL_ALREADY_EXISTS(1101, "error.email.already_exists", HttpStatus.CONFLICT),
     PHONE_ALREADY_EXISTS(1102, "error.phone.already_exists", HttpStatus.CONFLICT),
@@ -28,7 +30,7 @@ public enum ErrorCode {
     USER_NOT_VERIFIED(1105, "error.user.not_verified", HttpStatus.FORBIDDEN),
 
     // ==== KYC ====
-    KYC_ALREADY_PENDING(1010, "error.kyc_already_pending", HttpStatus.CONFLICT),
+    KYC_ALREADY_PENDING(1011, "error.kyc_already_pending", HttpStatus.CONFLICT),
     KYC_NOT_FOUND(1201, "error.kyc.not_found", HttpStatus.NOT_FOUND),
     KYC_ALREADY_VERIFIED(1202, "error.kyc.already_verified", HttpStatus.CONFLICT),
     KYC_REJECTED(1203, "error.kyc.rejected", HttpStatus.FORBIDDEN),

@@ -34,7 +34,7 @@ public class User extends BaseEntity implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phone_number", nullable = true, unique = true, length = 10)
+    @Column(name = "phone_number", nullable = true, unique = true, length = 15)
     private String phoneNumber;
 
     @Column(name = "avatar_url", length = 255)

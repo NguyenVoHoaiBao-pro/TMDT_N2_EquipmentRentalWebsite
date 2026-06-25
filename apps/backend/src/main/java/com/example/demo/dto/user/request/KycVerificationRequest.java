@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class KycVerificationRequest {
-    private String idCardNumber;
-    private MultipartFile idCardFrontFile; // Front of id card
-    private MultipartFile idCardBackFile;  // Behind of id card
+    private String kycCardNumber;
+    private MultipartFile kycCardFrontFile; // Front of id card
+    private MultipartFile kycCardBackFile;  // Behind of id card
 }

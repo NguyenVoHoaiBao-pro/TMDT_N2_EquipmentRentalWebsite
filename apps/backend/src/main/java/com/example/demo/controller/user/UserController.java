@@ -5,6 +5,7 @@ import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.user.request.BasicProfileRequest;
 import com.example.demo.dto.user.request.ChangePasswordRequest;
 import com.example.demo.dto.user.request.KycVerificationRequest;
+import com.example.demo.dto.user.request.RevealKycRequest;
 import com.example.demo.dto.user.response.UserProfileResponse;
 import com.example.demo.service.UserService;
 import jakarta.validation.Valid;
@@ -44,5 +45,12 @@ public class UserController extends BaseController {
     public ResponseEntity<MyApiResponse<String>> verifyKyc(@ModelAttribute @Valid KycVerificationRequest request) {
         userService.verifyIdentification(request);
         return createResponse(HttpStatus.OK, 1000, "Require KYC successfully", null);
+    }
+
+    @PreAuthorize("hasRole('RENTER') or hasRole('OWNER')")
+    @PostMapping("/reveal-kyc")
+    public ResponseEntity<MyApiResponse<String>> revealIdCardNumber(@RequestBody @Valid RevealKycRequest request) {
+        String plainIdCardNumber = userService.revealKycCardNumber(request.getPassword());
+        return createResponse(HttpStatus.OK, 1000, "Verify Identity Successfully", plainIdCardNumber);
     }
 }

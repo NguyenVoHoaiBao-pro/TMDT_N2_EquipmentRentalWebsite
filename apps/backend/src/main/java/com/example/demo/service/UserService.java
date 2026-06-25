@@ -16,12 +16,12 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.mappers.IUserMapper;
 import com.example.demo.repository.user.RoleRepository;
 import com.example.demo.repository.user.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
@@ -116,18 +116,18 @@ public class UserService {
         }
 
         String frontImageUrl = "";
-        if (request.getIdCardFrontFile() != null && !request.getIdCardFrontFile().isEmpty()) {
-            frontImageUrl = cloudinaryService.uploadFile(request.getIdCardFrontFile());
+        if (request.getKycCardFrontFile() != null && !request.getKycCardFrontFile().isEmpty()) {
+            frontImageUrl = cloudinaryService.uploadFile(request.getKycCardFrontFile());
         }
 
         String backImageUrl = "";
-        if (request.getIdCardBackFile() != null && !request.getIdCardBackFile().isEmpty()) {
-            backImageUrl = cloudinaryService.uploadFile(request.getIdCardBackFile());
+        if (request.getKycCardBackFile() != null && !request.getKycCardBackFile().isEmpty()) {
+            backImageUrl = cloudinaryService.uploadFile(request.getKycCardBackFile());
         }
 
         UserKycVerification kycVerification = UserKycVerification.builder()
             .user(user)
-            .idCardNumber(request.getIdCardNumber())
+            .idCardNumber(request.getKycCardNumber())
             .idCardFrontUrl(frontImageUrl)
             .idCardBackUrl(backImageUrl)
             .status(KycStatus.PENDING)
@@ -163,6 +163,31 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // Thêm vào file UserService.java của bạn
+    @Transactional(readOnly = true)
+    public String revealKycCardNumber(String plainPassword) {
+        String currentName = getCurrentUsername();
+        User user = userRepository.findByUsername(currentName)
+            .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // 1. If the user hasn't set a password yet, throw an error'
+        if (user.getPassword() == null) {
+            throw new AppException(ErrorCode.PASSWORD_NOT_SET);
+        }
+
+        // 2. Verify the password from the client:
+        if (!passwordEncoder.matches(plainPassword, user.getPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_INCORRECT);
+        }
+
+        // 3. Find the latest record of KYC verification
+        UserKycVerification latestKyc = user.getKycVerifications().stream()
+            .max(Comparator.comparing(UserKycVerification::getCreatedAt))
+            .orElseThrow(() -> new AppException(ErrorCode.KYC_NOT_FOUND));
+
+        return latestKyc.getIdCardNumber();
+    }
+
 
     // Use to get all user information
     public UserProfileResponse getUserProfile() {
@@ -190,9 +215,23 @@ public class UserService {
             .trustScore(user.getTrustScore() != null ? user.getTrustScore().doubleValue() : 5.0)
 
             // If the user hasn't added KYC, set to 'NOT_STARTED' for frontend filter
-            .kycCardNumber(latestKyc != null ? latestKyc.getIdCardNumber() : null)
+            .kycCardNumber(latestKyc != null ? maskIdCardNumber(latestKyc.getIdCardNumber()) : null)
             .kycStatus(latestKyc != null ? latestKyc.getStatus().name() : "NOT_STARTED")
             .kycVerifiedAt(latestKyc != null && latestKyc.getVerifiedAt() != null ? latestKyc.getVerifiedAt().toString() : null)
             .build();
     }
+
+    private String maskIdCardNumber(String idCardNumber) {
+        if (idCardNumber == null || idCardNumber.isBlank()) {
+            return null;
+        }
+        if (idCardNumber.length() == 12) {
+            return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(9);
+        }
+        if (idCardNumber.length() > 6) {
+            return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(idCardNumber.length() - 3);
+        }
+        return "******";
+    }
+
 }
