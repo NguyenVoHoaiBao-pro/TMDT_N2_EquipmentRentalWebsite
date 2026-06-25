@@ -30,8 +30,11 @@ public class UserKycVerification extends BaseEntity {
     @Column(name = "id_card_number")
     private String idCardNumber;
 
-    @Column(name = "id_card_image_url")
-    private String idCardImageUrl;
+    @Column(name = "id_card_front_url")
+    private String idCardFrontUrl;
+
+    @Column(name = "id_card_back_url")
+    private String idCardBackUrl;
 
     @Enumerated(EnumType.STRING)
     private KycStatus status;

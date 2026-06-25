@@ -4,7 +4,7 @@ import com.example.demo.dto.auth.request.RegisterRequest;
 import com.example.demo.dto.user.request.BasicProfileRequest;
 import com.example.demo.dto.user.request.ChangePasswordRequest;
 import com.example.demo.dto.user.request.KycVerificationRequest;
-import com.example.demo.dto.user.request.UserProfileResponse;
+import com.example.demo.dto.user.response.UserProfileResponse;
 import com.example.demo.dto.user.response.UserResponse;
 import com.example.demo.entity.Role;
 import com.example.demo.entity.User;
@@ -23,7 +23,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -42,29 +41,30 @@ public class UserService {
 
     @Transactional
     public UserResponse registerUser(RegisterRequest request) {
-
-        // 1. Check for duplicate username
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+        }
+        if (request.getPhoneNumber() != null && userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
+        }
 
-        // 2. Set default role
         Role defaultRole = roleRepository.findByRole(RoleType.RENTER)
             .orElseThrow(() -> new AppException(ErrorCode.DEFAULT_ROLE_NOT_FOUND));
 
-        // 3. Create user
         User newUser = userMapper.mapToEntity(request);
 
-        // Only need to set password and roles here, as other fields are mapped from the request
-        newUser.setPassword(passwordEncoder.encode(request.getPassword())); // Hash the password
+
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
         newUser.setRoles(Set.of(defaultRole));
         newUser.setEnabled(true);
 
-        // 4. Save user
         userRepository.save(newUser);
-
         return userMapper.mapToResponse(newUser);
     }
+
 
     public boolean checkUsernameExists(String username) {
         return userRepository.existsByUsername(username.trim());
@@ -93,10 +93,15 @@ public class UserService {
         }
 
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().isBlank()) {
+            if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+                throw new AppException(ErrorCode.PHONE_ALREADY_EXISTS);
+            }
             user.setPhoneNumber(request.getPhoneNumber());
         }
+
         userRepository.save(user);
     }
+
 
     @Transactional
     public void verifyIdentification(KycVerificationRequest request) {
@@ -110,16 +115,21 @@ public class UserService {
             throw new AppException(ErrorCode.KYC_ALREADY_PENDING);
         }
 
-        // Upload ID card image to Cloudinary, ID CARD need 2 images
         String frontImageUrl = "";
         if (request.getIdCardFrontFile() != null && !request.getIdCardFrontFile().isEmpty()) {
             frontImageUrl = cloudinaryService.uploadFile(request.getIdCardFrontFile());
         }
 
+        String backImageUrl = "";
+        if (request.getIdCardBackFile() != null && !request.getIdCardBackFile().isEmpty()) {
+            backImageUrl = cloudinaryService.uploadFile(request.getIdCardBackFile());
+        }
+
         UserKycVerification kycVerification = UserKycVerification.builder()
             .user(user)
             .idCardNumber(request.getIdCardNumber())
-            .idCardImageUrl(frontImageUrl)
+            .idCardFrontUrl(frontImageUrl)
+            .idCardBackUrl(backImageUrl)
             .status(KycStatus.PENDING)
             .build();
 
@@ -127,31 +137,32 @@ public class UserService {
         userRepository.save(user);
     }
 
+
     @Transactional
     public void updatePassword(ChangePasswordRequest request) {
         String currentName = getCurrentUsername();
         User user = userRepository.findByUsername(currentName)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        //
         if (user.getPassword() != null) {
-            // Case 1: If normal login, check the old password
+            // Normal login
             if (request.getOldPassword() == null || request.getOldPassword().isBlank()) {
-                throw new RuntimeException("Old password is required for non-social accounts.");
+                throw new AppException(ErrorCode.VALIDATION_ERROR);
             }
             if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
                 throw new AppException(ErrorCode.PASSWORD_INCORRECT);
             }
         } else {
-            // Case 2: If social login, no need to check old password
+            // Social login
             if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
-                throw new RuntimeException("New password is required for social accounts.");
+                throw new AppException(ErrorCode.VALIDATION_ERROR);
             }
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
     }
+
 
     // Use to get all user information
     public UserProfileResponse getUserProfile() {
@@ -160,7 +171,7 @@ public class UserService {
         User user = userRepository.findUserWithKycAndRolesByUsername(currentName)
             .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // Tìm bản ghi KYC mới nhất dựa trên thời gian cập nhật/tạo
+        // Find the latest record of KYC verification
         UserKycVerification latestKyc = user.getKycVerifications().stream()
             .max(Comparator.comparing(UserKycVerification::getCreatedAt))
             .orElse(null);

@@ -91,7 +91,6 @@ public class AuthService {
             String tokenUuid = UUID.randomUUID().toString();
             String redisKey = String.format("refresh_token:%s:%s", user.getUsername(), tokenUuid);
             long ttl = tokenProvider.getRefreshTokenExpirationTime();
-
             redisTemplate.opsForValue().set(redisKey, jsonTokenInfo, ttl, TimeUnit.MILLISECONDS);
 
             // 5. Set redisKey to Cookie
@@ -283,4 +282,5 @@ public class AuthService {
         redisTemplate.delete(redisKey);
         log.info("Password has been reset for user: {}", user.getEmail());
     }
+    
 }

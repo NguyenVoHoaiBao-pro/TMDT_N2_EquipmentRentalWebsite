@@ -1,5 +1,5 @@
 // @/dto/user/response/UserProfileResponse.java
-package com.example.demo.dto.user.request;
+package com.example.demo.dto.user.response;
 
 import lombok.Builder;
 import lombok.Data;
@@ -9,7 +9,7 @@ import java.util.List;
 @Data
 @Builder
 public class UserProfileResponse {
-    // Dữ liệu chung & Tab 1 (Thông tin)
+    // Main data
     private String username;
     private String fullName;
     private String email;
@@ -18,7 +18,7 @@ public class UserProfileResponse {
     private List<String> roles;
     private double trustScore;
 
-    // Dữ liệu Tab 3 (Xác minh - Trả về lượt xác minh mới nhất hoặc lượt đang VERIFIED)
+    // KYC data
     private String kycCardNumber;
     private String kycStatus;
     private String kycVerifiedAt;

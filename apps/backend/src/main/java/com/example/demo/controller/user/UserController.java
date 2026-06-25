@@ -5,7 +5,7 @@ import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.user.request.BasicProfileRequest;
 import com.example.demo.dto.user.request.ChangePasswordRequest;
 import com.example.demo.dto.user.request.KycVerificationRequest;
-import com.example.demo.dto.user.request.UserProfileResponse;
+import com.example.demo.dto.user.response.UserProfileResponse;
 import com.example.demo.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +39,7 @@ public class UserController extends BaseController {
         return createResponse(HttpStatus.OK, 1000, "Change Password Successfully", null);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/verify-kyc")
     public ResponseEntity<MyApiResponse<String>> verifyKyc(@ModelAttribute @Valid KycVerificationRequest request) {
         userService.verifyIdentification(request);
