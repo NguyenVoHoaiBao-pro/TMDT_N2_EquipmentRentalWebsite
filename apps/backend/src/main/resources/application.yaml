@@ -90,15 +90,21 @@ spring:
             user-name-attribute: id
 
 
-# JWT Configuration (from .env)
+# Configuration (from .env)
 app:
   jwt:
     secretKey: ${JWT_SECRET:MySecretKeyThatIsAtLeast32CharactersLongForHS256}
     accessTokenExpirationMs: ${JWT_ACCESS_EXPIRATION_MS:900000}
     refreshTokenExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:604800000}
 
+  crypto:
+    secretKey: ${CRYPTO_SECRET:MyCryptoSecretKeyShouldBeDifferentFromJwtSecret}
+    salt: ${CRYPTO_SALT:0123456789abcdef}
+
+
   oauth2:
     authorized-redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:3000/oauth2/redirect}
+
 
 
 # Logging Configuration (from .env)

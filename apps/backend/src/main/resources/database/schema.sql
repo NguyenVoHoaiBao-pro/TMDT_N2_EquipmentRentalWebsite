@@ -35,20 +35,20 @@ CREATE TABLE roles
 
 CREATE TABLE users
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_name      VARCHAR(255) NOT NULL UNIQUE,
-    password       VARCHAR(255) NULL,       -- Đổi thành NULLABLE vì tài khoản mạng xã hội không có mật khẩu gốc
-    full_name      VARCHAR(255) NOT NULL,
-    email          VARCHAR(255) NOT NULL UNIQUE,
-    phone_number   VARCHAR(10) NULL UNIQUE, -- Đổi thành NULLABLE vì Google/Facebook không trả về số điện thoại mặc định
-    avatar_url     VARCHAR(255) NULL,
-    trust_score    DECIMAL(3, 2)         DEFAULT 5.00,
-    enabled        BOOLEAN      NOT NULL DEFAULT FALSE,
-    created_at     TIMESTAMP    NOT NULL,
-    updated_at     TIMESTAMP    NOT NULL,
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_name    VARCHAR(255) NOT NULL UNIQUE,
+    password     VARCHAR(255) NULL,       -- Đổi thành NULLABLE vì tài khoản mạng xã hội không có mật khẩu gốc
+    full_name    VARCHAR(255) NOT NULL,
+    email        VARCHAR(255) NOT NULL UNIQUE,
+    phone_number VARCHAR(15) NULL UNIQUE, -- Đổi thành NULLABLE vì Google/Facebook không trả về số điện thoại mặc định
+    avatar_url   VARCHAR(255) NULL,
+    trust_score  DECIMAL(3, 2)         DEFAULT 5.00,
+    enabled      BOOLEAN      NOT NULL DEFAULT FALSE,
+    created_at   TIMESTAMP    NOT NULL,
+    updated_at   TIMESTAMP    NOT NULL,
 
-    INDEX          idx_email (email),
-    INDEX          idx_username (user_name)
+    INDEX        idx_email (email),
+    INDEX        idx_username (user_name)
 );
 
 CREATE TABLE user_social_accounts
@@ -67,15 +67,15 @@ CREATE TABLE user_social_accounts
 CREATE TABLE user_kyc_verifications
 (
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id           BIGINT      NOT NULL,
+    user_id           BIGINT    NOT NULL,
     id_card_number    VARCHAR(12) NULL,
-    id_card_front_url   VARCHAR(255) NULL, -- Ảnh mặt trước
-    id_card_back_url    VARCHAR(255) NULL, -- Ảnh mặt sau
+    id_card_front_url VARCHAR(255) NULL, -- Ảnh mặt trước
+    id_card_back_url  VARCHAR(255) NULL, -- Ảnh mặt sau
     status            ENUM('PENDING','VERIFIED','REJECTED') NOT NULL DEFAULT 'PENDING',
-    verified_by       BIGINT NULL, -- admin nào duyệt
+    verified_by       BIGINT NULL,       -- admin nào duyệt
     verified_at       TIMESTAMP NULL,
-    created_at        TIMESTAMP   NOT NULL,
-    updated_at        TIMESTAMP   NOT NULL,
+    created_at        TIMESTAMP NOT NULL,
+    updated_at        TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
