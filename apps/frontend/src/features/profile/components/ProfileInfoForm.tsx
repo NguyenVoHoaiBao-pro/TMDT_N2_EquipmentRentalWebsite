@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Avatar, AvatarImage, AvatarFallback } from '@/shared_components/ui/avatar';
 import { Button } from '@/shared_components/ui/button';
@@ -6,14 +6,18 @@ import { Input } from '@/shared_components/ui/input';
 import { Label } from '@/shared_components/ui/label';
 import { Card } from '@/shared_components/ui/card';
 import { Camera, Phone, LockKeyhole } from 'lucide-react';
-import { useUpdateProfileMutation } from '@/features/profile/profile.service.ts';
+import type { UserProfileResponse } from '@/features/profile/types/profile.type.ts';
+import { useUpdateBasicProfileMutation } from '@/features/profile/services/profile.service.ts';
 
-export function ProfileInfoForm() {
+interface ProfileInfoFormProps {
+  initialProfile: UserProfileResponse | null;
+}
+
+export function ProfileInfoForm({ initialProfile }: ProfileInfoFormProps) {
   const { user } = useAuthStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Gọi hook mutation của React Query
-  const { mutate, isPending } = useUpdateProfileMutation();
+  const { mutate, isPending } = useUpdateBasicProfileMutation();
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -21,6 +25,15 @@ export function ProfileInfoForm() {
   const [imagePreview, setImagePreview] = useState<string>('');
 
   const fallbackLetter = user?.username ? user.username.charAt(0).toUpperCase() : 'U';
+
+  useEffect(() => {
+    if (initialProfile) {
+      setPhoneNumber(initialProfile.phoneNumber || '');
+      if (initialProfile.avatarUrl) {
+        setImagePreview(initialProfile.avatarUrl);
+      }
+    }
+  }, [initialProfile]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -30,12 +43,11 @@ export function ProfileInfoForm() {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.SubmitEvent) => {
     e.preventDefault();
 
     mutate({
       phoneNumber,
-      password,
       avatarFile: selectedFile,
     });
   };
