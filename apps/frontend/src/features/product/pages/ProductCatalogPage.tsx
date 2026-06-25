@@ -9,8 +9,6 @@ import Pagination from '@/features/product/components/Pagination.tsx';
 import { useProductFilter } from '@/features/product/hooks/useProducts.ts';
 import EmptyState from '@/features/product/components/EmptyState.tsx';
 import { NOT_FOUND_MESSAGE, NOT_FOUND_TITLE } from '@/features/product/constants/defaultValues.ts';
-import Header from '@/components/layout/Header.tsx';
-import Footer from '@/components/layout/Footer.tsx';
 
 export default function ProductCatalogPage() {
   const {
@@ -51,7 +49,6 @@ export default function ProductCatalogPage() {
 
   return (
     <Fragment>
-      <Header showSearch={true} />
 
       <div className="flex flex-col lg:flex-row">
         <Sidebar>
@@ -100,7 +97,6 @@ export default function ProductCatalogPage() {
           />
         </main>
       </div>
-      <Footer />
       <BackToTop />
     </Fragment>
   );

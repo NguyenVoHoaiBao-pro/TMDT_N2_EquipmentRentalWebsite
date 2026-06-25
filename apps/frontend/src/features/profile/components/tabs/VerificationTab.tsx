@@ -35,7 +35,7 @@ export function VerificationTab({ profile }: VerificationTabProps) {
         />
 
         {/* Only show VerifyIdentification if not started or rejected */}
-        {profile?.kycStatus === 'NOT_STARTED' || profile?.kycStatus === 'REJECTED' && (
+        {(profile?.kycStatus === 'NOT_STARTED' || profile?.kycStatus === 'REJECTED') && (
           <VerifyIdentification />
         )}
 

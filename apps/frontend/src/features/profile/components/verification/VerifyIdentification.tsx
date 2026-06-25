@@ -125,7 +125,7 @@ export function VerifyIdentification() {
         </div>
       </div>
 
-      {/* Submit button */}/
+      {/* Submit button */}
       <div className="space-y-3">
         <button
           type="submit"

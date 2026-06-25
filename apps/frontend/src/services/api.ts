@@ -206,7 +206,7 @@ export const api = {
       apiClient.put('/users/profile/change-password', data),
 
     verifyKyc: (formData: FormData): Promise<void> =>
-      apiClient.put('/users/profile/verify-kyc', formData, {
+      apiClient.post('/users/profile/verify-kyc', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

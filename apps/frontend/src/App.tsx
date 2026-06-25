@@ -9,6 +9,7 @@ import ProductCatalogPage from '@/features/product/pages/ProductCatalogPage.tsx'
 import RegisterDevicePage from '@/features/device-registration/pages/RegisterDevicePage.tsx';
 import { OAuth2RedirectHandler } from '@/features/auth/components/OAuth2RedirectHandler.tsx';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
 import { ProfilePage } from '@/features/profile/pages/ProfilePage.tsx';
 
@@ -20,19 +21,22 @@ function App() {
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/products" element={<ProductCatalogPage />} />
+      </Route>
 
-        {/* 2. Protected Routes: need user logged in */}
-        <Route element={<ProtectedRoute />}>
+      {/* 2. Protected Routes: need user logged in */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<SimpleLayout />}>
+
           <Route path="/register-device" element={<RegisterDevicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           {/* Other protected routes */}
         </Route>
+      </Route>
 
-        {/* If we have admin routes, add it here */}
-        {/* <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+      {/* If we have admin routes, add it here */}
+      {/* <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         </Route> */}
-      </Route>
 
       {/* 3. Auth Routes */}
       <Route path="/login" element={<LoginPage />} />

@@ -2,6 +2,7 @@ package com.example.demo.config.web;
 
 import com.example.demo.security.CustomOAuth2UserService;
 import com.example.demo.security.OAuth2AuthenticationSuccessHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -67,6 +68,16 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+            // Exception handling
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"status\": 401, \"error\": \"Unauthorized\", \"message\": \"Token is missing or expired!\"}");
+                })
+            )
+
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(PUBLIC_MATCHERS).permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
