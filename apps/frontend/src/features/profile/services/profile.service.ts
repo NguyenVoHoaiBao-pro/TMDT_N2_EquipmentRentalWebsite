@@ -62,9 +62,9 @@ export const useVerifyKycMutation = () => {
   return useMutation({
     mutationFn: (data: KycVerificationRequest) => {
       const formData = new FormData();
-      formData.append('idCardNumber', data.idCardNumber);
-      if (data.idCardFrontFile) formData.append('idCardFrontFile', data.idCardFrontFile);
-      if (data.idCardBackFile) formData.append('idCardBackFile', data.idCardBackFile);
+      formData.append('idCardNumber', data.kycCardNumber);
+      if (data.kycCardFrontFile) formData.append('idCardFrontFile', data.kycCardFrontFile);
+      if (data.kycCardBackFile) formData.append('idCardBackFile', data.kycCardBackFile);
       return api.profile.verifyKyc(formData);
     },
     onSuccess: () => {
@@ -82,7 +82,7 @@ export const useVerifyKycMutation = () => {
 };
 
 export const useRevealKycMutation = () => {
-  
+
   return useMutation({
     mutationFn: (data: RevealKycRequest) => {
       return api.profile.revealKyc(data);
