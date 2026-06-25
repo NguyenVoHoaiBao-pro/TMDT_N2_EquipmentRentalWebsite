@@ -30,7 +30,9 @@ export function VerificationTab({ profile }: VerificationTabProps) {
       </div>
 
       <div className="space-y-6">
-        <KycStatusCard status={profile?.kycStatus} />
+        <KycStatusCard status={profile?.kycStatus}
+                       maskedCardNumber={profile?.kycCardNumber ?? ''}
+        />
 
         {/* Only show VerifyIdentification if not started or rejected */}
         {profile?.kycStatus === 'NOT_STARTED' || profile?.kycStatus === 'REJECTED' && (

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import type {
   BasicProfileRequest,
   ChangePasswordRequest,
-  KycVerificationRequest,
+  KycVerificationRequest, RevealKycRequest,
 } from '@/features/profile/types/profile.type.ts';
 
 export const useGetProfileQuery = () => {
@@ -76,6 +76,23 @@ export const useVerifyKycMutation = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       const errorMsg = error.response?.data?.message || 'Yêu cầu KYC thất bại hoặc bạn đang có yêu cầu chờ duyệt.';
+      toast.error(errorMsg);
+    },
+  });
+};
+
+export const useRevealKycMutation = () => {
+  
+  return useMutation({
+    mutationFn: (data: RevealKycRequest) => {
+      return api.profile.revealKyc(data);
+    },
+    onSuccess: () => {
+      toast.success('Hiển thị thông tin số CCCD thành công');
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      const errorMsg = error.response?.data?.message || 'Đã xảy ra trong quá trình hiển thị.';
       toast.error(errorMsg);
     },
   });

@@ -1,9 +1,7 @@
 import { useState } from 'react';
 
 import {
-  useChangePasswordMutation,
   useGetProfileQuery,
-  // useVerifyKycMutation,
 } from '@/features/profile/services/profile.service.ts';
 import { PaymentTab } from '@/features/profile/components/tabs/PaymentTab.tsx';
 import { NotificationTab } from '@/features/profile/components/tabs/NotificationTab.tsx';
@@ -20,9 +18,6 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<ProfileTab>('info');
 
   const { data: profileData, isLoading } = useGetProfileQuery();
-
-  const changePasswordMutation = useChangePasswordMutation();
-
 
   if (isLoading) {
     return <div>
@@ -112,7 +107,7 @@ export function ProfilePage() {
             )}
 
             {activeTab === 'security' && (
-              <SecurityTab onChangePassword={changePasswordMutation} />
+              <SecurityTab />
             )}
 
             {activeTab === 'verification' && profileData && (

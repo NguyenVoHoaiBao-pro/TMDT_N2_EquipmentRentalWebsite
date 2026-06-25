@@ -1,5 +1,5 @@
 // @/features/profile/components/verification/VerifyIdentification.tsx
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { CreditCard, UploadCloud } from 'lucide-react';
 import { useVerifyKycMutation } from '@/features/profile/services/profile.service.ts';
 
@@ -11,7 +11,7 @@ export function VerifyIdentification() {
   const fileInputBackRef = useRef<HTMLInputElement>(null);
 
   // States manages preview image and file input
-  const [idCardNumber, setIdCardNumber] = useState('');
+  const [kycCardNumber, setKycCardNumber] = useState('');
   const [frontFile, setFrontFile] = useState<File | null>(null);
   const [backFile, setBackFile] = useState<File | null>(null);
 
@@ -36,7 +36,7 @@ export function VerifyIdentification() {
   };
 
   // --- Check form validity ---
-  const isFormValid = idCardNumber.length === 12 && frontFile !== null && backFile !== null;
+  const isFormValid = kycCardNumber.length === 12 && frontFile !== null && backFile !== null;
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
@@ -44,13 +44,13 @@ export function VerifyIdentification() {
 
     try {
       await verifyKyc({
-        idCardNumber,
-        idCardFrontFile: frontFile,
-        idCardBackFile: backFile,
+        kycCardNumber,
+        kycCardFrontFile: frontFile,
+        kycCardBackFile: backFile,
       });
 
       // Reset form sau khi gửi thành công
-      setIdCardNumber('');
+      // setIdCardNumber('');
       setFrontFile(null);
       setBackFile(null);
       setFrontPreview('');
@@ -74,8 +74,8 @@ export function VerifyIdentification() {
               type="text"
               maxLength={12}
               disabled={isPending}
-              value={idCardNumber}
-              onChange={(e) => setIdCardNumber(e.target.value.replace(/\D/g, ''))} // Chỉ cho phép gõ số
+              value={kycCardNumber}
+              onChange={(e) => setKycCardNumber(e.target.value.replace(/\D/g, ''))} // Accept only digits
               placeholder="Nhập chính xác 12 số trên thẻ CCCD của bạn"
               className="w-full h-11 pl-10 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
             />
