@@ -1,51 +1,35 @@
-import {
-  LucideUser,
-  LucideLock,
-  LucideFileCheck,
-  LucideHistory,
-  LucideShieldCheck,
-  LucideCamera,
-} from 'lucide-react';
-import { ProfileInfoForm } from '@/features/profile/components/ProfileInfoForm.tsx';
 import { useState } from 'react';
-import { VerifyIdentification } from '@/features/profile/components/VerifyIdentification.tsx';
 
 import {
-  useUpdateBasicProfileMutation,
   useChangePasswordMutation,
   useGetProfileQuery,
-  useVerifyKycMutation,
+  // useVerifyKycMutation,
 } from '@/features/profile/services/profile.service.ts';
+import { PaymentTab } from '@/features/profile/components/tabs/PaymentTab.tsx';
+import { NotificationTab } from '@/features/profile/components/tabs/NotificationTab.tsx';
+import { PrivacyTab } from '@/features/profile/components/tabs/PrivacyTab.tsx';
+import { SecurityTab } from '@/features/profile/components/tabs/SecurityTab.tsx';
+import { VerificationTab } from '@/features/profile/components/tabs/VerificationTab.tsx';
+import { HistoryTab } from '@/features/profile/components/tabs/HistoryTab.tsx';
+import { InfoTab } from '@/features/profile/components/tabs/InfoTab.tsx';
+import { tabItems } from '@/features/profile/components/tabs/tabItems.ts';
+import type { ProfileTab } from '@/features/profile/components/tabs/types.ts';
 
-const tabItems = [
-  {
-    value: 'info',
-    label: 'Thông tin',
-    desc: 'Ảnh đại diện, SĐT',
-    icon: LucideUser,
-  },
-  {
-    value: 'security',
-    label: 'Bảo mật',
-    desc: 'Mật khẩu đăng nhập',
-    icon: LucideLock,
-  },
-  {
-    value: 'verification',
-    label: 'Xác minh',
-    desc: 'CCCD / KYC',
-    icon: LucideFileCheck,
-  },
-  {
-    value: 'history',
-    label: 'Lịch sử',
-    desc: 'Hoạt động tài khoản',
-    icon: LucideHistory,
-  },
-];
 
 export function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('info');
+  const [activeTab, setActiveTab] = useState<ProfileTab>('info');
+
+  const { data: profileData, isLoading } = useGetProfileQuery();
+
+  const changePasswordMutation = useChangePasswordMutation();
+
+
+  if (isLoading) {
+    return <div>
+      Đang tải dữ liệu hồ sơ cá nhân của bạn...
+      Vui lòng chờ trong giây lát
+    </div>;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -56,7 +40,7 @@ export function ProfilePage() {
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Quản lý thông tin cá nhân, bảo mật và xác minh danh tính P2P của bạn.
+            Quản lý thông tin cá nhân, bảo mật và xác minh danh tính của bạn.
           </p>
         </div>
 
@@ -122,103 +106,33 @@ export function ProfilePage() {
 
           {/* Content */}
           <div className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {activeTab === 'info' && (
-              <div className="p-6 lg:p-8">
-                <div className="mb-6 flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <LucideCamera className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                      Thông tin cá nhân
-                    </h2>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      Cập nhật ảnh đại diện và số liên hệ để hoàn thiện hồ sơ.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-6">
-                  <ProfileInfoForm />
-                </div>
-              </div>
+            {activeTab === 'info' && profileData && (
+              <InfoTab profile={profileData}
+              />
             )}
 
             {activeTab === 'security' && (
-              <div className="p-6 lg:p-8">
-                <div className="mb-6 flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                    <LucideShieldCheck className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                      Mật khẩu & bảo mật
-                    </h2>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      Đổi mật khẩu định kỳ hoặc tạo mật khẩu mới nếu bạn đăng nhập bằng Google.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
-                  [Component Form đổi mật khẩu sẽ đặt ở đây]
-                </div>
-              </div>
+              <SecurityTab onChangePassword={changePasswordMutation} />
             )}
 
-            {activeTab === 'verification' && (
-              <div className="p-6 lg:p-8">
-                <div className="mb-6 flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                    <LucideFileCheck className="h-5 w-5" />
-                  </div>
-
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                      Xác minh danh tính
-                    </h2>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      Xác minh CCCD để tăng độ tin cậy và mở khóa tính năng giá trị cao.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
-                  <VerifyIdentification />
-                </div>
-              </div>
+            {activeTab === 'verification' && profileData && (
+              <VerificationTab profile={profileData} />
             )}
 
             {activeTab === 'history' && (
-              <div className="p-6 lg:p-8">
-                <div className="mb-6 flex items-start gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                    <LucideHistory className="h-5 w-5" />
-                  </div>
+              <HistoryTab />
+            )}
 
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-900">
-                      Lịch sử
-                    </h2>
+            {activeTab === 'payment' && (
+              <PaymentTab />
+            )}
 
-                    <p className="mt-1 text-sm text-slate-500">
-                      Theo dõi thay đổi hồ sơ, bảo mật và các hoạt động tài khoản.
-                    </p>
-                  </div>
-                </div>
+            {activeTab === 'notification' && (
+              <NotificationTab />
+            )}
 
-                <div
-                  className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
-                  [Component lịch sử hoạt động sẽ đặt ở đây]
-                </div>
-              </div>
+            {activeTab === 'privacy' && (
+              <PrivacyTab />
             )}
           </div>
         </div>

@@ -1,28 +1,81 @@
-import { useMutation } from '@tanstack/react-query';
-import type { ProfileUpdateRequest } from '@/features/profile/types/profile.type.ts';
-import { api } from '@/services/api.ts';
+// @/features/profile/services/profile.service.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/services/api';
 import { toast } from 'sonner';
+import type {
+  BasicProfileRequest,
+  ChangePasswordRequest,
+  KycVerificationRequest,
+} from '@/features/profile/types/profile.type.ts';
 
-export const useUpdateProfileMutation = () => {
+export const useGetProfileQuery = () => {
+  return useQuery({
+    queryKey: ['user-profile'],
+    queryFn: () => api.profile.getMe(),
+    staleTime: 1000 * 60 * 5, // Use staleTime to cache the data for 5 minutes
+  });
+};
+
+export const useUpdateBasicProfileMutation = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: (profileData: ProfileUpdateRequest) => {
-      // Convert JavaScript to form data before sending
+    mutationFn: (data: BasicProfileRequest) => {
       const formData = new FormData();
-      if (profileData.phoneNumber) formData.append('phoneNumber', profileData.phoneNumber);
-      if (profileData.idCardNumber) formData.append('idCardNumber', profileData.idCardNumber);
-      if (profileData.password) formData.append('password', profileData.password);
-      if (profileData.avatarFile) formData.append('avatarFile', profileData.avatarFile);
-
-      return api.user.updateProfile(formData);
+      if (data.phoneNumber) formData.append('phoneNumber', data.phoneNumber);
+      if (data.avatarFile) formData.append('avatarFile', data.avatarFile);
+      return api.profile.updateBasic(formData);
     },
-
-    onSuccess: (message) => {
-      toast.success(message || 'Cập nhật hồ sơ thành công!');
+    onSuccess: () => {
+      toast.success('Cập nhật thông tin cơ bản thành công!');
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] }).then(r => {
+        console.log('refetch user profile', r);
+      });
     },
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
-      const errorMsg = error.response?.data?.message || 'Cập nhật hồ sơ thất bại.';
+      const errorMsg = error.response?.data?.message || 'Không thể cập nhật thông tin.';
+      toast.error(errorMsg);
+    },
+  });
+};
+
+export const useChangePasswordMutation = () => {
+  return useMutation({
+    mutationFn: (data: ChangePasswordRequest) => {
+      return api.profile.changePassword(data);
+    },
+    onSuccess: () => {
+      toast.success('Thay đổi mật khẩu tài khoản thành công!');
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      const errorMsg = error.response?.data?.message || 'Mật khẩu cũ không chính xác hoặc dữ liệu không hợp lệ.';
+      toast.error(errorMsg);
+    },
+  });
+};
+
+export const useVerifyKycMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: KycVerificationRequest) => {
+      const formData = new FormData();
+      formData.append('idCardNumber', data.idCardNumber);
+      if (data.idCardFrontFile) formData.append('idCardFrontFile', data.idCardFrontFile);
+      if (data.idCardBackFile) formData.append('idCardBackFile', data.idCardBackFile);
+      return api.profile.verifyKyc(formData);
+    },
+    onSuccess: () => {
+      toast.success('Đã gửi yêu cầu KYC, vui lòng chờ Admin phê duyệt!');
+      queryClient.invalidateQueries({ queryKey: ['user-profile'] }).then(r => {
+        console.log('refetch user profile', r);
+      });
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      const errorMsg = error.response?.data?.message || 'Yêu cầu KYC thất bại hoặc bạn đang có yêu cầu chờ duyệt.';
       toast.error(errorMsg);
     },
   });
