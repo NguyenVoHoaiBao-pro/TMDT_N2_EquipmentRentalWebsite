@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.config.web;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

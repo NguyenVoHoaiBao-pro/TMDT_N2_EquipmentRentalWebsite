@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.config.web;
 
 import com.example.demo.security.CustomOAuth2UserService;
 import com.example.demo.security.OAuth2AuthenticationSuccessHandler;
