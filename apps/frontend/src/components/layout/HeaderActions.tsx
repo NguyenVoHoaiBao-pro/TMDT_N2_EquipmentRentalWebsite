@@ -18,7 +18,7 @@ import {
 export function HeaderActions() {
   // Get state from the store
   const { user, isAuthenticated, logoutSuccess } = useAuthStore();
-
+  
   const fallbackLetter = user?.username ? user.username.charAt(0).toUpperCase() : 'U';
 
   // Get avatar URL from social login provider

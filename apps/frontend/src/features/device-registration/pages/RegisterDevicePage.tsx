@@ -3,8 +3,6 @@ import React, { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { UploadCloud } from 'lucide-react';
-import Header from '@/components/layout/Header.tsx';
-import Footer from '@/components/layout/Footer.tsx';
 import BackToTop from '@/components/layout/BackToTop.tsx';
 import { Button } from '@/shared_components/ui/button.tsx';
 import { DeviceIdentification } from '@/features/device-registration/components/DeviceIdentification.tsx';
@@ -78,7 +76,6 @@ export default function RegisterDevicePage() {
 
   return (
     <Fragment>
-      <Header />
       <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen bg-gray-50/50">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Register New Device</h1>
@@ -123,7 +120,7 @@ export default function RegisterDevicePage() {
                     Primary Device Image <span className="text-red-500">*</span>
                   </label>
 
-                  {/* Place holder for the primary image upload */}
+                  {/* Placeholder for the primary image upload */}
                   <label
                     className="border-2 border-dashed border-gray-300 hover:border-blue-500 rounded-xl p-8 flex flex-col items-center justify-center bg-gray-50/50 cursor-pointer transition h-52 group relative overflow-hidden">
                     <input
@@ -167,7 +164,6 @@ export default function RegisterDevicePage() {
           </div>
         </form>
       </main>
-      <Footer />
       <BackToTop />
     </Fragment>
   );
