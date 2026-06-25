@@ -1,7 +1,29 @@
 // profile.type.ts
-export interface ProfileUpdateRequest {
-  phoneNumber?: string;
-  idCardNumber?: string;
-  password?: string;
-  avatarFile?: File | null;
+export interface UserProfileResponse {
+  username: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string | null;
+  avatarUrl: string | null;
+  roles: string[];
+  trustScore: number;
+  kycCardNumber: string | null;
+  kycStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'NOT_STARTED';
+  kycVerifiedAt: string | null;
+}
+
+export interface BasicProfileRequest {
+  phoneNumber: string;
+  avatarFile: File | null;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword?: string; // null for social login
+  newPassword: string;
+}
+
+export interface KycVerificationRequest {
+  idCardNumber: string;
+  idCardFrontFile: File | null;
+  idCardBackFile: File | null;
 }

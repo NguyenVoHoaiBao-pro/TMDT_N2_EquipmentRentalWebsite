@@ -13,6 +13,7 @@ import type {
 } from '@/features/auth/types/auth.types.ts';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore.ts';
+import type { ChangePasswordRequest, UserProfileResponse } from '@/features/profile/types/profile.type.ts';
 
 /**
  * API CLIENT OVERVIEW
@@ -186,9 +187,22 @@ export const api = {
     googleLoginUrl: 'http://localhost:8080/equipment_rental/oauth2/authorization/google',
     facebookLoginUrl: 'http://localhost:8080/equipment_rental/oauth2/authorization/facebook',
   },
-  user: {
-    updateProfile: (formData: FormData): Promise<string> =>
-      apiClient.put('/users/profile', formData, {
+  profile: {
+    // API to retrieve all the user profile information
+    getMe: (): Promise<UserProfileResponse> => apiClient.get('/users/profile/me'),
+
+    updateBasic: (formData: FormData): Promise<void> =>
+      apiClient.put('/users/profile/basic', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }),
+
+    changePassword: (data: ChangePasswordRequest): Promise<void> =>
+      apiClient.put('/users/profile/change-password', data),
+
+    verifyKyc: (formData: FormData): Promise<void> =>
+      apiClient.put('/users/profile/verify-kyc', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
