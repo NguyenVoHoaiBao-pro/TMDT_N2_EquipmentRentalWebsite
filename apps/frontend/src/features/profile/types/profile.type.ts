@@ -23,7 +23,11 @@ export interface ChangePasswordRequest {
 }
 
 export interface KycVerificationRequest {
-  idCardNumber: string;
-  idCardFrontFile: File | null;
-  idCardBackFile: File | null;
+  kycCardNumber: string;
+  kycCardFrontFile: File | null;
+  kycCardBackFile: File | null;
+}
+
+export interface RevealKycRequest {
+  password: string;
 }

@@ -13,7 +13,11 @@ import type {
 } from '@/features/auth/types/auth.types.ts';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { useAuthStore } from '@/store/useAuthStore.ts';
-import type { ChangePasswordRequest, UserProfileResponse } from '@/features/profile/types/profile.type.ts';
+import type {
+  ChangePasswordRequest,
+  RevealKycRequest,
+  UserProfileResponse,
+} from '@/features/profile/types/profile.type.ts';
 
 /**
  * API CLIENT OVERVIEW
@@ -207,6 +211,8 @@ export const api = {
           'Content-Type': 'multipart/form-data',
         },
       }),
+    revealKyc: (data: RevealKycRequest): Promise<string> =>
+      apiClient.post('/users/profile/reveal-kyc', data),
   },
 };
 
