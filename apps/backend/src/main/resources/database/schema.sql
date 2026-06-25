@@ -69,7 +69,8 @@ CREATE TABLE user_kyc_verifications
     id                BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id           BIGINT      NOT NULL,
     id_card_number    VARCHAR(12) NULL,
-    id_card_image_url VARCHAR(255) NULL,
+    id_card_front_url   VARCHAR(255) NULL, -- Ảnh mặt trước
+    id_card_back_url    VARCHAR(255) NULL, -- Ảnh mặt sau
     status            ENUM('PENDING','VERIFIED','REJECTED') NOT NULL DEFAULT 'PENDING',
     verified_by       BIGINT NULL, -- admin nào duyệt
     verified_at       TIMESTAMP NULL,

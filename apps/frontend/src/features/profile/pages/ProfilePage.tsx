@@ -10,6 +10,13 @@ import { ProfileInfoForm } from '@/features/profile/components/ProfileInfoForm.t
 import { useState } from 'react';
 import { VerifyIdentification } from '@/features/profile/components/VerifyIdentification.tsx';
 
+import {
+  useUpdateBasicProfileMutation,
+  useChangePasswordMutation,
+  useGetProfileQuery,
+  useVerifyKycMutation,
+} from '@/features/profile/services/profile.service.ts';
+
 const tabItems = [
   {
     value: 'info',
