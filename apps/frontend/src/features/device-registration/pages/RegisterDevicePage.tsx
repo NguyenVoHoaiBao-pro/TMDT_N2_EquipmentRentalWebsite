@@ -3,17 +3,17 @@ import React, { Fragment, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { UploadCloud } from 'lucide-react';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import BackToTop from '@/components/layout/BackToTop';
-import { Button } from '@/shared_components/ui/button';
-import { DeviceIdentification } from '@/features/device-registration/components/DeviceIdentification';
-import { RentalTerms } from '@/features/device-registration/components/RentalTerms';
-import { ImageUploads } from '@/features/device-registration/components/ImageUploads';
-import { VerificationChecklist } from '@/features/device-registration/components/VerificationChecklist';
-import { registrationService } from '@/features/device-registration/services/registration.service';
-import { cloudinaryService } from '@/features/device-registration/services/cloudinary.service';
-import type { SubImageDto } from '@/features/device-registration/types/registration.types';
+import Header from '@/components/layout/Header.tsx';
+import Footer from '@/components/layout/Footer.tsx';
+import BackToTop from '@/components/layout/BackToTop.tsx';
+import { Button } from '@/shared_components/ui/button.tsx';
+import { DeviceIdentification } from '@/features/device-registration/components/DeviceIdentification.tsx';
+import { RentalTerms } from '@/features/device-registration/components/RentalTerms.tsx';
+import { ImageUploads } from '@/features/device-registration/components/ImageUploads.tsx';
+import { VerificationChecklist } from '@/features/device-registration/components/VerificationChecklist.tsx';
+import { registrationService } from '@/features/device-registration/services/registration.service.ts';
+import { cloudinaryService } from '@/features/device-registration/services/cloudinary.service.ts';
+import type { SubImageDto } from '@/features/device-registration/types/registration.types.ts';
 
 export default function RegisterDevicePage() {
   const navigate = useNavigate();

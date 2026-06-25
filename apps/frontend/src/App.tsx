@@ -1,16 +1,16 @@
 // App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { HomePage } from '@/pages/home/HomePage';
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { RegisterPage } from '@/pages/auth/RegisterPage';
-import { ForgotPassword } from '@/pages/auth/ForgotPassword.tsx';
-import { ResetPassword } from '@/pages/auth/ResetPassword.tsx';
-import ProductCatalogPage from '@/pages/products/ProductCatalogPage.tsx';
-import RegisterDevicePage from '@/pages/device-registration/RegisterDevicePage.tsx';
+import { HomePage } from '@/features/home/pages/HomePage.tsx';
+import { LoginPage } from '@/features/auth/pages/LoginPage.tsx';
+import { RegisterPage } from '@/features/auth/pages/RegisterPage.tsx';
+import { ForgotPassword } from '@/features/auth/pages/ForgotPassword.tsx';
+import { ResetPassword } from '@/features/auth/pages/ResetPassword.tsx';
+import ProductCatalogPage from '@/features/product/pages/ProductCatalogPage.tsx';
+import RegisterDevicePage from '@/features/device-registration/pages/RegisterDevicePage.tsx';
 import { OAuth2RedirectHandler } from '@/features/auth/components/OAuth2RedirectHandler.tsx';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
-import { ProfilePage } from '@/pages/profile/ProfilePage.tsx';
+import { ProfilePage } from '@/features/profile/pages/ProfilePage.tsx';
 
 function App() {
   return (

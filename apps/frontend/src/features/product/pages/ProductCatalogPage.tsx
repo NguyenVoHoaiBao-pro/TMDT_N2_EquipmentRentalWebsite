@@ -1,16 +1,16 @@
 // @/features/product/pages/ProductCatalogPage.tsx
 import { Fragment } from 'react';
-import { ProductFilters } from '@/features/product/components/ProductFilters';
-import ProductGrid from '@/features/product/components/ProductGrid';
-import { ProductSort } from '@/features/product/components/ProductSort';
-import Sidebar from '@/components/layout/Sidebar';
-import BackToTop from '@/components/layout/BackToTop';
-import Pagination from '@/features/product/components/Pagination';
-import { useProductFilter } from '@/features/product/hooks/useProducts';
-import EmptyState from '@/features/product/components/EmptyState';
-import { NOT_FOUND_MESSAGE, NOT_FOUND_TITLE } from '@/features/product/constants/defaultValues';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import { ProductFilters } from '@/features/product/components/ProductFilters.tsx';
+import ProductGrid from '@/features/product/components/ProductGrid.tsx';
+import { ProductSort } from '@/features/product/components/ProductSort.tsx';
+import Sidebar from '@/components/layout/Sidebar.tsx';
+import BackToTop from '@/components/layout/BackToTop.tsx';
+import Pagination from '@/features/product/components/Pagination.tsx';
+import { useProductFilter } from '@/features/product/hooks/useProducts.ts';
+import EmptyState from '@/features/product/components/EmptyState.tsx';
+import { NOT_FOUND_MESSAGE, NOT_FOUND_TITLE } from '@/features/product/constants/defaultValues.ts';
+import Header from '@/components/layout/Header.tsx';
+import Footer from '@/components/layout/Footer.tsx';
 
 export default function ProductCatalogPage() {
   const {
