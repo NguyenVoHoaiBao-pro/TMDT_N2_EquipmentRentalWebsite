@@ -34,11 +34,11 @@ public class User extends BaseEntity implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "phone_number", nullable = true, unique = true, length = 20)
+    @Column(name = "phone_number", nullable = true, unique = true, length = 15)
     private String phoneNumber;
 
-    @Column(name = "id_card_number", length = 16)
-    private String idCardNumber;
+    @Column(name = "avatar_url", length = 255)
+    private String avatarUrl;
 
     @Column(name = "trust_score", precision = 3, scale = 2)
     private BigDecimal trustScore;
@@ -63,4 +63,8 @@ public class User extends BaseEntity implements Serializable {
     @Column(nullable = false)
     @Builder.Default
     private boolean enabled = false;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<UserKycVerification> kycVerifications = new HashSet<>();
 }

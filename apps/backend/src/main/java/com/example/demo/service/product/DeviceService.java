@@ -7,7 +7,7 @@ import com.example.demo.entity.User;
 import com.example.demo.enumValues.DeviceStatus;
 import com.example.demo.repository.product.DeviceRepository;
 import com.example.demo.repository.product.ProductRepository;
-import com.example.demo.repository.UserRepository; // Giả định hệ thống có repo này
+import com.example.demo.repository.user.UserRepository; // Giả định hệ thống có repo này
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

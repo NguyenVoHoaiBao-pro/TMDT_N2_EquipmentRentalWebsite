@@ -6,9 +6,9 @@ import com.example.demo.entity.UserSocialAccount;
 import com.example.demo.enumValues.RoleType;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
-import com.example.demo.repository.RoleRepository;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.repository.UserSocialAccountRepository;
+import com.example.demo.repository.user.RoleRepository;
+import com.example.demo.repository.user.UserRepository;
+import com.example.demo.repository.user.UserSocialAccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 

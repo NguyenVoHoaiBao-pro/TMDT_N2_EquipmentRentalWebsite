@@ -11,7 +11,7 @@ import com.example.demo.entity.User;
 import com.example.demo.repository.chat.ChatMessageRepository;
 import com.example.demo.repository.chat.ChatRoomRepository;
 import com.example.demo.repository.product.ProductRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
