@@ -7,7 +7,7 @@ interface ProductProps {
 export default function ProductCard({ product }: ProductProps) {
   return (
     <div className="bg-white border rounded-xl overflow-hidden flex flex-col group hover:shadow-lg transition">
-      <div className="relative aspect-[4/3] overflow-hidden bg-gray-100">
+      <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
         <img
           src={product.primaryImageUrl || 'https://placehold.co'}
           alt={product.name}
@@ -26,8 +26,8 @@ export default function ProductCard({ product }: ProductProps) {
           {product.brandName || 'Đang cập nhật'}
         </span>
 
-        {/* Display product name with line-clamp */}
-        <h3 className="font-semibold text-base text-slate-800 line-clamp-2 min-h-[3rem]">
+        {/* Display the product name with line-clamp */}
+        <h3 className="font-semibold text-base text-slate-800 line-clamp-2 min-h-12">
           {product.name}
         </h3>
 

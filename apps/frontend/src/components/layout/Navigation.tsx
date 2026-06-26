@@ -13,7 +13,7 @@ const navItems = [
 
 export function Navigation() {
   const { user } = useAuthStore();
-  const userRoles = user?.roles || [];
+  const userRoles = user?.roles || 'GUEST';
 
   const visibleItems = navItems.filter(item =>
     item.roles.some(role => userRoles.includes(role)),
