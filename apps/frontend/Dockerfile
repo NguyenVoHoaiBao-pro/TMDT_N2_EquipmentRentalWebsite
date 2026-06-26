@@ -1,7 +1,9 @@
 # Stage 1: Build the static files
 FROM node:20-alpine3.21 AS builder
 WORKDIR /build
+# Declare copy file manages packet original
 COPY package.json package-lock.json ./
+# Create sub folder and package.json to the right place
 COPY apps/frontend/package.json ./apps/frontend/
 RUN npm ci
 COPY apps/frontend/ ./apps/frontend/

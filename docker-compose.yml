@@ -3,6 +3,13 @@ services:
     image: mysql:8.0
     container_name: equipment-rental-db
     restart: unless-stopped
+    deploy: # Limit RAM usage for the database
+      resources:
+        limits:
+          memory: 512M
+
+    env_file:
+      - .env # Read from environment variables backend
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-equipment_rental_db}
@@ -24,6 +31,10 @@ services:
     image: redis:7-alpine
     container_name: equipment-rental-cache
     restart: unless-stopped
+    deploy: # Limit RAM usage for the cache
+      resources:
+        limits:
+          memory: 256M
     ports:
       - '6379:6379'
     volumes:
@@ -42,17 +53,22 @@ services:
       dockerfile: ./apps/backend/Dockerfile
     container_name: equipment-rental-backend
     restart: unless-stopped
+    deploy: # Limit RAM usage for backend
+      resources:
+        limits:
+          memory: 768M
+    env_file:
+      - ./apps/backend/.env # Read from environment variables backend
+
     environment:
-      JAVA_OPTS: '-Xmx512m -Xms256m'
+      JAVA_OPTS: '-Xmx512m -Xms256m' # Maximum and minimum heap size
       DB_HOST: mysql
       DB_PORT: 3306
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SERVER_PORT: 8080
-      # --- ADD YOUR LOGGING PROPERTIES HERE ---
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: "DEBUG"
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: "DEBUG"
-      # --- ADD YOUR OAUTH KEYS HERE (Matches your .properties or .env variables) ---
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_ID: "${FACEBOOK_CLIENT_ID}"
@@ -67,13 +83,16 @@ services:
     networks:
       - equipment-rental-network
 
-
   frontend:
     build:
       context: .
       dockerfile: ./apps/frontend/Dockerfile
     container_name: equipment-rental-frontend
     restart: unless-stopped
+    deploy: # Limit RAM usage for the frontend
+      resources:
+        limits:
+          memory: 128M
     ports:
       - '80:80'
     depends_on:

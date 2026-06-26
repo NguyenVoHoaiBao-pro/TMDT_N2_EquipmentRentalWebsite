@@ -1,0 +1,20 @@
+# Bỏ qua thư mục node_modules của máy ngoài
+**/node_modules
+apps/frontend/node_modules
+
+# Bỏ qua các file build tĩnh local
+**/dist
+apps/frontend/dist
+apps/backend/target
+
+# Bỏ qua các thư mục log và cấu hình IDE
+.git
+.github
+.idea
+.vscode
+*.log
+.wslconfig
+
+# Bỏ qua các file bí mật và kết quả của act CLI
+.env
+artifacts/

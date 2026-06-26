@@ -24,7 +24,7 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Copy JAR from builder
-COPY --from=builder /build/target/backend-*.jar app.jar
+COPY --from=builder /build/target/backend.jar app.jar
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \
