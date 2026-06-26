@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.entity.User;
-import com.example.demo.repository.IUserRepository;
+import com.example.demo.repository.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,17 +15,17 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final IUserRepository IUserRepository;
+    private final UserRepository UserRepository;
 
     @Override
     public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
-        User user = IUserRepository.findByUsername(username)
+        User user = UserRepository.findByUsername(username)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
         return new CustomUserDetails(user);
     }
 
     public UserDetails loadUserById(Long id) throws UsernameNotFoundException {
-        User user = IUserRepository.findById(id)
+        User user = UserRepository.findById(id)
             .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
         return new CustomUserDetails(user);
     }

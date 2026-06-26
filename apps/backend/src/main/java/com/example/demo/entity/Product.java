@@ -1,12 +1,18 @@
 package com.example.demo.entity;
 
-import com.example.demo.enumValues.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Table(name = "products")
 @Entity
@@ -14,7 +20,7 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 
 public class Product extends BaseEntity implements Serializable {
 
@@ -22,22 +28,38 @@ public class Product extends BaseEntity implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id")
-    private User owner;
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id", nullable = false)
+    private Brand brand;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "description", nullable = true)
+    @Column(name = "slug", nullable = false, unique = true)
+    private String slug;
+
+    @Column(name = "description")
     private String description;
 
-    @Column(name = "price_per_day", nullable = false, precision = 10, scale = 2)
-    private BigDecimal pricePerDay;
+    @Column(name = "base_price", nullable = false, precision = 15, scale = 2)
+    private BigDecimal basePrice;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    private ProductStatus status;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "specifications")
+    private Map<String, Object> specifications;
 
-    @Column(name = "image_url", nullable = true)
-    private String imageUrl;
+    @Column(name = "accessories_included")
+    private String accessoriesIncluded;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Device> devices = new HashSet<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @Builder.Default
+    @BatchSize(size = 20) // Adjust batch size as needed
+    private Set<ProductImage> images = new HashSet<>();
 }

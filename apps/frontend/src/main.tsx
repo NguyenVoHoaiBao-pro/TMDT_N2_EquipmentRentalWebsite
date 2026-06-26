@@ -1,7 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { TooltipProvider } from '@/ui-primitives/ui/tooltip';
+import { TooltipProvider } from '@/shared_components/ui/tooltip';
 import { Toaster } from 'sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/providers/queryClientConfig';

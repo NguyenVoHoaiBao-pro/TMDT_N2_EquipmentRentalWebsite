@@ -1,3 +1,4 @@
+// auth.types.ts
 // Interface for API requests
 
 export interface RegisterRequest {
@@ -35,7 +36,7 @@ export interface MyApiResponse<T> {
 export interface UserResponse {
   username: string;
   email: string;
-  role: string[];
+  roles: string[];
 }
 
 export interface JwtResponse {
@@ -43,11 +44,9 @@ export interface JwtResponse {
   type: string;
   expiresIn: number;
   username: string;
-  role: string;
-  refreshToken: string;
+  roles: string[];
 }
 
 export interface TokenRefreshResponse {
   accessToken: string;
-  refreshToken: string;
 }

@@ -1,0 +1,20 @@
+# Ignore node_module as root of project
+**/node_modules
+apps/frontend/node_modules
+
+# Ignore static build files local
+**/dist
+apps/frontend/dist
+apps/backend/target
+
+# Ignore log folder, IDE config
+.git
+.github
+.idea
+.vscode
+*.log
+.wslconfig
+
+# Ignore environment variable and file act built:
+.env
+artifacts/

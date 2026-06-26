@@ -30,7 +30,7 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Build with Maven
-        run: ./mvnw clean package -B
+        run: ./mvnw clean package -DskipTests -B
 
       - name: Run Tests
         run: ./mvnw test -B
@@ -41,13 +41,12 @@ jobs:
         with:
           name: backend-test-results
           path: apps/backend/target/surefire-reports/
+          retention-days: 1 # Keep reports for 1 day
 
   # Frontend Build & Lint
   frontend:
     name: Frontend - Build & Lint
     runs-on: ubuntu-latest
-    # Xóa dòng defaults working-directory cũ đi vì ta sẽ đứng ở root để chạy
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -59,8 +58,7 @@ jobs:
           cache: 'npm'
 
       - name: Install Dependencies (Monorepo)
-        run: npm ci # Chạy tại root để nhận diện toàn bộ workspace lock file
-
+        run: npm ci # Run on root to install dependencies for all packages
       - name: Run Lint
         run: npm run lint --workspace=apps/frontend
 

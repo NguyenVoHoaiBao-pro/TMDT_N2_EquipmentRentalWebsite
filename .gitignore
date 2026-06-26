@@ -30,10 +30,18 @@ logs/
 *.log
 
 # OS
-.DS_Store
 Thumbs.db
 
 # Maven
 .m2/
 
 docker-compose.override.yml
+**/.secrets
+
+# Act Local Artifacts
+**/artifacts/
+
+# Nx local workspace data cache:
+.nx/workspace-data/
+.nx/cache/
+.nx/

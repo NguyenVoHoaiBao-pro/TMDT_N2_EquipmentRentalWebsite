@@ -3,11 +3,12 @@ package com.example.demo.controller;
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.auth.request.*;
 import com.example.demo.dto.auth.response.TokenRefreshResponse;
-import com.example.demo.dto.user.UserResponse;
+import com.example.demo.dto.user.response.UserResponse;
 import com.example.demo.service.AuthService;
 import com.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.context.MessageSource;
@@ -44,8 +45,8 @@ public class AuthController extends BaseController {
         @ApiResponse(responseCode = "404", description = "User not found")
     })
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
-    public ResponseEntity<MyApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return createResponse(HttpStatus.OK, authService.login(loginRequest));
+    public ResponseEntity<MyApiResponse<JwtResponse>> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+        return createResponse(HttpStatus.OK, authService.login(loginRequest, response));
     }
 
     @PostMapping("/register")
@@ -68,17 +69,14 @@ public class AuthController extends BaseController {
         @ApiResponse(responseCode = "401", description = "Unauthorized"),
     })
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
-    public ResponseEntity<MyApiResponse<String>> logout(@RequestHeader("Authorization") String headerAuthorization,
-                                                        @RequestBody(required = false) LogoutRequest logoutRequest) {
+    public ResponseEntity<MyApiResponse<String>> logout(
+        @RequestHeader("Authorization") String headerAuthorization,
+        @CookieValue(name = "refresh_token", required = false) String refreshTokenFromCookie,
+        HttpServletResponse response) {
 
-        // 1. Execute / Delete blacklisted token and refreshToken(if exists) from redis
-        authService.logout(headerAuthorization, logoutRequest != null ? logoutRequest.getRefreshToken() : null);
-
-        // 2. Translate a message successfully from the message source
+        authService.logout(headerAuthorization, refreshTokenFromCookie, response);
         String localizedMessage = messageSource.getMessage("auth.logout.success", null, LocaleContextHolder.getLocale());
-
-        // 3. New create response with customization
-        return createResponse(HttpStatus.OK, 1000, localizedMessage, "Session has been cleared and tokens invalidated successfully.");
+        return createResponse(HttpStatus.OK, 1000, localizedMessage, "Session has been cleared.");
     }
 
     @PostMapping("/refresh-token")
@@ -88,9 +86,12 @@ public class AuthController extends BaseController {
         @ApiResponse(responseCode = "401", description = "Invalid refresh token"),
     })
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
-    public ResponseEntity<MyApiResponse<TokenRefreshResponse>> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
+    public ResponseEntity<MyApiResponse<TokenRefreshResponse>> refreshToken(
+        @CookieValue(name = "refresh_token", required = false) String refreshTokenFromCookie,
+        HttpServletResponse response) {
 
-        return createResponse(HttpStatus.OK, authService.refreshToken(request));
+        // Read directly from the cookie, no need to pass it in the request body
+        return createResponse(HttpStatus.OK, authService.refreshToken(refreshTokenFromCookie, response));
     }
 
     /**

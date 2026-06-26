@@ -1,9 +1,10 @@
+// store/useAuthStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export interface AuthUser {
   username: string;
-  role: string;
+  roles: string[];
 }
 
 interface AuthStore {
@@ -11,31 +12,31 @@ interface AuthStore {
   isAuthenticated: boolean;
 
   // Actions
-  loginSuccess: (user: AuthUser, token: string, refreshToken: string) => void;
+  loginSuccess: (user: AuthUser, token: string) => void;
   logoutSuccess: () => void;
 }
 
-// persist in middleware use for tracking the data in local storage
+// Persist middleware auto stores user and isAuthenticated status with the name 'auth-storage' in localStorage
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
       user: null,
       isAuthenticated: false,
 
-      loginSuccess: (user, token, refreshToken) => {
+      loginSuccess: (user, token) => {
         localStorage.setItem('token', token);
-        localStorage.setItem('refreshToken', refreshToken);
+
         set({ user, isAuthenticated: true });
       },
 
       logoutSuccess: () => {
         localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
+
         set({ user: null, isAuthenticated: false });
       },
     }),
     {
-      name: 'auth-storage',
-    }
-  )
+      name: 'auth-storage', // Remain for zustand store user and isAuthenticated status
+    },
+  ),
 );

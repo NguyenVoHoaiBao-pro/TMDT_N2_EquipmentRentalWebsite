@@ -1,13 +1,22 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.time.Instant; // 1. Đổi dòng này
+import java.time.Instant; // Use Instant instead of LocalDateTime
+
 
 @Getter
+@Setter
+@NoArgsConstructor // Required for JPA
+@AllArgsConstructor
+@SuperBuilder
 @MappedSuperclass
 public abstract class BaseEntity implements Serializable {
 
@@ -16,7 +25,7 @@ public abstract class BaseEntity implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    protected Integer id;
+    protected Long id;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     protected Instant createdAt; // Use Instant instead of LocalDateTime for store time UTC

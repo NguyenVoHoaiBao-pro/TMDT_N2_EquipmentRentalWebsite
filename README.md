@@ -2,9 +2,10 @@
 
 A modern full-stack e-commerce platform for equipment rental with a microservices-ready architecture.
 
+**Version:** 1.0.0 | **Status:** 🚀 Active Development | **Last Updated:** June 2026
+
 Built with **Spring Boot** (Java 21) for the backend and **React + TypeScript + Vite** for a fast, responsive frontend.
-Includes JWT authentication, role-based access control, MySQL database, Redis caching, and Docker containerization for
-seamless deployment.
+Includes JWT authentication, role-based access control, MySQL database, Redis caching, Docker containerization, OAuth2 integration (Google & Facebook), real-time chat functionality, and comprehensive equipment management system.
 
 ## 📋 Project Structure
 
@@ -83,6 +84,32 @@ seamless deployment.
 | **Deployment**     | Docker, Docker Compose      | Containerization               |
 | **CI/CD**          | GitHub Actions              | Automated testing & deployment |
 
+## 🎯 System Capabilities
+
+### Backend Capabilities
+- 🔧 RESTful API with 25+ endpoints
+- 📊 Product & Equipment Management
+- 🛒 Order Processing System
+- 👥 User & Authentication Management
+- 🏷️ Brand & Category Hierarchy
+- 📅 Device Calendar Scheduling
+- 💬 Real-time Chat WebSocket Server
+- 📧 Email Notification Service
+- 🖼️ Image Upload & Management (Cloudinary)
+- 📝 Comprehensive API Documentation (Swagger)
+
+### Frontend Capabilities
+- 🎨 Responsive UI with Tailwind CSS
+- 🔍 Advanced Product Search & Filtering
+- 🛒 Shopping Cart Management
+- 📅 Equipment Rental Booking
+- 💬 Real-time Chat Support
+- 👤 User Profile Management
+- 📋 Order History & Tracking
+- 🎯 Role-based UI Components
+- 📱 Mobile-optimized Interface
+- ⚡ Fast Performance (Vite build)
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -134,7 +161,7 @@ Create `.env` file in `apps/backend/`:
 # ============= DATABASE CONFIGURATION =============
 DB_HOST=localhost
 DB_PORT=3306
-DB_NAME=demo_db
+DB_NAME=equipment_rental_db
 DB_USER=root
 DB_PASSWORD=root
 
@@ -147,16 +174,20 @@ SERVER_PORT=8080
 LOG_LEVEL=INFO
 APP_LOG_LEVEL=DEBUG
 
-# ============= CLOUDINARY (Optional) =============
+# ============= OAUTH2 (Google & Facebook) =============
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+FACEBOOK_CLIENT_ID=your_facebook_client_id_here
+FACEBOOK_CLIENT_SECRET=your_facebook_client_secret_here
+
+# ============= CLOUDINARY (Optional - For Image Upload) =============
 # CLOUDINARY_CLOUD_NAME=your_cloud_name
 # CLOUDINARY_API_KEY=your_api_key
 # CLOUDINARY_API_SECRET=your_api_secret
 
-# ============= EMAIL (Optional) =============
-# MAIL_HOST=smtp.gmail.com
-# MAIL_PORT=587
-# MAIL_USERNAME=your_email@gmail.com
-# MAIL_PASSWORD=your_password
+# ============= EMAIL (Optional - SMTP Configuration) =============
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_password
 ```
 
 #### Step 3: Create MySQL Database
@@ -168,9 +199,9 @@ APP_LOG_LEVEL=DEBUG
 mysql -u root -p
 
 # In MySQL prompt:
-CREATE DATABASE demo_db;
-CREATE USER 'demo'@'localhost' IDENTIFIED BY 'root';
-GRANT ALL PRIVILEGES ON demo_db.* TO 'demo'@'localhost';
+CREATE DATABASE equipment_rental_db;
+CREATE USER 'root'@'localhost' IDENTIFIED BY 'root';
+GRANT ALL PRIVILEGES ON equipment_rental_db.* TO 'root'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -241,13 +272,19 @@ Create `.env` in project root for Docker Compose variables:
 # Database
 DB_HOST=mysql
 DB_PORT=3306
-DB_NAME=demo_db
-DB_USER=demo
+DB_NAME=equipment_rental_db
+DB_USER=root
 DB_PASSWORD=root
 
 # JWT
 JWT_SECRET=YourSuperSecretKeyMin32CharsLongPassword1234567890
 JWT_EXPIRATION_MS=86400000
+
+# OAuth2
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+FACEBOOK_CLIENT_ID=your_facebook_client_id_here
+FACEBOOK_CLIENT_SECRET=your_facebook_client_secret_here
 
 # Server
 SERVER_PORT=8080
@@ -272,10 +309,10 @@ docker-compose logs -f mysql
 
 | Service         | URL                                                    | Port                              |
 |-----------------|--------------------------------------------------------|-----------------------------------|
-| **Frontend**    | http://localhost:3000                                  | 3000                              |
+| **Frontend**    | http://localhost:80                                    | 80                                |
 | **Backend API** | http://localhost:8080/api                              | 8080                              |
 | **Swagger UI**  | http://localhost:8080/equipment_rental/swagger-ui.html | 8080                              |
-| **MySQL**       | localhost                                              | 3307 (external) / 3306 (internal) |
+| **MySQL**       | localhost                                              | 3306                              |
 | **Redis**       | localhost                                              | 6379                              |
 
 #### Step 4: Manage Services
@@ -376,42 +413,57 @@ npm run clean        # Remove dist and node_modules
 **Features:**
 
 - ✅ **Port:** 8080
-- ✅ **Authentication:** JWT (JSON Web Tokens) with HS256 algorithm
-- ✅ **Authorization:** Role-Based Access Control (RBAC) - ADMIN, USER, GUEST
+- ✅ **Authentication:** 
+  - JWT (JSON Web Tokens) with HS256 algorithm
+  - OAuth2 integration (Google & Facebook)
+  - Session management with JWT tokens
+- ✅ **Authorization:** Role-Based Access Control (RBAC)
+  - ADMIN (Full system access)
+  - USER (Regular customer access)
+  - GUEST (Limited access)
 - ✅ **Database:** MySQL 8.0+ with JPA/Hibernate ORM
 - ✅ **Cache:** Redis 7 for session & token caching
-- ✅ **API Documentation:** Swagger UI (OpenAPI 3.0)
+- ✅ **API Documentation:** Swagger UI (OpenAPI 3.0) at `/equipment_rental/swagger-ui.html`
 - ✅ **Password Security:** BCrypt encoding (12 rounds)
-- ✅ **File Upload:** Cloudinary integration
-- ✅ **Email:** Spring Mail with SMTP support
+- ✅ **File Upload:** Cloudinary integration for product & device images
+- ✅ **Email:** Spring Mail SMTP support for notifications
+- ✅ **Real-time Communication:** WebSocket support with STOMP protocol
 - ✅ **Logging:** SLF4J with customizable log levels
 - ✅ **Configuration:** Environment variables via `.env` file
 
-**Core Modules:**
+**Core Modules & Features:**
 
-- User authentication & registration
-- Role-based authorization
-- Equipment rental management
-- Order & transaction processing
-- Image upload to Cloudinary
-- Email notifications
+- ✅ **User Authentication** - JWT + OAuth2 (Google, Facebook) support
+- ✅ **Role-Based Authorization** - ADMIN, USER, GUEST roles with fine-grained permissions
+- ✅ **Equipment Rental Management** - Product catalog, inventory tracking, device calendar
+- ✅ **Order & Transaction Processing** - Order creation, payment handling, order tracking
+- ✅ **Real-time Chat System** - WebSocket-based customer support (STOMP/SockJS)
+- ✅ **File Management** - Cloudinary integration for image uploads
+- ✅ **Email Notifications** - SMTP-based email system
+- ✅ **Brand & Category Management** - Hierarchical product organization
+- ✅ **Search & Filtering** - Advanced product search with pagination
+
+**Database Entities:**
+
+- User, UserSocialAccount, Role (Authentication)
+- Product, ProductImage, Brand, Category (Product Management)
+- Device, DeviceImage, DeviceCalendar (Equipment Management)
+- Order (Transaction)
+- ChatRoom, ChatMessage (Communication)
 
 **Dependencies Highlights:**
 
-```xml
-``` 
-
-Spring Security → Stateless API security
-
-- JJWT → JWT token generation/validation
-- MapStruct → DTO-Entity mapping
-- SpringDoc → OpenAPI/Swagger integration
-- Lombok → Code generation (reduce boilerplate)
-- Spring Data JPA → Database abstraction layer
-- MySQL Connector → Database driver
-
-```
-```
+- **Spring Boot 4.0.6** → Web framework & app container
+- **Spring Security** → Stateless API security with OAuth2
+- **JJWT** → JWT token generation/validation
+- **Spring Data JPA** → Database abstraction layer
+- **MySQL 8.0 Connector** → Database driver
+- **Redis** → Caching & session management
+- **MapStruct** → DTO-Entity mapping
+- **SpringDoc OpenAPI** → Swagger UI documentation
+- **Cloudinary HTTP5** → Image upload & management
+- **Spring Mail** → Email notifications
+- **Lombok** → Code generation (reduce boilerplate)
 
 ### Frontend (React 19 - TypeScript - Vite)
 
@@ -432,41 +484,72 @@ Spring Security → Stateless API security
 
 **Core Pages & Features:**
 
-- Equipment catalog & search
-- Shopping cart & checkout
-- User authentication (Login/Register)
-- User profile & dashboard
-- Admin panel (equipment management)
-- Order history & track
-- Responsive mobile-first design
+- 🔐 **Authentication Pages** - Login, Register, Password Reset
+- 🏠 **Home Page** - Landing page with featured products
+- 🛒 **Product Catalog** - Equipment browse, search, filter, pagination
+- 📦 **Device Registration** - Equipment rental booking & calendar management
+- 💬 **Chat Feature** - Real-time customer support chat via WebSocket
+- 👤 **User Profile** - Account management & rental history
+- 📋 **Order Management** - Order history, order details, tracking
+- ⚙️ **Admin Panel** - Equipment management dashboard (extensible)
+- 📱 **Responsive Mobile-First Design** - Optimized for all devices
+
+**Core Technologies:**
+
+- React 19 with TypeScript
+- React Router v7 (client-side routing)
+- TanStack Query v5 (server state management)
+- Zustand (client-side state)
+- Axios + TanStack Query (HTTP + caching)
+- React Hook Form + Zod (form handling & validation)
+- Tailwind CSS + shadcn/ui (styling & components)
+- Sonner (toast notifications)
+- Lucide React (icons)
+- STOMP/SockJS (WebSocket real-time chat)
+- Vite (ultra-fast build tool)
 
 **Dependencies Structure:**
 
-```json
 ```
+Core: React 19, React DOM, React Router v7, TypeScript, Vite
 
-Core:
-
-- React 19, React DOM
-- React Router v7 (routing)
-- Vite (build tool)
-- TypeScript (type checking)
-
-State & Data: - Zustand (state management)
-
-- TanStack Query (server state)
-- Axios (HTTP client)
+State & Data:
+  - Zustand (client state)
+  - TanStack Query (server state)
+  - Axios (HTTP client)
 
 UI & Forms:
+  - Tailwind CSS (styling)
+  - shadcn/ui (component library)
+  - React Hook Form (form handling)
+  - Zod (schema validation)
+  - Lucide React (icons)
+  - Sonner (notifications)
 
-- Tailwind CSS (styling)
-- shadcn/ui (component library)
-- React Hook Form (form handling)
-- Zod (schema validation)
-- Lucide React (icons)
-- Sonner (notifications)
-
+Communication:
+  - STOMP/SockJS (WebSocket)
 ```
+
+---
+
+## 💬 Real-time Chat System
+
+The application features a WebSocket-based real-time chat system for customer support.
+
+### Technology Stack:
+- **Backend:** Spring WebSocket + STOMP protocol
+- **Frontend:** SockJS + STOMP client
+- **Database:** MySQL (chat persistence)
+
+### Key Features:
+- ✅ One-to-one customer support chat
+- ✅ Message persistence with timestamps
+- ✅ Online status tracking
+- ✅ Chat room management
+- ✅ Real-time notifications
+
+### Usage:
+The chat component is available in the **Chat Feature** section of the frontend at `/features/chat/`
 
 ---
 
@@ -719,21 +802,50 @@ docker-compose exec frontend sh
 
 ---
 
+## 🔐 Authentication & Authorization
+
+### JWT Authentication
+- Stateless token-based authentication
+- HS256 algorithm for token signing
+- Configurable token expiration (default: 24 hours)
+- Automatic token refresh mechanism
+
+### OAuth2 Integration
+- **Google Sign-In** - Quick login with Google accounts
+- **Facebook Sign-In** - Quick login with Facebook accounts
+- Social account linking with user profiles
+- Automatic user creation on first OAuth login
+
+### Role-Based Access Control (RBAC)
+
+| Role   | Permissions                              |
+|--------|------------------------------------------|
+| ADMIN  | Full system access, equipment management, user management |
+| USER   | Browse products, create rentals, place orders, chat support |
+| GUEST  | Browse public products, limited access                    |
+
+---
+
 ## 🔐 Security
 
 ### Environment Variables (Never commit .env)
 
-- `JWT_SECRET` - Minimum 32 characters
+- `JWT_SECRET` - Minimum 32 characters for token signing
 - `DB_PASSWORD` - Strong database password
-- `API_KEY` - For third-party services
+- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET` - OAuth2 credentials
+- `FACEBOOK_CLIENT_ID` & `FACEBOOK_CLIENT_SECRET` - OAuth2 credentials
+- `CLOUDINARY_*` - Third-party image service credentials
+- `MAIL_USERNAME` & `MAIL_PASSWORD` - Email SMTP credentials
 
 ### Best Practices
 
-1. Use strong JWT secret (32+ characters)
-2. Never commit `.env` files
-3. Use HTTPS in production
-4. Rotate JWT tokens regularly
-5. Implement rate limiting
+1. ✅ Use strong JWT secret (32+ characters)
+2. ✅ Never commit `.env` files (already in `.gitignore`)
+3. ✅ Use HTTPS in production
+4. ✅ Rotate JWT tokens regularly (configurable expiration)
+5. ✅ Implement rate limiting for API endpoints
+6. ✅ Use environment-specific configurations
+7. ✅ Keep OAuth2 credentials secure
 
 ---
 
