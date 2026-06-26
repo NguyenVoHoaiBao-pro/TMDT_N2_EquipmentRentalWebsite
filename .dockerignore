@@ -1,13 +1,13 @@
-# Bỏ qua thư mục node_modules của máy ngoài
+# Ignore node_module as root of project
 **/node_modules
 apps/frontend/node_modules
 
-# Bỏ qua các file build tĩnh local
+# Ignore static build files local
 **/dist
 apps/frontend/dist
 apps/backend/target
 
-# Bỏ qua các thư mục log và cấu hình IDE
+# Ignore log folder, IDE config
 .git
 .github
 .idea
@@ -15,6 +15,6 @@ apps/backend/target
 *.log
 .wslconfig
 
-# Bỏ qua các file bí mật và kết quả của act CLI
+# Ignore environment variable and file act built:
 .env
 artifacts/

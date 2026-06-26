@@ -40,3 +40,8 @@ docker-compose.override.yml
 
 # Act Local Artifacts
 **/artifacts/
+
+# Nx local workspace data cache:
+.nx/workspace-data/
+.nx/cache/
+.nx/

@@ -47,8 +47,6 @@ jobs:
   frontend:
     name: Frontend - Build & Lint
     runs-on: ubuntu-latest
-    # Xóa dòng defaults working-directory cũ đi vì ta sẽ đứng ở root để chạy
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
