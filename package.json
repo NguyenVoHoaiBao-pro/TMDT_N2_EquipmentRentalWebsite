@@ -10,11 +10,15 @@
   "scripts": {
     "dev": "npm run dev --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
+    "// Docker Shortcuts": "-------------------------------------------------",
+    "docker:dev": "docker-compose -f docker-compose.yml -f docker-compose.override.yml up -d --build",
+    "docker:prod": "docker-compose -f docker-compose.yml up -d --build",
+    "docker:down": "docker-compose down",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "test:ci": "npm run test:ci --workspaces --if-present",
     "install:all": "npm install && npm install --workspaces",
-    "clean": "npm run clean --workspaces --if-present && rm -rf node_modules",
+    "clean": "powershell -Command \"Remove-Item -Recurse -Force dist, node_modules -ErrorAction SilentlyContinue\"",
     "check-updates": "ncu -f nx",
     "// Act Local CI": "-------------------------------------------------",
     "Add artifact to stimulate server": "-------------------------------------------------",
@@ -34,10 +38,8 @@
   "dependencies": {
     "@emnapi/core": "1.10.0",
     "@emnapi/runtime": "1.10.0",
-    "@tailwindcss/vite": "^4.3.1",
     "axios": "^1.16.1",
     "nx": "^23.0.0",
-    "tailwindcss": "^4.3.1",
     "yaml": "^2.9.0"
   },
   "overrides": {
@@ -49,6 +51,7 @@
     "cosmiconfig": "9.0.1"
   },
   "devDependencies": {
-    "minimatch": "^5.1.9"
+    "minimatch": "^5.1.9",
+    "rimraf": "^6.1.3"
   }
 }

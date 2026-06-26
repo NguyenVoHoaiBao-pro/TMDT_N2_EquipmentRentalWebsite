@@ -87,6 +87,6 @@ jobs:
         with:
           context: .
           file: ./apps/frontend/Dockerfile # Aim to build the frontend image
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && github.actor != 'nektos/act' }} # Only push if not running in act
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

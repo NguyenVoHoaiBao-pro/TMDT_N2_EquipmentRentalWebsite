@@ -30,7 +30,7 @@ jobs:
         run: chmod +x ./mvnw
 
       - name: Build with Maven
-        run: ./mvnw clean package -B
+        run: ./mvnw clean package -DskipTests -B
 
       - name: Run Tests
         run: ./mvnw test -B
@@ -47,8 +47,6 @@ jobs:
   frontend:
     name: Frontend - Build & Lint
     runs-on: ubuntu-latest
-    # Xóa dòng defaults working-directory cũ đi vì ta sẽ đứng ở root để chạy
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

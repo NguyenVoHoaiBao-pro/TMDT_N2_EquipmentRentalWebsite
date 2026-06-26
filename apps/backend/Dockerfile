@@ -16,7 +16,7 @@ COPY apps/backend/src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-alpine-3.21
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ WORKDIR /app
 RUN apk add --no-cache curl
 
 # Copy JAR from builder
-COPY --from=builder /build/target/backend-*.jar app.jar
+COPY --from=builder /build/target/backend.jar app.jar
 
 # Create non-root user
 RUN addgroup -g 1000 appuser && \
