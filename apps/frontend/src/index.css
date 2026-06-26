@@ -1,43 +1,7 @@
-/* 1. Import tailwind Ecosystem v4 */
-@import "tailwindcss";
-@import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
-@import '@fontsource-variable/geist';
-
-/* 2. Define theme colors of Shadcn UI */
-@theme {
-    --color-border: var(--border);
-    --color-input: var(--input);
-    --color-ring: var(--ring);
-    --color-background: var(--background);
-    --color-foreground: var(--foreground);
-
-    --color-primary: var(--primary);
-    --color-primary-foreground: var(--primary-foreground);
-
-    --color-secondary: var(--secondary);
-    --color-secondary-foreground: var(--secondary-foreground);
-
-    --color-destructive: var(--destructive);
-    --color-destructive-foreground: var(--destructive-foreground);
-
-    --color-muted: var(--muted);
-    --color-muted-foreground: var(--muted-foreground);
-
-    --color-accent: var(--accent);
-    --color-accent-foreground: var(--accent-foreground);
-
-    --color-popover: var(--popover);
-    --color-popover-foreground: var(--popover-foreground);
-
-    --color-card: var(--card);
-    --color-card-foreground: var(--card-foreground);
-
-    /* Border Radius */
-    --radius-lg: var(--radius);
-    --radius-md: calc(var(--radius) - 2px);
-    --radius-sm: calc(var(--radius) - 4px);
-}
+/* 1. Import tailwind Ecosystem v3 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* 3. Declare custom CSS variables from Shadcn Nova */
 :root {
@@ -168,15 +132,18 @@
 
 /* 4. Utility CSS classes global */
 * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: rgb(var(--ring) / 0.5);
 }
 
 body {
-    @apply bg-background text-foreground m-0;
+    background-color: var(--background);
+    color: var(--foreground);
+    margin: 0;
 }
 
 html {
-    @apply font-sans;
+    font-family: var(--font-sans);
 }
 
 /* 5. Custom CSS Components layout for website */

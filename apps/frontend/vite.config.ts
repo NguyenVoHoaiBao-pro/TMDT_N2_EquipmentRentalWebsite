@@ -1,29 +1,28 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(), // Add Tailwind CSS plugin
-  ],
-  define: {
-    global: 'window', // Define global variable for window object
-  },
+  plugins: [react()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
   },
+  define: {
+    global: 'globalThis',
+  },
   server: {
     host: true,
     port: 5173,
     proxy: {
+      // Khi Frontend gọi đến bất kỳ URL nào bắt đầu bằng /api
       '/api': {
-        target: 'http://equipment-rental-backend:8080',
+        // Trỏ đến backend đang chạy trên localhost
+        target: 'http://localhost:8080',
         changeOrigin: true,
+        // CẤU HÌNH QUAN TRỌNG: Tự động chèn /equipment_rental vào trước /api khi gửi đi
         rewrite: (path) => path.replace(/^\/api/, '/equipment_rental/api'),
       },
     },
@@ -34,6 +33,6 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 1500, // Adjust this value as needed to fix waring chunk size limit js files
+    minify: 'terser',
   },
 });

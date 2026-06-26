@@ -170,25 +170,25 @@ apiClient.interceptors.response.use(
 // API ENDPOINTS DEFINITION
 export const api = {
   auth: {
-    login: (data: LoginRequest): Promise<JwtResponse> => apiClient.post('/auth/login', data),
+    login: (data: LoginRequest): Promise<JwtResponse> => apiClient.post('/api/auth/login', data),
 
     register: (data: RegisterRequest): Promise<UserResponse> =>
-      apiClient.post('/auth/register', data),
+      apiClient.post('/api/auth/register', data),
 
     forgotPassword: (data: ForgotPasswordRequest): Promise<void> =>
-      apiClient.post('/auth/forgot-password', data),
+      apiClient.post('/api/auth/forgot-password', data),
 
     resetPassword: (data: ResetPasswordRequest): Promise<void> =>
-      apiClient.post('/auth/reset-password', data),
+      apiClient.post('/api/auth/reset-password', data),
 
     logout: (data: { refreshToken: string | null }): Promise<void> =>
-      apiClient.post('/auth/logout', data),
+      apiClient.post('/api/auth/logout', data),
 
     checkDuplicateEmail: (email: string): Promise<boolean> =>
-      apiClient.get('/auth/check-email', { params: { email } }),
+      apiClient.get('/api/auth/check-email', { params: { email } }),
 
     checkDuplicateUsername: (username: string): Promise<boolean> =>
-      apiClient.get('/auth/check-username', { params: { username } }),
+      apiClient.get('/api/auth/check-username', { params: { username } }),
   },
 };
 

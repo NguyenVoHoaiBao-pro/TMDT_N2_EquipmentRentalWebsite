@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { HomePage } from '@/pages/home/HomePage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
@@ -9,6 +9,9 @@ import ProductCatalogPage from '@/pages/products/ProductCatalogPage.tsx';
 function App() {
   return (
     <Routes>
+      {/* Redirect root URL */}
+      <Route path="/" element={<Navigate to="/home" replace />} />
+
       {/* Main Home Page */}
       <Route path="/home" element={<HomePage />} />
 
