@@ -1,18 +1,36 @@
-import { Fragment } from 'react';
+import { useMemo } from 'react';
+import SiteLayout from '@/components/layout/SiteLayout';
 import { ProductFilters } from '@/features/product/components/ProductFilters';
 import ProductGrid from '@/features/product/components/ProductGrid';
 import { ProductSort } from '@/features/product/components/ProductSort';
-import { products } from '@/features/product/data/products';
 import Sidebar from '@/components/layout/Sidebar';
-import BackToTop from '@/components/layout/BackToTop';
 import Pagination from '@/features/product/components/Pagination';
 import { useProductFilter } from '@/features/product/hooks/useProducts';
 import EmptyState from '@/features/product/components/EmptyState';
 import { NOT_FOUND_MESSAGE, NOT_FOUND_TITLE } from '@/features/product/constants/defaultValues';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
+import { useProducts } from '@/hooks/useProducts';
+import {
+  mapApiProductsToLocal,
+  deriveCategories,
+  deriveBrands,
+} from '@/features/product/utils/product.mapper';
+import { Loader2 } from 'lucide-react';
 
 export default function ProductCatalogPage() {
+  const { data, isLoading, isError } = useProducts(0, 200);
+
+  const products = useMemo(
+    () => mapApiProductsToLocal(data?.content ?? []),
+    [data],
+  );
+
+  const categories = useMemo(() => deriveCategories(products), [products]);
+  const brands = useMemo(() => deriveBrands(products), [products]);
+  const maxPrice = useMemo(
+    () => (products.length > 0 ? Math.max(...products.map((p) => p.price)) : 1000000),
+    [products],
+  );
+
   const {
     selectedCategory,
     setSelectedCategory,
@@ -35,48 +53,66 @@ export default function ProductCatalogPage() {
   } = useProductFilter(products);
 
   return (
-    <Fragment>
-      {/* Header with Logo + Navigation + Search + HeaderActions */}
-      <Header searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
-
-      <div className="flex flex-col lg:flex-row">
-        {/* Sidebar Filters */}
+    <SiteLayout searchQuery={searchQuery} setSearchQuery={setSearchQuery}>
+      <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
         <Sidebar>
           <ProductFilters
+            categories={categories}
+            brands={brands}
             selectedCategory={selectedCategory}
             onCategoryChange={setSelectedCategory}
             selectedBrands={selectedBrands}
             onBrandChange={setSelectedBrands}
             priceRange={priceRange}
             onPriceRangeChange={setPriceRange}
+            maxPrice={maxPrice}
             resetFilters={resetFilters}
           />
         </Sidebar>
 
-        {/* Main Content */}
-        <main className="flex-1 p-4">
-          {/* Catalog Title + Sort */}
-          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-6">
+        <main className="flex-1 p-6 lg:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold">Product Catalog</h1>
-              <p className="text-sm text-gray-500">
-                Our products are carefully selected...
+              <p className="font-sora text-cine-cyan text-sm font-medium uppercase tracking-widest mb-2">
+                Inventory
+              </p>
+              <h1 className="font-sora text-3xl font-bold text-white">Browse Equipment</h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Professional cinema gear — curated and field-tested.
               </p>
             </div>
 
-            <ProductSort
-              totalItems={filteredProducts.length}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSortFieldChange={setSortField}
-              onSortDirectionToggle={toggleSortDirection}
-            />
+            {!isLoading && !isError && (
+              <ProductSort
+                totalItems={filteredProducts.length}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortFieldChange={setSortField}
+                onSortDirectionToggle={toggleSortDirection}
+              />
+            )}
           </div>
 
-          {/* Products Grid or Empty State */}
-          {paginatedProducts.length > 0 ? (
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
+              <Loader2 className="w-10 h-10 text-cine-cyan animate-spin" />
+              <p className="font-sora text-gray-500">Loading equipment from database...</p>
+            </div>
+          )}
+
+          {isError && (
+            <EmptyState
+              title="Failed to load products"
+              description="Could not connect to the server. Please check your connection and try again."
+              icon="package"
+            />
+          )}
+
+          {!isLoading && !isError && paginatedProducts.length > 0 && (
             <ProductGrid products={paginatedProducts} />
-          ) : (
+          )}
+
+          {!isLoading && !isError && paginatedProducts.length === 0 && (
             <EmptyState
               title={NOT_FOUND_TITLE}
               description={NOT_FOUND_MESSAGE}
@@ -86,20 +122,15 @@ export default function ProductCatalogPage() {
             />
           )}
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+          {!isLoading && !isError && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </main>
       </div>
-
-      {/* Footer */}
-      <Footer />
-
-      {/* Back to top button */}
-      <BackToTop />
-    </Fragment>
+    </SiteLayout>
   );
 }

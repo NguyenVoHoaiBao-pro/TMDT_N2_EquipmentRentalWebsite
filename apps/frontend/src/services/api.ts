@@ -190,6 +190,10 @@ export const api = {
     checkDuplicateUsername: (username: string): Promise<boolean> =>
       apiClient.get('/api/auth/check-username', { params: { username } }),
   },
+  products: {
+    getAll: (params?: { page?: number; size?: number; sortBy?: string; orderBy?: string }) =>
+      apiClient.get('/api/products', { params }),
+  },
 };
 
 export default apiClient;

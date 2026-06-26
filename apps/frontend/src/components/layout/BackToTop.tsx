@@ -27,7 +27,7 @@ function BackToTop() {
   return (
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-12 right-12 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 focus:outline-none transition-opacity duration-300 ${
+      className={`fixed bottom-12 right-12 p-3 bg-cine-cyan text-black rounded-full shadow-glow-cyan hover:brightness-110 focus:outline-none transition-opacity duration-300 ${
         visible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
     >

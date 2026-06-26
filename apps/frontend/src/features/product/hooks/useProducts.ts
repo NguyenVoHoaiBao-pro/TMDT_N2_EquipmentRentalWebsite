@@ -21,8 +21,13 @@ export function useProductFilter(products: Product[]) {
   const priceRange = useMemo<[number, number]>(() => {
     const min = searchParams.get('minPrice');
     const max = searchParams.get('maxPrice');
-    return min && max ? [Number(min), Number(max)] : DEFAULT_PRICE_RANGE;
-  }, [searchParams]);
+    if (min && max) return [Number(min), Number(max)];
+
+    const productMax = products.length > 0
+      ? Math.max(...products.map((p) => p.price))
+      : DEFAULT_PRICE_RANGE[1];
+    return [0, productMax];
+  }, [searchParams, products]);
 
   const sortField = (searchParams.get('sortField') as 'name' | 'price') || 'name';
   const sortDirection = (searchParams.get('sortDirection') as 'asc' | 'desc') || 'asc';

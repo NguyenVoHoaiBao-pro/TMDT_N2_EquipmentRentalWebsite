@@ -70,7 +70,7 @@ export default function ProductPagination({ currentPage, totalPages, onPageChang
   );
 
   return (
-    <ShadcnPagination className="mt-8">
+    <ShadcnPagination className="mt-8 [&_a]:text-gray-400 [&_a]:border-white/10 [&_a]:bg-cine-card [&_a:hover]:text-cine-cyan [&_a:hover]:border-cine-cyan/30 [&_[aria-current]]:bg-cine-cyan [&_[aria-current]]:text-black [&_[aria-current]]:border-cine-cyan">
       <PaginationContent>
         {/* Previous Page */}
         <PaginationItem>

@@ -140,6 +140,9 @@ body {
     background-color: var(--background);
     color: var(--foreground);
     margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 html {
@@ -148,11 +151,11 @@ html {
 
 /* 5. Custom CSS Components layout for website */
 #root {
-    width: 1126px;
+    width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    text-align: center;
-    border-inline: 1px solid var(--border);
+    text-align: left;
+    border-inline: none;
     min-height: 100svh;
     display: flex;
     flex-direction: column;
@@ -201,4 +204,27 @@ code {
     line-height: 135%;
     padding: 4px 8px;
     background: var(--code-bg);
+}
+
+/* CineRent cinematic utilities */
+@layer components {
+    .glass-panel {
+        @apply bg-white/[0.03] backdrop-blur-md border border-white/[0.08];
+    }
+
+    .glass-badge {
+        @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2;
+    }
+
+    .text-glow-cyan {
+        text-shadow: 0 0 40px rgba(94, 234, 212, 0.5);
+    }
+
+    .cine-btn-primary {
+        @apply inline-flex items-center gap-2 font-sora font-semibold text-sm bg-cine-cyan text-black px-7 py-3.5 rounded-full hover:shadow-glow-cyan transition-all duration-300 hover:brightness-110;
+    }
+
+    .cine-btn-glass {
+        @apply inline-flex items-center gap-2 font-sora font-medium text-sm text-white bg-white/5 backdrop-blur-sm border border-white/20 px-7 py-3.5 rounded-full hover:bg-white/10 hover:border-white/30 transition-all duration-300;
+    }
 }
