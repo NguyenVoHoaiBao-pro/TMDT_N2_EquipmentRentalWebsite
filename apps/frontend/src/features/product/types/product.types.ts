@@ -20,6 +20,15 @@ export interface SpringPageResponse<T> {
   number: number; // Starts from 0
 }
 
+export interface ProductInformation extends ProductBase {
+
+  description: string;
+  specifications: Specification[];
+  includedItems: string[];
+
+}
+
+
 export type LookupItem = { id: number; name: string };
 
 export interface PriceRange {
@@ -48,24 +57,40 @@ export interface Specification {
   value: string;
 }
 
+export interface Owner {
 
-export type ProductCondition =
-  | 'NEW'
-  | 'EXCELLENT'
-  | 'GOOD'
-  | 'FAIR';
+  id: number;
+  fullName: string;
+  avatarUrl: string | null;
+  verified: boolean;
 
-export interface ProductDetail extends ProductBase {
-  availability: 'AVAILABLE' | 'RESERVED' | 'RENTED' | 'MAINTENANCE';
-  condition: ProductCondition;
-  rating: number;
-  reviewCount: number;
-  deposit: number;
-  insurance: number;
-  description: string;
-  images: ProductImage[];
-  specifications: Specification[];
-  includedItems: string[];
-  reviews: Review[];
 }
+
+export interface DeviceDetail {
+
+  product: ProductInformation;
+  device: DeviceInformation;
+  owner: Owner;
+  reviews: Review[];
+
+}
+
+export interface DeviceInformation {
+
+  id: number;
+  ownerId: number;
+  conditionPercent: number;
+  availability:
+    | 'AVAILABLE'
+    | 'RESERVED'
+    | 'RENTED'
+    | 'MAINTENANCE';
+
+  pricePerDay: number;
+  depositValue: number;
+  insurance: number;
+  images: ProductImage[];
+
+}
+
 
