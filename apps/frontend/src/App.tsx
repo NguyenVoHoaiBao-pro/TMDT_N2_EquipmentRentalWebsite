@@ -21,9 +21,9 @@ function App() {
       <Route element={<MainLayout />}>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
-        <Route path="/products" element={<ProductCatalogPage />}>
-          <Route path=":id" element={<ProductDetailPage />} />
-        </Route>
+        {/* Separate the routes so they render independently */}
+        <Route path="/products" element={<ProductCatalogPage />} />
+        <Route path="/products/:id" element={<ProductDetailPage />} />
       </Route>
 
       {/* 2. Protected Routes using Simple Layout */}
