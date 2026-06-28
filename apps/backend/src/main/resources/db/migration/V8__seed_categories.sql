@@ -1,6 +1,6 @@
 /* =====================================================
-   SEED FILE: seed_02_categories.sql
-   Generated at: 2026-06-28 18:44:24
+   SEED FILE: V8__seed_categories.sql
+   Generated at: 2026-06-28 23:11:10
    ===================================================== */
 
 SET FOREIGN_KEY_CHECKS = 0;

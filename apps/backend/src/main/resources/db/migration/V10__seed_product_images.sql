@@ -1,6 +1,6 @@
 /* =====================================================
-   SEED FILE: seed_04_product_images.sql
-   Generated at: 2026-06-28 18:44:24
+   SEED FILE: V10__seed_product_images.sql
+   Generated at: 2026-06-28 23:11:10
    ===================================================== */
 
 SET FOREIGN_KEY_CHECKS = 0;

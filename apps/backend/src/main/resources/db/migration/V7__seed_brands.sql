@@ -1,6 +1,6 @@
 /* =====================================================
-   SEED FILE: seed_01_brands.sql
-   Generated at: 2026-06-28 18:44:24
+   SEED FILE: V7__seed_brands.sql
+   Generated at: 2026-06-28 23:11:10
    ===================================================== */
 
 SET FOREIGN_KEY_CHECKS = 0;
