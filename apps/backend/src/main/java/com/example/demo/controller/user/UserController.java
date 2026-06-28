@@ -7,7 +7,7 @@ import com.example.demo.dto.user.request.ChangePasswordRequest;
 import com.example.demo.dto.user.request.KycVerificationRequest;
 import com.example.demo.dto.user.request.RevealKycRequest;
 import com.example.demo.dto.user.response.UserProfileResponse;
-import com.example.demo.service.UserService;
+import com.example.demo.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

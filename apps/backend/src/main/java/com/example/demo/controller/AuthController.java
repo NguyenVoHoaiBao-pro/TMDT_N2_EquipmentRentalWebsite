@@ -5,7 +5,7 @@ import com.example.demo.dto.auth.request.*;
 import com.example.demo.dto.auth.response.TokenRefreshResponse;
 import com.example.demo.dto.user.response.UserResponse;
 import com.example.demo.service.AuthService;
-import com.example.demo.service.UserService;
+import com.example.demo.service.user.UserService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletResponse;

@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.service.user;
 
 import com.example.demo.dto.auth.request.RegisterRequest;
 import com.example.demo.dto.user.request.BasicProfileRequest;
@@ -16,6 +16,7 @@ import com.example.demo.exception.ErrorCode;
 import com.example.demo.mappers.IUserMapper;
 import com.example.demo.repository.user.RoleRepository;
 import com.example.demo.repository.user.UserRepository;
+import com.example.demo.service.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

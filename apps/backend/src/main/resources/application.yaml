@@ -41,6 +41,17 @@ spring:
         - classpath:database/seed_user_kyc_verifications.sql
         - classpath:database/seed_user_social_accounts.sql
         - classpath:database/seed_products.sql
+        - classpath:database/seed/seed_01_brands.sql
+        - classpath:database/seed/seed_02_categories.sql
+        - classpath:database/seed/seed_03_products.sql
+        - classpath:database/seed/seed_04_product_images.sql
+        - classpath:database/seed/seed_05_devices.sql
+        - classpath:database/seed/seed_06_device_images.sql
+        - classpath:database/seed/seed_07_orders.sql
+        - classpath:database/seed/seed_08_order_details.sql
+        - classpath:database/seed/seed_09_payments.sql
+        - classpath:database/seed/seed_10_reviews.sql
+        - classpath:database/seed/seed_11_device_calendars.sql
   #        - classpath:database/seed_orders.sql # Nothing here yet
 
   # Database Configuration - MySQL (from .env)

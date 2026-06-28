@@ -67,4 +67,13 @@ public class User extends BaseEntity implements Serializable {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private Set<UserKycVerification> kycVerifications = new HashSet<>();
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "cart_items",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "device_id")
+    )
+    @Builder.Default
+    private Set<Device> cartItems = new HashSet<>();
 }

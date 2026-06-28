@@ -57,4 +57,8 @@ public class Device extends BaseEntity implements Serializable {
     @Builder.Default
     @BatchSize(size = 50)
     private Set<DeviceCalendar> deviceCalendar = new HashSet<>();
+    
+    @OneToMany(mappedBy = "device")
+    @Builder.Default
+    private Set<OrderDetail> orderDetails = new HashSet<>();
 }

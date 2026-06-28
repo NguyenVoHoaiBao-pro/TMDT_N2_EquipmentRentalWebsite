@@ -8,7 +8,9 @@ DROP TABLE IF EXISTS device_images;
 DROP TABLE IF EXISTS device_calendars;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS order_detail;
 DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS cart_items;
 
 DROP TABLE IF EXISTS chat_messages;
 DROP TABLE IF EXISTS chat_rooms;
@@ -181,19 +183,40 @@ CREATE TABLE device_calendars
 
 CREATE TABLE orders
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    device_id      BIGINT         NOT NULL,
-    renter_id      BIGINT         NOT NULL,
-    start_date     DATE           NOT NULL,
-    end_date       DATE           NOT NULL,
-    total_price    DECIMAL(15, 2) NOT NULL,
-    deposit_amount DECIMAL(15, 2) DEFAULT 0.00,
-    status         ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
-    created_at     TIMESTAMP      NOT NULL,
-    updated_at     TIMESTAMP      NOT NULL,
-    FOREIGN KEY (device_id) REFERENCES devices (id),
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    renter_id   BIGINT         NOT NULL,
+    start_date  DATE           NOT NULL,
+    end_date    DATE           NOT NULL,
+    total_price DECIMAL(15, 2) NOT NULL, -- Tổng tiền của TẤT CẢ các máy cộng lại
+    status      ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
+    created_at  TIMESTAMP      NOT NULL,
+    updated_at  TIMESTAMP      NOT NULL,
     FOREIGN KEY (renter_id) REFERENCES users (id)
 );
+
+-- TẠO MỚI BẢNG TRUNG GIAN: Chi tiết các thiết bị nằm trong đơn hàng đó
+CREATE TABLE order_details
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id       BIGINT         NOT NULL,
+    device_id      BIGINT         NOT NULL,
+    price_per_day  DECIMAL(15, 2) NOT NULL,     -- Chốt giá thuê/ngày tại thời điểm đặt (đề phòng chủ máy tăng/giảm giá sau này)
+    deposit_amount DECIMAL(15, 2) DEFAULT 0.00, -- Tiền cọc riêng của máy này
+    FOREIGN KEY (order_id) REFERENCES orders (id),
+    FOREIGN KEY (device_id) REFERENCES devices (id)
+);
+
+CREATE TABLE cart_items
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id    BIGINT    NOT NULL,
+    device_id  BIGINT    NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (device_id) REFERENCES devices (id),
+    UNIQUE KEY uq_user_device (user_id, device_id)
+);
+
 
 CREATE TABLE payments
 (
