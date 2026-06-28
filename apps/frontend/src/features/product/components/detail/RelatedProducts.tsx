@@ -1,3 +1,4 @@
+// @/features/product/components/detail/RelatedProducts.tsx
 import type { Product } from '@/features/product/types/product.types.ts';
 
 interface RelatedProductProps {

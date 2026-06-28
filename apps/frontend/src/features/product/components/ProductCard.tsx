@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'; // 1. NHỚ IMPORT LINK
 import { type Product } from '@/features/product/types/product.types.ts';
 
 interface ProductProps {
@@ -6,14 +7,17 @@ interface ProductProps {
 
 export default function ProductCard({ product }: ProductProps) {
   return (
-    <div className="bg-white border rounded-xl overflow-hidden flex flex-col group hover:shadow-lg transition">
+    // 2. Đổi thẻ div ngoài cùng thành thẻ Link
+    <Link
+      to={`/products/${product.id}`}
+      className="bg-white border rounded-xl overflow-hidden flex flex-col group hover:shadow-lg transition cursor-pointer"
+    >
       <div className="relative aspect-4/3 overflow-hidden bg-gray-100">
         <img
           src={product.primaryImageUrl || 'https://placehold.co'}
           alt={product.name}
           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
         />
-        {/* Display status badge */}/
         <span className={`absolute top-3 left-3 text-white px-2 py-1 text-xs rounded font-medium ${
           product.status === 'AVAILABLE' ? 'bg-green-500' : 'bg-gray-500'
         }`}>
@@ -26,7 +30,6 @@ export default function ProductCard({ product }: ProductProps) {
           {product.brandName || 'Đang cập nhật'}
         </span>
 
-        {/* Display the product name with line-clamp */}
         <h3 className="font-semibold text-base text-slate-800 line-clamp-2 min-h-12">
           {product.name}
         </h3>
@@ -40,12 +43,13 @@ export default function ProductCard({ product }: ProductProps) {
             </span>
           </div>
 
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0">
-            Rent Now
-          </button>
+          {/* 3. Đổi button thành span để tránh lỗi lồng thẻ tương tác (Interactive Content) */}
+          <span
+            className="bg-blue-600 group-hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shrink-0">
+            Xem chi tiết
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

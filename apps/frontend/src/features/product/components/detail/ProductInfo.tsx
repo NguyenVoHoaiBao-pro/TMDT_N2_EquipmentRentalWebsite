@@ -1,3 +1,4 @@
+// @/features/product/components/detail/ProductInfo.tsx
 import type { ProductInformation, Owner } from '@/features/product/types/product.types.ts';
 
 interface ProductInfoProps {

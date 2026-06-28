@@ -1,4 +1,3 @@
-// src/components/layout/AppBreadcrumb.tsx
 import { Link, useLocation } from 'react-router-dom';
 import {
   Breadcrumb,
@@ -10,6 +9,8 @@ import {
 } from '@/shared_components/ui/breadcrumb';
 import { HomeIcon } from 'lucide-react';
 import React from 'react';
+import { useQueryClient } from '@tanstack/react-query'; // 1. IMPORT HOOK CACHE
+import type { DeviceDetail } from '@/features/product/types/product.types';
 
 const pathNameMap: Record<string, string> = {
   home: 'Home',
@@ -21,14 +22,16 @@ const pathNameMap: Record<string, string> = {
 
 export function AppBreadcrumb() {
   const location = useLocation();
+  const queryClient = useQueryClient(); // Init queryClient
   const pathNames = location.pathname.split('/').filter(Boolean);
 
-  if (pathNames.length === 0) return null;
+  if (pathNames.length === 0 || pathNames[0] === 'home') {
+    return null;
+  }
 
   return (
     <Breadcrumb className="bg-blue-300 text-white px-4 py-2 rounded w-fit">
       <BreadcrumbList>
-        {/* FIX 1: Separator is now a sibling to Item, not a child */}
         <BreadcrumbItem>
           <BreadcrumbLink
             render={(props) => (
@@ -43,10 +46,23 @@ export function AppBreadcrumb() {
         {pathNames.map((segment, index) => {
           const routeTo = '/' + pathNames.slice(0, index + 1).join('/');
           const isLast = index === pathNames.length - 1;
-          const label = pathNameMap[segment] || segment;
+
+          // 3. Logic handling dynamic segments
+          let label = pathNameMap[segment] || segment;
+
+          // Kiểm tra xem segment hiện tại có phải là số ID nằm sau /products/ không
+          const isIdSegment = index > 0 && pathNames[index - 1] === 'products' && !isNaN(Number(segment));
+
+          if (isIdSegment) {
+            const cachedData = queryClient.getQueryData<DeviceDetail>(['deviceDetail', segment]);
+            if (cachedData?.product?.name) {
+              label = cachedData.product.name;
+            } else {
+              label = 'Chi tiết thiết bị'; // Default label if data is not available
+            }
+          }
 
           return (
-            /* FIX 2: Wrapped the iteration block in a Fragment so Separator stays outside Item */
             <React.Fragment key={routeTo}>
               <BreadcrumbItem>
                 {isLast ? (
@@ -63,8 +79,6 @@ export function AppBreadcrumb() {
                   />
                 )}
               </BreadcrumbItem>
-
-              {/* Separator is safely rendered as an independent list item sibling */}
               {!isLast && <BreadcrumbSeparator />}
             </React.Fragment>
           );

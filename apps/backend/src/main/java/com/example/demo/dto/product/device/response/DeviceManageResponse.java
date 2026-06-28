@@ -1,6 +1,6 @@
-package com.example.demo.dto.product.response;
+package com.example.demo.dto.product.device.response;
 
-import com.example.demo.dto.product.request.DeviceImageRequest;
+import com.example.demo.dto.product.device.request.DeviceImageRequest;
 
 import java.math.BigDecimal;
 import java.util.List;

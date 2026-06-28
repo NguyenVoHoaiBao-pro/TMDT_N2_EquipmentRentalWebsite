@@ -1,6 +1,6 @@
 package com.example.demo.service.product;
 
-import com.example.demo.dto.product.request.DeviceImageRequest;
+import com.example.demo.dto.product.device.request.DeviceImageRequest;
 import com.example.demo.entity.Device;
 import com.example.demo.entity.DeviceImage;
 import com.example.demo.enumValues.ImageType;

@@ -1,6 +1,4 @@
-package com.example.demo.dto.product.response;
-
-import java.time.LocalDateTime;
+package com.example.demo.dto.product.owner;
 
 public record OwnerDTO(
     Long id,

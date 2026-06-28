@@ -30,6 +30,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    locations: classpath:db/migration
     repair-on-migrate: ${FLYWAY_REPAIR_ON_MIGRATE:false}
 
   # Database Configuration - MySQL (from .env)
@@ -103,6 +104,7 @@ logging:
     '[com.example]': ${APP_LOG_LEVEL:INFO}
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
+    org.flywaydb: DEBUG # Enable Flyway migration logging
   pattern:
     console: '%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'
 

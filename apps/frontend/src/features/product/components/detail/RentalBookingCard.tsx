@@ -1,3 +1,4 @@
+// @/features/product/components/detail/RentalBookingCard.tsx
 interface RentalBookingCardProps {
   pricePerDay: number;
   depositValue: number;

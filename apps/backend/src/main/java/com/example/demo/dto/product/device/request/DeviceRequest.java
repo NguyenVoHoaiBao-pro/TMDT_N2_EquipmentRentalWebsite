@@ -1,4 +1,4 @@
-package com.example.demo.dto.product.request;
+package com.example.demo.dto.product.device.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

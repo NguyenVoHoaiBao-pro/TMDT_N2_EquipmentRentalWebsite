@@ -1,4 +1,4 @@
-package com.example.demo.dto.product.response;
+package com.example.demo.dto.product.device.response;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,10 +15,3 @@ public record DeviceInformation(
 ) {
 }
 
-// Khớp với interface ProductImage trên FE
-record DeviceImageDTO(
-    Long id,
-    String imageUrl,
-    boolean isPrimary
-) {
-}

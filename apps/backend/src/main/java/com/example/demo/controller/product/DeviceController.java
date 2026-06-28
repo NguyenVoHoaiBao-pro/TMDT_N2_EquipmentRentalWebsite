@@ -2,8 +2,9 @@ package com.example.demo.controller.product;
 
 import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
-import com.example.demo.dto.product.request.DeviceRequest;
-import com.example.demo.dto.product.response.DeviceManageResponse;
+import com.example.demo.dto.product.device.request.DeviceRequest;
+import com.example.demo.dto.product.device.response.DeviceDetailResponse;
+import com.example.demo.dto.product.device.response.DeviceManageResponse;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.service.product.DeviceService;
 import lombok.RequiredArgsConstructor;
@@ -50,11 +51,11 @@ public class DeviceController extends BaseController {
         return createResponse(HttpStatus.OK, 1000, "Approve device successfully", null);
     }
 
-//    @GetMapping("/{id}/detail")
-//    @io.swagger.v3.oas.annotations.security.SecurityRequirements
-//    public ResponseEntity<MyApiResponse<com.example.demo.dto.product.response.DeviceDetailResponse>> getDeviceDetailById(@PathVariable Long id) {
-//        return createResponse(HttpStatus.OK, 1000, "Success", deviceService.getDeviceDetail(id));
-//    }
+    @GetMapping("/{id}/detail")
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
+    public ResponseEntity<MyApiResponse<DeviceDetailResponse>> getDeviceDetailById(@PathVariable Long id) {
+        return createResponse(HttpStatus.OK, 1000, "Success", deviceService.getDeviceDetail(id));
+    }
 
 
 }

@@ -1,8 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.MyApiResponse;
-import com.example.demo.dto.product.response.LookupResponse;
-import com.example.demo.dto.product.response.PriceRangeResponse;
+import com.example.demo.dto.product.core.response.LookupResponse;
+import com.example.demo.dto.product.search.response.PriceRangeResponse;
 import com.example.demo.service.BrandService;
 import com.example.demo.service.CategoryService;
 import com.example.demo.service.product.ProductService;

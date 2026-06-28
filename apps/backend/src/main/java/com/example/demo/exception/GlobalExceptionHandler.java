@@ -2,6 +2,7 @@ package com.example.demo.exception;
 
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.utils.ValidationUtils;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -82,5 +83,29 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.BAD_REQUEST)
             .body(myApiResponse);
+    }
+
+    @ExceptionHandler(value = EntityNotFoundException.class)
+    public ResponseEntity<MyApiResponse<Object>> handleEntityNotFoundException(jakarta.persistence.EntityNotFoundException e) {
+
+        MyApiResponse<Object> myApiResponse = MyApiResponse.builder()
+            .statusCode(HttpStatus.NOT_FOUND.value())
+            .message(e.getMessage())
+            .build();
+
+        return ResponseEntity
+            .status(HttpStatus.NOT_FOUND)
+            .body(myApiResponse);
+    }
+
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<MyApiResponse<Object>> handleGenericException(Exception e) {
+        MyApiResponse<Object> myApiResponse = MyApiResponse.builder()
+            .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+            .message("Hệ thống có lỗi xảy ra: " + e.getMessage())
+            .build();
+
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR).body(myApiResponse);
     }
 }

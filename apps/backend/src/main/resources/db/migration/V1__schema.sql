@@ -8,7 +8,7 @@ DROP TABLE IF EXISTS device_images;
 DROP TABLE IF EXISTS device_calendars;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS reviews;
-DROP TABLE IF EXISTS order_detail;
+DROP TABLE IF EXISTS order_details;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS cart_items;
 
@@ -177,6 +177,7 @@ CREATE TABLE device_calendars
     status     ENUM('BOOKED', 'OWNER_BLOCK', 'MAINTENANCE') NOT NULL,
     order_id   BIGINT NULL,                         -- Null nếu do chủ máy tự khóa (OWNER_BLOCK)
     created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
     FOREIGN KEY (device_id) REFERENCES devices (id),
     UNIQUE KEY uq_item_date (device_id, event_date) -- Khóa chặn không cho trùng ngày
 );

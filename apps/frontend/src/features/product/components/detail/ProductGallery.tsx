@@ -1,3 +1,4 @@
+// @/features/product/components/detail/ProductGallery.tsx
 import type { ProductImage } from '@/features/product/types/product.types.ts';
 
 interface ProductGalleryProps {

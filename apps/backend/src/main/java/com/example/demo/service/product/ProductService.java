@@ -1,8 +1,8 @@
 package com.example.demo.service.product;
 
-import com.example.demo.dto.product.request.ProductFilterRequest;
-import com.example.demo.dto.product.response.PriceRangeResponse;
-import com.example.demo.dto.product.response.ProductResponse;
+import com.example.demo.dto.product.search.request.ProductFilterRequest;
+import com.example.demo.dto.product.search.response.PriceRangeResponse;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductImage;
 import com.example.demo.entity.Device;

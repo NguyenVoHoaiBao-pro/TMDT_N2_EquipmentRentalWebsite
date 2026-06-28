@@ -2,8 +2,8 @@ package com.example.demo.controller.product;
 
 import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
-import com.example.demo.dto.product.request.ProductFilterRequest;
-import com.example.demo.dto.product.response.ProductResponse;
+import com.example.demo.dto.product.search.request.ProductFilterRequest;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;

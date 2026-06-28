@@ -1,3 +1,4 @@
+// @/features/product/components/detail/ProductDetailTabs.tsx
 import type { Review, Specification } from '@/features/product/types/product.types.ts';
 
 interface ProductDetailTabsProps {

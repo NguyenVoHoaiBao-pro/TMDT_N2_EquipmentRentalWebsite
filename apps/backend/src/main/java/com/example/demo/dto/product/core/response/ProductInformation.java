@@ -1,4 +1,4 @@
-package com.example.demo.dto.product.response;
+package com.example.demo.dto.product.core.response;
 
 import java.util.List;
 
@@ -11,12 +11,5 @@ public record ProductInformation(
     String description,
     List<SpecificationDTO> specifications, // Parse từ trường JSON trong DB
     List<String> includedItems             // Split từ trường accessories_included trong DB
-) {
-}
-
-// Khớp với interface Specification trên FE
-record SpecificationDTO(
-    String label,
-    String value
 ) {
 }
