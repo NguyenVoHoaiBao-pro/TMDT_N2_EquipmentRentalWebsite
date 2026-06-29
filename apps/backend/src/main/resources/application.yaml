@@ -31,7 +31,6 @@ spring:
     enabled: true
     baseline-on-migrate: true
     locations: classpath:db/migration
-    repair-on-migrate: true
     fail-on-missing-locations: true
     validate-on-migrate: true
 
@@ -92,6 +91,9 @@ app:
   crypto:
     secretKey: ${CRYPTO_SECRET:MyCryptoSecretKeyShouldBeDifferentFromJwtSecret}
     salt: ${CRYPTO_SALT:0123456789abcdef}
+
+  flyway:
+    auto-repair: ${APP_FLYWAY_AUTO_REPAIR:false}
 
 
   oauth2:
