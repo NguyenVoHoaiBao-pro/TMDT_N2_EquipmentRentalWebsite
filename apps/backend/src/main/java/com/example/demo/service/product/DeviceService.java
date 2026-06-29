@@ -76,10 +76,11 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public DeviceDetailResponse getDeviceDetail(Long id) {
+    public DeviceDetailResponse getDeviceDetail(Long productId) {
         // 1. Lấy thông tin chính của Device, Product, Category, Brand, Owner bằng 1 câu lệnh JOIN FETCH
-        Device device = deviceRepository.findDetailById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy thiết bị có ID: " + id));
+        Device device = deviceRepository.findFirstByProductIdAndStatus(productId, DeviceStatus.APPROVED)
+            .orElseThrow(() -> new EntityNotFoundException("Dòng sản phẩm này hiện tại không có máy nào sẵn sàng cho thuê!"));
+
 
         Product product = device.getProduct();
         User owner = device.getOwner();
@@ -115,7 +116,7 @@ public class DeviceService {
 
         // 3. Tính toán trạng thái vận hành động (availability) dựa trên bảng lịch ngày hôm nay
         String calculatedAvailability = "AVAILABLE"; // Mặc định là sẵn sàng cho thuê
-        var todayCalendar = deviceCalendarRepository.findByDeviceIdAndEventDate(id, LocalDate.now());
+        var todayCalendar = deviceCalendarRepository.findByDeviceIdAndEventDate(device.getId(), LocalDate.now());
         if (todayCalendar.isPresent()) {
             // Áp dụng map trạng thái từ bảng lịch sang chuẩn FE yêu cầu
             calculatedAvailability = switch (todayCalendar.get().getStatus()) {
@@ -126,7 +127,7 @@ public class DeviceService {
         }
 
         // 4. Lấy danh sách ảnh thực tế của thiết bị và map sang DeviceImageDTO
-        List<DeviceImage> deviceImages = deviceImageRepository.findByDeviceId(id);
+        List<DeviceImage> deviceImages = deviceImageRepository.findByDeviceId(device.getId());
         List<DeviceImageDTO> imageDTOs = deviceImages.stream()
             .map(img -> new DeviceImageDTO(img.getId(), img.getImageUrl(), img.isPrimary()))
             .toList();
@@ -154,7 +155,7 @@ public class DeviceService {
             );
 
         // 7. Lấy danh sách 3 bài đánh giá mới nhất (Preview) và map cụm 4: ReviewDTO
-        List<Review> latestReviews = reviewRepository.findLatestReviewsByDeviceId(id, PageRequest.of(0, 3));
+        List<Review> latestReviews = reviewRepository.findLatestReviewsByDeviceId(device.getId(), PageRequest.of(0, 3));
         List<ReviewDTO> reviewDTOs = latestReviews.stream()
             .map(rev -> new ReviewDTO(
                 rev.getId(),

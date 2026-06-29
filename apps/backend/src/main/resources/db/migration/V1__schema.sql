@@ -243,6 +243,7 @@ CREATE TABLE reviews
     rating      INT       NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment     TEXT,
     created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (author_id) REFERENCES users (id)
 );

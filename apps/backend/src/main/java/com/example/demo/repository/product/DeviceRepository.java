@@ -1,6 +1,7 @@
 package com.example.demo.repository.product;
 
 import com.example.demo.entity.Device;
+import com.example.demo.enumValues.DeviceStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,4 +24,5 @@ public interface DeviceRepository extends JpaRepository<Device, Long> {
         "WHERE d.id = :id AND d.status = 'APPROVED'")
     Optional<Device> findDetailById(@Param("id") Long id);
 
+    Optional<Device> findFirstByProductIdAndStatus(Long productId, DeviceStatus status);
 }
