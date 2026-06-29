@@ -9,12 +9,11 @@ services:
           memory: 512M
 
     env_file:
-      - .env # Read from environment variables backend
+      - .env # Read from environment variables root
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
       MYSQL_DATABASE: ${DB_NAME:-equipment_rental_db}
-      MYSQL_USER: ${DB_USER:-root}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_USER: ${DB_USER:-equipment_rental_user}
     ports:
       - '3306:3306'
     volumes:
@@ -61,19 +60,20 @@ services:
       - ./apps/backend/.env # Read from environment variables backend
 
     environment:
-      JAVA_OPTS: '-Xmx512m -Xms256m' # Maximum and minimum heap size
+      JAVA_OPTS: '-Xmx512m -Xms256m -Ddebug=true' # Maximum and minimum heap size
       DB_HOST: mysql
       DB_PORT: 3306
       REDIS_HOST: redis
       REDIS_PORT: 6379
       SERVER_PORT: 8080
-      FLYWAY_REPAIR_ON_MIGRATE: "false"
+      SPRING_FLYWAY_REPAIR_ON_MIGRATE: false
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: "DEBUG"
       LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: "DEBUG"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_ID: "${FACEBOOK_CLIENT_ID}"
       SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_FACEBOOK_CLIENT_SECRET: "${FACEBOOK_CLIENT_SECRET}"
+
     ports:
       - '8080:8080'
     depends_on:

@@ -136,12 +136,6 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Source: https://mvnrepository.com/artifact/com.mysql/mysql-connector-j -->
-    <dependency>
-      <groupId>com.mysql</groupId>
-      <artifactId>mysql-connector-j</artifactId>
-      <scope>runtime</scope>
-    </dependency>
 
     <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
     <dependency>
@@ -183,14 +177,22 @@
       <artifactId>spring-boot-starter-oauth2-client</artifactId>
     </dependency>
 
+    <!-- Starter và Core -->
     <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-core</artifactId>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-flyway</artifactId>
     </dependency>
-    
+    <!-- Extension dành riêng cho MySQL -->
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-mysql</artifactId>
+    </dependency>
+
+    <!-- Driver MySQL -->
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
 
