@@ -159,7 +159,6 @@ apiClient.interceptors.response.use(
       processQueue(refreshError, null);
       isRefreshing = false;
       useAuthStore.getState().logoutSuccess();
-      window.location.href = '/login';
       return Promise.reject(refreshError);
     }
   },

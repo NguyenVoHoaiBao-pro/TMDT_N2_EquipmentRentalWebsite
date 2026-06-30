@@ -1,7 +1,9 @@
 import { useState, useMemo } from 'react';
 import { differenceInDays, isBefore, startOfDay, parseISO, isSameDay, format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
-import 'react-day-picker/dist/style.css'; // ✨ NHỚ IMPORT FILE CSS NÀY ĐỂ LỊCH HIỂN THỊ ĐẸP NHA
+import 'react-day-picker/dist/style.css';
+import { useNavigate } from 'react-router-dom';
+import { useCart } from '@/features/cart/hooks/useCart.ts';
 
 interface RentalBookingCardProps {
   pricePerDay: number;
@@ -9,6 +11,7 @@ interface RentalBookingCardProps {
   insurance: number;
   availability: string;
   bookDates: string[];
+  deviceId: number;
 }
 
 export function RentalBookingCard({
@@ -17,12 +20,16 @@ export function RentalBookingCard({
                                     insurance,
                                     availability,
                                     bookDates = [],
+                                    deviceId,
                                   }: RentalBookingCardProps) {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const navigate = useNavigate();
+  const { addToCart, isAdding } = useCart();
 
   const disabledDates = useMemo(() => {
     return bookDates.map(dateStr => startOfDay(parseISO(dateStr)));
@@ -46,25 +53,29 @@ export function RentalBookingCard({
   const rentalFee = rentalDays * pricePerDay;
   const totalAmount = rentalFee + depositValue + insurance;
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!startDate || !endDate) {
       alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!');
       return;
     }
 
-    const bookingPayload = {
-      startDate: format(startDate, 'yyyy-MM-dd'),
-      endDate: format(endDate, 'yyyy-MM-dd'),
-      rentalDays,
-      rentalFee,
-      depositValue,
-      totalAmount,
-    };
+    try {
+      await addToCart({
+        deviceId,
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd'),
+      });
 
-    console.log('Dữ liệu sẵn sàng gửi lên API Order:', bookingPayload);
+      navigate('/cart');
+    } catch (error: any) {
+      const errorMsg =
+        error?.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
+      alert(errorMsg);
+    }
   };
 
   const isRentable = availability === 'AVAILABLE';
+  const hasSelectedDates = startDate && endDate;
 
   return (
     <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-6">
@@ -167,12 +178,18 @@ export function RentalBookingCard({
 
       <button
         onClick={handleBooking}
-        disabled={!isRentable || rentalDays === 0}
+        disabled={!isRentable || rentalDays === 0 || isAdding}
         className={`w-full py-3 rounded-xl font-semibold text-white transition ${
-          isRentable && rentalDays > 0 ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-300 cursor-not-allowed'
+          isRentable && rentalDays > 0
+            ? 'bg-blue-600 hover:bg-blue-700'
+            : 'bg-gray-300 cursor-not-allowed'
         }`}
       >
-        Đặt lịch thuê ngay
+        {isAdding
+          ? 'Đang xử lý...'
+          : hasSelectedDates
+            ? 'Thêm vào giỏ hàng & Xem giỏ'
+            : 'Chọn ngày để đặt lịch'}
       </button>
     </div>
   );
