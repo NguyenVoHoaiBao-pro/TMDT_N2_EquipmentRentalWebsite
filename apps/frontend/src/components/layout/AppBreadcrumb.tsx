@@ -9,7 +9,7 @@ import {
 } from '@/shared_components/ui/breadcrumb';
 import { HomeIcon } from 'lucide-react';
 import React from 'react';
-import { useQueryClient } from '@tanstack/react-query'; // 1. IMPORT HOOK CACHE
+import { useQueryClient } from '@tanstack/react-query';
 import type { DeviceDetail } from '@/features/product/types/product.types';
 
 const pathNameMap: Record<string, string> = {
@@ -50,15 +50,13 @@ export function AppBreadcrumb() {
           // 3. Logic handling dynamic segments
           let label = pathNameMap[segment] || segment;
 
-          // Kiểm tra xem segment hiện tại có phải là số ID nằm sau /products/ không
           const isIdSegment = index > 0 && pathNames[index - 1] === 'products' && !isNaN(Number(segment));
 
           if (isIdSegment) {
             const cachedData = queryClient.getQueryData<DeviceDetail>(['deviceDetail', segment]);
             if (cachedData?.product?.name) {
-              label = cachedData.product.name;
-            } else {
-              label = 'Chi tiết thiết bị'; // Default label if data is not available
+              const productName = cachedData.product.name;
+              label = productName.length > 25 ? `${productName.substring(0, 25)}...` : productName;
             }
           }
 

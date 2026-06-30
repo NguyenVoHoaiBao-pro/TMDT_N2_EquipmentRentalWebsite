@@ -11,18 +11,16 @@ import { RelatedProducts } from '@/features/product/components/detail/RelatedPro
 export function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
 
-  // Sử dụng useQuery thay cho useEffect + useState
   const { data: detailData, isLoading, isError } = useQuery({
     queryKey: ['deviceDetail', id],
     queryFn: () => productService.getDeviceDetail(id!),
-    enabled: !!id, // Chỉ kích hoạt khi có ID trên URL
+    enabled: !!id, // Trigger if the id is given
   });
 
   if (isLoading) return <div className="text-center py-20">Đang tải thông tin...</div>;
   if (isError || !detailData) return <div className="text-center py-20 text-red-500">Lỗi tải dữ liệu hoặc thiết bị không
     tồn tại.</div>;
 
-  // Logic sản phẩm liên quan giữ nguyên
   const allRelated = getMockRelatedProducts();
   const filteredProducts = allRelated
     .filter(p => p.categoryName === detailData.product.categoryName && p.id !== detailData.product.id)

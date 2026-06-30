@@ -41,7 +41,7 @@ export default function ProductCatalogPage() {
     return (
       <div className="text-center py-20">
         <h3 className="text-xl font-semibold text-red-600">Mất kết nối với máy chủ</h3>
-        <p className="text-gray-500 mt-2">Vui lòng kiểm tra lại kết nối tới server.
+        <p className="text-gray-500 mt-2">Vui lòng kiểm tra lại kết nối.
         </p>
       </div>
     );
@@ -92,7 +92,7 @@ export default function ProductCatalogPage() {
 
           <Pagination
             currentPage={currentPage}
-            totalPages={totalPages} // Retrieve from backend
+            totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
         </main>

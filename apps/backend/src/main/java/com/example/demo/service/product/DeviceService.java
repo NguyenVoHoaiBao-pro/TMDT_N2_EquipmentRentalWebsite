@@ -77,7 +77,6 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public DeviceDetailResponse getDeviceDetail(Long productId) {
-        // 1. Lấy thông tin chính của Device, Product, Category, Brand, Owner bằng 1 câu lệnh JOIN FETCH
         Device device = deviceRepository.findFirstByProductIdAndStatus(productId, DeviceStatus.APPROVED)
             .orElseThrow(() -> new EntityNotFoundException("Dòng sản phẩm này hiện tại không có máy nào sẵn sàng cho thuê!"));
 
@@ -85,8 +84,6 @@ public class DeviceService {
         Product product = device.getProduct();
         User owner = device.getOwner();
 
-        // 2. Map cụm 1: ProductInformation (Thông tin dòng sản phẩm crawl)
-        // Trường specifications trong Entity Product của bạn đã là Map<String, Object> (trang 9) nhờ Hibernate Json
         List<SpecificationDTO> specificationDTOs = new ArrayList<>();
         if (product.getSpecifications() != null) {
             product.getSpecifications().forEach((key, value) ->
@@ -94,14 +91,13 @@ public class DeviceService {
             );
         }
 
-        // Trường accessoriesIncluded dạng chuỗi TEXT, ta split theo dấu phẩy để ra mảng List<String> cho FE
         List<String> includedItemsList = new ArrayList<>();
         if (product.getAccessoriesIncluded() != null && !product.getAccessoriesIncluded().isBlank()) {
-            includedItemsList = Arrays.stream(product.getAccessoriesIncluded().split(","))
+            includedItemsList = Arrays.stream(product.getAccessoriesIncluded().split("\\R")) // "\\R regex pattern matches any newline character"
                 .map(String::trim)
+                .filter(item -> !item.isEmpty())
                 .toList();
         }
-
         ProductInformation productInfo =
             new ProductInformation(
                 product.getId(),
