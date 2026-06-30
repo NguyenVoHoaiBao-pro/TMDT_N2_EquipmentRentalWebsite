@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query'; // Import useQuery
+import { useQuery } from '@tanstack/react-query';
 import { productService } from '../services/product.service.ts';
 import { getMockRelatedProducts } from '../data/productDetail.mock.ts';
 import { ProductGallery } from '@/features/product/components/detail/ProductGallery.tsx';
@@ -49,6 +49,7 @@ export function ProductDetailPage() {
               depositValue={detailData.device.depositValue}
               insurance={detailData.device.insurance}
               availability={detailData.device.availability}
+              bookDates={detailData.device.bookDates}
             />
           </div>
         </div>

@@ -17,4 +17,8 @@ public interface DeviceCalendarRepository extends JpaRepository<DeviceCalendar, 
 
     @Query("SELECT c FROM DeviceCalendar c WHERE c.device.id = :deviceId AND c.eventDate = :date")
     Optional<DeviceCalendar> findByDeviceIdAndEventDate(@Param("deviceId") Long deviceId, @Param("date") LocalDate date);
+
+    @Query("SELECT c.eventDate FROM DeviceCalendar c WHERE c.device.id = :deviceId AND c.eventDate >= CURRENT_DATE")
+    List<LocalDate> findFutureBlockedDatesByDeviceId(@Param("deviceId") Long deviceId);
+
 }

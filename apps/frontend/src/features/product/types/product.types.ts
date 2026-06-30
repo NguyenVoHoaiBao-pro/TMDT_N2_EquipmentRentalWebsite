@@ -90,6 +90,7 @@ export interface DeviceInformation {
   depositValue: number;
   insurance: number;
   images: ProductImage[];
+  bookDates: string[];
 
 }
 

@@ -117,7 +117,7 @@ public class ProductService {
             .map(Product::getBasePrice)
             .filter(Objects::nonNull)
             .max(BigDecimal::compareTo)
-            .orElse(BigDecimal.valueOf(5000000)); // Default value
+            .orElse(BigDecimal.valueOf(500000)); // Default value
 
         return new PriceRangeResponse(min, max);
     }

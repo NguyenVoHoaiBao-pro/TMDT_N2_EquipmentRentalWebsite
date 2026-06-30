@@ -43,7 +43,7 @@ export function ProductFilters({
   const dynamicBrands = brandsData.map(b => b.name);
 
   const absoluteMin = serverPriceRange?.minPrice ?? 0;
-  const absoluteMax = serverPriceRange?.maxPrice ?? 5000000;
+  const absoluteMax = serverPriceRange?.maxPrice ?? 500000;
 
   const toggleBrand = (brand: string) => {
     if (selectedBrands.includes(brand)) {
