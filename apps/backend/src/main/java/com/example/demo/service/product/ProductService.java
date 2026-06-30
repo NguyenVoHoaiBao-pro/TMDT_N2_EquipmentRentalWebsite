@@ -1,8 +1,8 @@
 package com.example.demo.service.product;
 
-import com.example.demo.dto.product.request.ProductFilterRequest;
-import com.example.demo.dto.product.response.PriceRangeResponse;
-import com.example.demo.dto.product.response.ProductResponse;
+import com.example.demo.dto.product.search.request.ProductFilterRequest;
+import com.example.demo.dto.product.search.response.PriceRangeResponse;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductImage;
 import com.example.demo.entity.Device;
@@ -69,19 +69,17 @@ public class ProductService {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
 
-            // 1. Lọc theo Tên Danh Mục (So sánh chuỗi text)
+            // 1. Filter by category name
             if (filter.categoryName() != null && !filter.categoryName().isBlank()) {
                 predicate = cb.and(predicate,
                     cb.equal(root.get("category").get("name"), filter.categoryName())
                 );
             }
 
-            // 2. Lọc theo nhiều Thương Hiệu (Dùng cơ chế IN của SQL)
+            // 2. Filter by brand names
             if (filter.brandNames() != null && !filter.brandNames().isBlank()) {
-                // Cắt chuỗi "Sony,Canon" thành mảng ["Sony", "Canon"]
                 String[] brandArray = filter.brandNames().split(",");
 
-                // Tạo câu lệnh: root.get("brand").get("name") IN ('Sony', 'Canon')
                 CriteriaBuilder.In<String> inClause = cb.in(root.get("brand").get("name"));
                 for (String brand : brandArray) {
                     inClause.value(brand.trim());
@@ -89,7 +87,7 @@ public class ProductService {
                 predicate = cb.and(predicate, inClause);
             }
 
-            // 3. Các bộ lọc tìm kiếm text và khoảng giá giữ nguyên mộc mạc
+            // 3. Other filters for minPrice, maxPrice, and search remains
             if (filter.search() != null && !filter.search().isBlank()) {
                 String keyword = "%" + filter.search().toLowerCase() + "%";
                 predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), keyword));

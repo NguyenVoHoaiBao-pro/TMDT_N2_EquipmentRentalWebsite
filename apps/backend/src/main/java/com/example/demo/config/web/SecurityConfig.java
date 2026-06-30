@@ -42,6 +42,7 @@ public class SecurityConfig {
         "/api/lookups/categories",
         "/api/lookups/brands",
         "/api/lookups/price-range",
+        "/api/devices/*/detail",
         "/swagger-ui/**",
         "/v3/api-docs/**",
         "/swagger-resources/**",

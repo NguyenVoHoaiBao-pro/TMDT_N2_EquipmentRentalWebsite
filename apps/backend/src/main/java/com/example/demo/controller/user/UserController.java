@@ -7,18 +7,20 @@ import com.example.demo.dto.user.request.ChangePasswordRequest;
 import com.example.demo.dto.user.request.KycVerificationRequest;
 import com.example.demo.dto.user.request.RevealKycRequest;
 import com.example.demo.dto.user.response.UserProfileResponse;
-import com.example.demo.service.UserService;
+import com.example.demo.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users/profile")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN') or hasRole('RENTER') or hasRole('OWNER')")
+@Validated
 public class UserController extends BaseController {
 
     private final UserService userService;

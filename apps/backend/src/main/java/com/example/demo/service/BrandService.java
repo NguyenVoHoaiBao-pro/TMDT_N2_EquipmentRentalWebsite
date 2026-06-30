@@ -1,6 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.product.response.LookupResponse;
+import com.example.demo.dto.product.core.response.LookupResponse;
 import com.example.demo.repository.product.BrandRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

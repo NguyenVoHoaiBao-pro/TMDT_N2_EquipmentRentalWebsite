@@ -12,33 +12,29 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
 import { ProfilePage } from '@/features/profile/pages/ProfilePage.tsx';
+import { ProductDetailPage } from '@/features/product/pages/ProductDetailPage.tsx';
 
 function App() {
   return (
     <Routes>
-      {/* 1. Public Routes: no need to be logged in */}
+      {/* 1. Standard Public Routes */}
       <Route element={<MainLayout />}>
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<HomePage />} />
+        {/* Separate the routes so they render independently */}
         <Route path="/products" element={<ProductCatalogPage />} />
+        <Route path="/products/:id" element={<ProductDetailPage />} />
       </Route>
 
-      {/* 2. Protected Routes: need user logged in */}
+      {/* 2. Protected Routes using Simple Layout */}
       <Route element={<ProtectedRoute />}>
         <Route element={<SimpleLayout />}>
-
           <Route path="/register-device" element={<RegisterDevicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          {/* Other protected routes */}
         </Route>
       </Route>
 
-      {/* If we have admin routes, add it here */}
-      {/* <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-        </Route> */}
-
-      {/* 3. Auth Routes */}
+      {/* 3. Auth Routes (No layout wrappers) */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

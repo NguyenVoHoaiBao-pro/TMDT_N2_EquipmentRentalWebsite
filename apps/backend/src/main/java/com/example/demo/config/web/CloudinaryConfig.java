@@ -22,10 +22,10 @@ public class CloudinaryConfig {
     private String apiSecret;
 
     // Log the configuration
-    @PostConstruct
-    public void logConfig() {
-        log.info("Cloudinary: {} / {} / {}", cloudName, apiKey, apiSecret);
-    }
+//    @PostConstruct
+//    public void logConfig() {
+//        log.info("Cloudinary: {} / {} / {}", cloudName, apiKey, apiSecret);
+//    }
 
     @Bean
     public Cloudinary cloudinary() {
