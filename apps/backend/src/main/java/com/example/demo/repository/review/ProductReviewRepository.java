@@ -14,8 +14,9 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
 
     // Lấy các đánh giá mới nhất của một Dòng sản phẩm (Product) dựa trên Device ID
     @Query("SELECT pr FROM ProductReview pr " +
-        "JOIN FETCH pr.renter " +
-        "WHERE pr.product.id = (SELECT d.product.id FROM Device d WHERE d.id = :deviceId) " +
+        "JOIN FETCH pr.renter r " +
+        "JOIN Device d ON d.product.id = pr.product.id " +
+        "WHERE d.id = :deviceId " +
         "ORDER BY pr.createdAt DESC")
     List<ProductReview> findLatestReviewsByDeviceId(@Param("deviceId") Long deviceId, Pageable pageable);
 

@@ -46,17 +46,28 @@ public class JwtTokenProvider {
             .map(GrantedAuthority::getAuthority)
             .toList();
 
-        // Auto Unboxing email from Principal
+        // FIX: Extract userId and email from Principal
+        Long userId = extractUserIdFromPrincipal(authentication.getPrincipal());
         String email = extractEmailFromPrincipal(authentication.getPrincipal());
 
         return Jwts.builder()
             .subject(username)
+            .claim("userId", userId)  // ← LƯU userId VÀO TOKEN
             .claim("roles", roles)
             .claim("email", email)
             .issuedAt(new Date())
             .expiration(expiryDate)
             .signWith(getSigningKey())
             .compact();
+    }
+
+    // NEW METHOD: Extract userId từ Principal
+    private Long extractUserIdFromPrincipal(Object principal) {
+        if (principal instanceof CustomUserDetails customUser) {
+            return customUser.getId();
+        }
+        log.warn("Cannot extract userId from principal type: {}", principal.getClass().getSimpleName());
+        return null;
     }
 
     private String extractEmailFromPrincipal(Object principal) {
@@ -76,14 +87,13 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(System.currentTimeMillis() + accessTokenExpirationMs);
         return Jwts.builder()
             .subject(username)
-            .claim("roles", roles) // Lưu mảng các roles thay vì chuỗi đơn
+            .claim("roles", roles)
             .claim("email", email)
             .issuedAt(new Date())
             .expiration(expiryDate)
             .signWith(getSigningKey())
             .compact();
     }
-
 
     public String getUsernameFromToken(String token) {
         try {
@@ -95,6 +105,26 @@ public class JwtTokenProvider {
                 .getSubject();
         } catch (JwtException | IllegalArgumentException e) {
             log.error("Failed to get username from JWT token: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    // NEW METHOD: Extract userId từ token
+    public Long getUserIdFromToken(String token) {
+        try {
+            Object userIdObj = Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("userId");
+
+            if (userIdObj != null) {
+                return Long.valueOf(userIdObj.toString());
+            }
+            return null;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.error("Failed to get userId from JWT token: {}", e.getMessage());
             return null;
         }
     }

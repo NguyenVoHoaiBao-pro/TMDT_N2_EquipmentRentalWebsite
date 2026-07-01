@@ -100,7 +100,10 @@ apiClient.interceptors.response.use(
 
     // LOGIN GUARD: If a 401 error occurs on the login request itself (invalid credentials),
     // reject immediately to show a toast. This avoids infinite refresh loops or unexpected redirects.
-    if (originalRequest?.url?.includes('/auth/login')) {
+    if (
+      originalRequest?.url?.includes('/auth/login') ||
+      originalRequest?.url?.includes('/auth/refresh-token')
+    ) {
       return Promise.reject(error);
     }
 

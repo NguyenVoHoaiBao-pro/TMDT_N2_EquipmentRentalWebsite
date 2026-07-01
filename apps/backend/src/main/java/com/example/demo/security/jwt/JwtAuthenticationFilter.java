@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.exception.ErrorCode;
+import com.example.demo.security.CustomUserDetails;
+import com.example.demo.security.CustomUserDetailsService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.MessageSource;
@@ -13,7 +15,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -32,13 +33,10 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
-
     private final StringRedisTemplate redisTemplate;
-
     private final MessageSource messageSource;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    // Exclude Swagger UI resources: E.g: /swagger-ui/**,
-    // /v3/api-docs/**, /swagger-resources/**, /webjars/***/
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         String path = request.getServletPath();
@@ -59,60 +57,92 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
 
-            // 1. If jwt does not contain a token inside -> Skip and move to the next filter
             if (!StringUtils.hasText(jwt)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            // 2. If the token is in a blacklisted list -> Block the request at once
+            // Check blacklist
             if (Boolean.TRUE.equals(redisTemplate.hasKey("blacklisted:" + jwt))) {
                 log.warn("Token be logout (Blacklisted): {}", jwt);
                 sendErrorResponse(response, ErrorCode.UNAUTHORIZED);
                 return;
             }
 
-            // 3. If the token is valid -> Prepare for authentication user
+            // Validate token
             if (jwtTokenProvider.validateToken(jwt)) {
                 String username = jwtTokenProvider.getUsernameFromToken(jwt);
-
-                /*
-                 * Solution 1: Read UserDetails from database
-                 */
-                // This way make the database deal with large of weight that request to from users at the moment
-                // UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-
-                /*
-                 * Solution 2: Read it from Token directly
-                 */
-
+                Long userId = jwtTokenProvider.getUserIdFromToken(jwt);
                 List<String> roles = jwtTokenProvider.getRolesFromToken(jwt);
 
-                // Convert String series to SimpleGrantedAuthority for each role
+                // STRATEGY 1: Nếu userId có trong token, build CustomUserDetails từ token claims
+                // (Dùng cho traditional login, optimize performance)
+                if (userId != null) {
+                    CustomUserDetails userDetails = buildCustomUserDetailsFromToken(username, userId, roles);
+
+                    List<SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .toList();
+
+                    UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("Set Spring Security Authenticated user from token: {} (ID: {})", username, userId);
+
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                // STRATEGY 2: Nếu không có userId trong token (OAuth2 login), query DB
+                // (Dùng cho OAuth2, ensure data consistency)
+                log.debug("userId not found in token, querying database for user: {}", username);
+                UserDetails userDetailsFromDb = customUserDetailsService.loadUserByUsername(username);
+
+                if (!(userDetailsFromDb instanceof CustomUserDetails customUserDetails)) {
+                    log.error("UserDetails từ database không phải CustomUserDetails!");
+                    sendErrorResponse(response, ErrorCode.UNAUTHORIZED);
+                    return;
+                }
+
                 List<SimpleGrantedAuthority> authorities = roles.stream()
-                    .map(roleName -> new SimpleGrantedAuthority(roleName))
+                    .map(SimpleGrantedAuthority::new)
                     .toList();
 
-                UserDetails userDetails = org.springframework.security.core.userdetails.User
-                    .withUsername(username)
-                    .password("") // Token validated, no need to set password
-                    .authorities(authorities)
-                    .build();
-
-
                 UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                    new UsernamePasswordAuthenticationToken(customUserDetails, null, authorities);
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("Set Spring Security Authenticated user: {}", username);
+                log.debug("Set Spring Security Authenticated user from database: {} (ID: {})", username, customUserDetails.getId());
             }
 
-        } catch (UsernameNotFoundException ex) {
+        } catch (Exception ex) {
             log.error("Could not set user authentication in security context", ex);
+            sendErrorResponse(response, ErrorCode.UNAUTHORIZED);
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Build CustomUserDetails từ token claims mà không cần query DB
+     * Áp dụng cho traditional login (JWT token có userId)
+     */
+    private CustomUserDetails buildCustomUserDetailsFromToken(String username, Long userId, List<String> roles) {
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+            .map(SimpleGrantedAuthority::new)
+            .toList();
+
+        // Tạo anonymous CustomUserDetails từ token claims
+        // Lưu ý: không có email từ token này, có thể thêm nếu cần
+        return new CustomUserDetails(
+            username,
+            userId,
+            authorities
+        );
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
@@ -123,20 +153,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    // Helper methods use MyApiResponse be designed before
     private void sendErrorResponse(HttpServletResponse response, ErrorCode errorCode) throws IOException {
-
-        // Auth searches for a message in the message source with the key "error.message"
         String localizedMessage = messageSource.getMessage(
             errorCode.getKeyMessage(),
             null,
             org.springframework.context.i18n.LocaleContextHolder.getLocale()
         );
 
-        // Build MyApiResponse with error code and localized message
         MyApiResponse<Object> errorApiResponse = MyApiResponse.builder()
             .appCode(errorCode.getCode())
-            .message(localizedMessage) // Use the localized message
+            .message(localizedMessage)
             .build();
 
         response.setStatus(errorCode.getStatusCode().value());

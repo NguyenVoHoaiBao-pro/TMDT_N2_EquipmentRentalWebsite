@@ -1,7 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { productService } from '../services/product.service.ts';
-import { getMockRelatedProducts } from '../data/productDetail.mock.ts';
 import { ProductGallery } from '@/features/product/components/detail/ProductGallery.tsx';
 import { ProductInfo } from '@/features/product/components/detail/ProductInfo.tsx';
 import { ProductDetailTabs } from '@/features/product/components/detail/ProductDetailTabs.tsx';
@@ -17,14 +16,10 @@ export function ProductDetailPage() {
     enabled: !!id, // Trigger if the id is given
   });
 
+
   if (isLoading) return <div className="text-center py-20">Đang tải thông tin...</div>;
   if (isError || !detailData) return <div className="text-center py-20 text-red-500">Lỗi tải dữ liệu hoặc thiết bị không
     tồn tại.</div>;
-
-  const allRelated = getMockRelatedProducts();
-  const filteredProducts = allRelated
-    .filter(p => p.categoryName === detailData.product.categoryName && p.id !== detailData.product.id)
-    .slice(0, 4);
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -39,7 +34,7 @@ export function ProductDetailPage() {
           <ProductDetailTabs
             specifications={detailData.product.specifications}
             includedItems={detailData.product.includedItems}
-            reviews={detailData.reviews}
+            reviews={detailData.reviews || []}
           />
         </div>
         <div className="col-span-4">
@@ -50,12 +45,16 @@ export function ProductDetailPage() {
               insurance={detailData.device.insurance}
               availability={detailData.device.availability}
               bookDates={detailData.device.bookDates}
+              deviceId={detailData.device.id}
             />
           </div>
         </div>
       </div>
       <div className="mt-12">
-        <RelatedProducts products={filteredProducts} categoryName={detailData.product.categoryName} />
+        <RelatedProducts
+          products={detailData.relatedProducts || []}
+          categoryName={detailData.product.categoryName}
+        />
       </div>
     </div>
   );

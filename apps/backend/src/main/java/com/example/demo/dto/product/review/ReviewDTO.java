@@ -4,7 +4,7 @@ import java.time.Instant;
 
 public record ReviewDTO(
     Long id,
-    String username,   // Lấy từ bảng users thông qua author_id
+    String username,
     int rating,
     String comment,
     Instant createdAt

@@ -1,14 +1,12 @@
 package com.example.demo.service.product;
 
 import com.example.demo.dto.product.core.response.ProductInformation;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.dto.product.core.response.SpecificationDTO;
-import com.example.demo.dto.product.device.response.DeviceDetailResponse;
-import com.example.demo.dto.product.device.response.DeviceImageDTO;
-import com.example.demo.dto.product.device.response.DeviceInformation;
+import com.example.demo.dto.product.device.response.*;
 import com.example.demo.dto.product.owner.OwnerDTO;
 import com.example.demo.dto.product.device.request.DeviceImageRequest;
 import com.example.demo.dto.product.device.request.DeviceRequest;
-import com.example.demo.dto.product.device.response.DeviceManageResponse;
 import com.example.demo.dto.product.review.ReviewDTO;
 import com.example.demo.entity.*;
 import com.example.demo.enumValues.DeviceStatus;
@@ -157,18 +155,24 @@ public class DeviceService {
         List<ReviewDTO> reviewDTOs = latestReviews.stream()
             .map(rev -> new ReviewDTO(
                 rev.getId(),
-                rev.getRenter() != null ? rev.getRenter().getUsername() : "Ẩn danh", // Dùng .getRenter() thay cho .getAuthor()
+                rev.getRenter() != null ? rev.getRenter().getUsername() : "Ẩn danh",
                 rev.getRating(),
                 rev.getComment(),
                 rev.getCreatedAt()
             ))
             .toList();
 
+        List<ProductResponse> relatedProducts = productService.getTop4RelatedProducts(
+            product.getCategory() != null ? product.getCategory().getName() : null,
+            product.getId()
+        );
+
         return new DeviceDetailResponse(
             productInfo,
             deviceInfo,
             ownerInfo,
-            reviewDTOs
+            reviewDTOs,
+            relatedProducts
         );
     }
 

@@ -15,7 +15,7 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // 2. If allowedRoles is provided, check if the user has any of the allowed roles
+  // 2. If allowedRoles are provided, check if the user has any of the allowed roles
   if (allowedRoles && !user.roles.some((role) => allowedRoles.includes(role))) {
     // If not allowed, redirect to the home page
     return <Navigate to="/home" replace />;

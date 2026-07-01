@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { cartService } from '../services/cart.service';
 import type { CartItemRequest } from '../types/cart.types';
+import { useAuthStore } from '@/store/useAuthStore.ts';
 
 export function useCart() {
   const queryClient = useQueryClient();
+
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   const {
     data: cartData,
@@ -14,7 +17,10 @@ export function useCart() {
     queryKey: ['cart'],
     queryFn: () => cartService.getMyCart(),
     staleTime: 1000 * 60 * 5,
+
+    enabled: isAuthenticated,
   });
+
 
   const addToCartMutation = useMutation({
     mutationFn: (payload: CartItemRequest) => cartService.addToCart(payload),

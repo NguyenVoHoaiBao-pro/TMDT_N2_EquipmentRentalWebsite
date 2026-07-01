@@ -26,7 +26,6 @@ function App() {
         <Route path="/products" element={<ProductCatalogPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
 
-        <Route path="/cart" element={<CartPage />} />
       </Route>
 
       {/* 2. Protected Routes using Simple Layout */}
@@ -34,6 +33,8 @@ function App() {
         <Route element={<SimpleLayout />}>
           <Route path="/register-device" element={<RegisterDevicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+
+          <Route path="/cart" element={<CartPage />} />
         </Route>
       </Route>
 

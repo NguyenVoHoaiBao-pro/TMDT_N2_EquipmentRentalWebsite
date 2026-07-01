@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { differenceInDays, isBefore, startOfDay, parseISO, isSameDay, format } from 'date-fns';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '@/features/cart/hooks/useCart.ts';
+import { useAuthStore } from '@/store/useAuthStore.ts';
 
 interface RentalBookingCardProps {
   pricePerDay: number;
@@ -31,6 +32,9 @@ export function RentalBookingCard({
   const navigate = useNavigate();
   const { addToCart, isAdding } = useCart();
 
+  const location = useLocation();
+
+
   const disabledDates = useMemo(() => {
     return bookDates.map(dateStr => startOfDay(parseISO(dateStr)));
   }, [bookDates]);
@@ -53,23 +57,35 @@ export function RentalBookingCard({
   const rentalFee = rentalDays * pricePerDay;
   const totalAmount = rentalFee + depositValue + insurance;
 
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   const handleBooking = async () => {
     if (!startDate || !endDate) {
       alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!');
       return;
     }
+    const bookingData = {
+      deviceId,
+      startDate: format(startDate, 'yyyy-MM-dd'),
+      endDate: format(endDate, 'yyyy-MM-dd'),
+    };
+
+    if (!isAuthenticated) {
+      navigate('/login', {
+        state: {
+          from: location,
+          pendingBooking: bookingData,
+        },
+      });
+      return;
+    }
 
     try {
-      await addToCart({
-        deviceId,
-        startDate: format(startDate, 'yyyy-MM-dd'),
-        endDate: format(endDate, 'yyyy-MM-dd'),
-      });
-
+      await addToCart(bookingData);
       navigate('/cart');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      const errorMsg =
-        error?.response?.data?.message || 'Có lỗi xảy ra khi thêm vào giỏ hàng!';
+      const errorMsg = error?.response?.data?.message || 'Có lỗi xảy ra!';
       alert(errorMsg);
     }
   };

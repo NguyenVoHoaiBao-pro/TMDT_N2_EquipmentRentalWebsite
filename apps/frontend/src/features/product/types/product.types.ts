@@ -72,6 +72,7 @@ export interface DeviceDetail {
   device: DeviceInformation;
   owner: Owner;
   reviews: Review[];
+  relatedProducts: Product[];
 
 }
 

@@ -21,7 +21,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private final Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes; // Lưu trữ payload thô từ Google/Facebook
 
-    // Constructor for traditional login
+    // Constructor for traditional login (from User entity)
     public CustomUserDetails(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
@@ -42,6 +42,16 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     public CustomUserDetails(User user, Map<String, Object> attributes) {
         this(user);
         this.attributes = attributes;
+    }
+
+    // NEW CONSTRUCTOR: Build from JWT token claims (Traditional login via JWT filter)
+    public CustomUserDetails(String username, Long userId, Collection<? extends GrantedAuthority> authorities) {
+        this.id = userId;
+        this.username = username;
+        this.password = null; // Token already validated, no need for password
+        this.email = null; // Email có trong token nhưng không lấy để tối ưu
+        this.enabled = true; // Assume token validation ensures user is enabled
+        this.authorities = authorities;
     }
 
     @Override
