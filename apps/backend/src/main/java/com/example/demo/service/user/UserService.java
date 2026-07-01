@@ -235,4 +235,65 @@ public class UserService {
         return "******";
     }
 
+    // ADMIN helper: list all users (basic info)
+    @Transactional(readOnly = true)
+    public java.util.List<com.example.demo.dto.user.response.UserResponse> listAllUsers() {
+        return userRepository.findAll().stream()
+            .map(u -> com.example.demo.dto.user.response.UserResponse.builder()
+                .id(u.getId())
+                .username(u.getUsername())
+                .email(u.getEmail())
+                .fullName(u.getFullName())
+                .avatarUrl(u.getAvatarUrl())
+                .enabled(u.isEnabled())
+                .roles(u.getRoles().stream().map(r -> r.getRole().name()).collect(java.util.stream.Collectors.toSet()))
+                .build())
+            .toList();
+    }
+
+    @Transactional
+    public void toggleUserEnabled(Long userId) {
+        var user = userRepository.findById(userId).orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.USER_NOT_FOUND));
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public com.example.demo.dto.user.response.UserResponse getUserDetailForAdmin(Long userId) {
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.USER_NOT_FOUND));
+
+        return com.example.demo.dto.user.response.UserResponse.builder()
+            .id(user.getId())
+            .username(user.getUsername())
+            .email(user.getEmail())
+            .fullName(user.getFullName())
+            .avatarUrl(user.getAvatarUrl())
+            .enabled(user.isEnabled())
+            .roles(user.getRoles().stream().map(r -> r.getRole().name()).collect(java.util.stream.Collectors.toSet()))
+            .build();
+    }
+
+    @Transactional
+    public void updateUserRoles(Long userId, java.util.Set<String> roleNames) {
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.USER_NOT_FOUND));
+
+        // Convert role names to Role entities
+        var newRoles = new java.util.HashSet<com.example.demo.entity.Role>();
+        for (String roleName : roleNames) {
+            try {
+                var roleType = com.example.demo.enumValues.RoleType.valueOf(roleName.toUpperCase());
+                var role = roleRepository.findByRole(roleType)
+                    .orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.DEFAULT_ROLE_NOT_FOUND));
+                newRoles.add(role);
+            } catch (IllegalArgumentException e) {
+                throw new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.DEFAULT_ROLE_NOT_FOUND);
+            }
+        }
+
+        user.setRoles(newRoles);
+        userRepository.save(user);
+    }
+
 }

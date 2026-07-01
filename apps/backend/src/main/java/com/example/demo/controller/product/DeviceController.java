@@ -3,6 +3,8 @@ package com.example.demo.controller.product;
 import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.product.device.request.DeviceRequest;
+import com.example.demo.dto.product.device.request.DeviceUpdateRequest;
+import com.example.demo.dto.product.device.response.DeviceEditResponse;
 import com.example.demo.dto.product.device.response.DeviceDetailResponse;
 import com.example.demo.dto.product.device.response.DeviceManageResponse;
 import com.example.demo.security.CustomUserDetails;
@@ -51,10 +53,63 @@ public class DeviceController extends BaseController {
         return createResponse(HttpStatus.OK, 1000, "Approve device successfully", null);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/pending")
+    public ResponseEntity<MyApiResponse<List<DeviceManageResponse>>> getPendingDevices() {
+        List<DeviceManageResponse> list = deviceService.getDevicesByStatus(com.example.demo.enumValues.DeviceStatus.PENDING_APPROVAL);
+        return createResponse(HttpStatus.OK, 1000, "Fetch pending devices successfully", list);
+    }
+
     @GetMapping("/{id}/detail")
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
     public ResponseEntity<MyApiResponse<DeviceDetailResponse>> getDeviceDetailById(@PathVariable Long id) {
         return createResponse(HttpStatus.OK, 1000, "Success", deviceService.getDeviceDetail(id));
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/{id}/edit")
+    public ResponseEntity<MyApiResponse<DeviceEditResponse>> getDeviceForEdit(
+        @PathVariable Long id,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        return createResponse(HttpStatus.OK, 1000, "Success", deviceService.getDeviceForOwnerEdit(id, ownerId));
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @PutMapping("/{id}")
+    public ResponseEntity<MyApiResponse<Void>> updateDevice(
+        @PathVariable Long id,
+        @RequestBody DeviceUpdateRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        deviceService.updateDeviceByOwner(id, ownerId, request);
+        return createResponse(HttpStatus.OK, 1000, "Device updated successfully", null);
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @PutMapping("/{id}/images/{imageId}/primary")
+    public ResponseEntity<MyApiResponse<Void>> setImageAsPrimary(
+        @PathVariable Long id,
+        @PathVariable Long imageId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        deviceService.setDevicePrimaryImage(id, imageId, ownerId);
+        return createResponse(HttpStatus.OK, 1000, "Primary image set successfully", null);
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @DeleteMapping("/{id}/images/{imageId}")
+    public ResponseEntity<MyApiResponse<Void>> deleteImage(
+        @PathVariable Long id,
+        @PathVariable Long imageId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        deviceService.deleteDeviceImage(id, imageId, ownerId);
+        return createResponse(HttpStatus.OK, 1000, "Image deleted successfully", null);
     }
 
 

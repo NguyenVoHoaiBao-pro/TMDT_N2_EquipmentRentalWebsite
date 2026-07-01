@@ -128,4 +128,26 @@ public class OrderService {
 
         return new CheckoutResponse(order.getId(), totalPriceAll, realPaymentUrl, paymentToken);
     }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.example.demo.dto.order.response.OrderSummaryResponse> getOrdersForOwner(Long ownerId) {
+        var orders = orderRepository.findOrdersByOwnerId(ownerId);
+
+        return orders.stream().map(o -> {
+            var deviceNames = o.getOrderDetails().stream()
+                .filter(od -> od.getDevice().getOwner().getId().equals(ownerId))
+                .map(od -> od.getDevice().getProduct().getName())
+                .toList();
+
+            return com.example.demo.dto.order.response.OrderSummaryResponse.builder()
+                .orderId(o.getId())
+                .status(o.getStatus().name())
+                .startDate(o.getStartDate())
+                .endDate(o.getEndDate())
+                .totalPrice(o.getTotalPrice())
+                .renterUsername(o.getRenter() != null ? o.getRenter().getUsername() : "Unknown")
+                .deviceNames(deviceNames)
+                .build();
+        }).toList();
+    }
 }
