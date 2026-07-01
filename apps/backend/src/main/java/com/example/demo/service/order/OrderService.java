@@ -60,7 +60,6 @@ public class OrderService {
             selectedCartItems.add(item);
         }
 
-        // 3. TÍNH TOÁN KHOẢNG NGÀY THUÊ TỔNG VÀ TỔNG TIỀN (Gồm Tiền thuê + Tiền cọc)
         LocalDate minStartDate = selectedCartItems.stream().map(CartItem::getStartDate).min(LocalDate::compareTo).orElse(LocalDate.now());
         LocalDate maxEndDate = selectedCartItems.stream().map(CartItem::getEndDate).max(LocalDate::compareTo).orElse(LocalDate.now());
 
