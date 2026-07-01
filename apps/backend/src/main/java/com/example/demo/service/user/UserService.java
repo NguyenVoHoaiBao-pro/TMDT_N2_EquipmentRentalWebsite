@@ -231,10 +231,10 @@ public class UserService {
             return null;
         }
         if (idCardNumber.length() == 12) {
-            return STR."\{idCardNumber.substring(0, 3)}******\{idCardNumber.substring(9)}";
+            return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(9);
         }
         if (idCardNumber.length() > 6) {
-            return STR."\{idCardNumber.substring(0, 3)}******\{idCardNumber.substring(idCardNumber.length() - 3)}";
+            return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(idCardNumber.length() - 3);
         }
         return "******";
     }

@@ -48,7 +48,7 @@ public class OrderService {
         List<CartItem> selectedCartItems = new ArrayList<>();
         for (Long cartItemId : request.cartItemIds()) {
             CartItem item = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new EntityNotFoundException(STR."Món đồ có ID \{cartItemId} không tồn tại trong giỏ!"));
+                .orElseThrow(() -> new EntityNotFoundException("Món đồ có ID " + cartItemId + " không tồn tại trong giỏ!"));
 
             // Bảo mật: Đảm bảo món đồ này thuộc về chính người đang thao tác
             if (!item.getUser().getId().equals(renterId)) {
@@ -104,7 +104,7 @@ public class OrderService {
         PaymentService strategy = paymentStrategies.get(strategyKey);
 
         if (strategy == null) {
-            throw new IllegalArgumentException(STR."Phương thức thanh toán \{request.paymentMethod()} không được hỗ trợ!");
+            throw new IllegalArgumentException("Phương thức thanh toán " + request.paymentMethod() + " không được hỗ trợ!");
         }
 
         com.example.demo.entity.Payment paymentRecord = com.example.demo.entity.Payment.builder()
