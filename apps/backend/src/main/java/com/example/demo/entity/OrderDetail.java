@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder // Thay bằng SuperBuilder
+@SuperBuilder
 public class OrderDetail extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

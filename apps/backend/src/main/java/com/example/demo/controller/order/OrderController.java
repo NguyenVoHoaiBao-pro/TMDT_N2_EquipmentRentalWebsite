@@ -1,0 +1,36 @@
+package com.example.demo.controller.order;
+
+import com.example.demo.controller.BaseController;
+import com.example.demo.dto.MyApiResponse;
+import com.example.demo.dto.order.request.CheckoutRequest;
+import com.example.demo.dto.order.response.CheckoutResponse;
+import com.example.demo.security.CustomUserDetails;
+import com.example.demo.service.order.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/orders")
+@RequiredArgsConstructor
+public class OrderController extends BaseController {
+
+    private final OrderService orderService;
+
+    // Khi người dùng bấm nút "Xác nhận và Thanh toán" ở trang Checkout sẽ gọi API này
+    @PostMapping("/checkout")
+    public ResponseEntity<MyApiResponse<CheckoutResponse>> checkout(
+        @Valid @RequestBody CheckoutRequest request,
+        @AuthenticationPrincipal CustomUserDetails userDetails,
+        HttpServletRequest httpRequest // Bóc tách request từ client để chuyển tiếp lấy IP cho VNPay
+    ) {
+        Long renterId = userDetails.getId(); // Lấy ID người thuê từ Token bảo mật
+        CheckoutResponse response = orderService.createPendingOrder(request, renterId, httpRequest);
+
+        return createResponse(HttpStatus.OK, 1000, "Khởi tạo đơn hàng thanh toán thành công", response);
+    }
+}

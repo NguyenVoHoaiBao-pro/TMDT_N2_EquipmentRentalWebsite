@@ -9,6 +9,5 @@ import java.util.List;
 @Repository
 public interface OrderDetailRepository extends JpaRepository<OrderDetail, Long> {
 
-    // Tìm lịch sử thuê của một máy cụ thể
-    List<OrderDetail> findByDeviceId(Long deviceId);
+    List<OrderDetail> findByOrderId(Long orderId);
 }

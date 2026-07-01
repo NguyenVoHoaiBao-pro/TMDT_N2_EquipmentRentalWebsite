@@ -9,6 +9,7 @@ import lombok.experimental.SuperBuilder;
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "payments")
@@ -37,12 +38,24 @@ public class Payment extends BaseEntity implements Serializable {
     @Column(name = "status", nullable = false)
     private PaymentStatus status = PaymentStatus.PENDING;
 
+    @Column(name = "provider_order_id")
+    private String providerOrderId;
+
     @Column(name = "transaction_id")
     private String transactionId;
 
     @Column(name = "payment_token", unique = true)
     private String paymentToken;
 
+    @Column(name = "request_payload", columnDefinition = "TEXT")
+    private String requestPayload;
+
     @Column(name = "response_metadata", columnDefinition = "TEXT")
     private String responseMetadata;
+
+    @Column(name = "failure_reason", length = 500)
+    private String failureReason;
+
+    @Column(name = "paid_at")
+    private Instant paidAt;
 }

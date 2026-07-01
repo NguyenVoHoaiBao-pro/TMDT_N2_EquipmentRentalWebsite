@@ -185,14 +185,14 @@ CREATE TABLE device_calendars
 
 CREATE TABLE orders
 (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    renter_id   BIGINT         NOT NULL,
-    start_date  DATE           NOT NULL,
-    end_date    DATE           NOT NULL,
-    total_price DECIMAL(15, 2) NOT NULL, -- Tổng tiền của TẤT CẢ các máy cộng lại
-    status      ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
-    created_at  TIMESTAMP      NOT NULL,
-    updated_at  TIMESTAMP      NOT NULL,
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    renter_id    BIGINT         NOT NULL,
+    start_date   DATE           NOT NULL,
+    end_date     DATE           NOT NULL,
+    total_price  DECIMAL(15, 2) NOT NULL,
+    status       ENUM('PENDING_PAYMENT', 'PAID', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL DEFAULT 'PENDING_PAYMENT',
+    created_at   TIMESTAMP      NOT NULL,
+    updated_at   TIMESTAMP      NOT NULL,
     FOREIGN KEY (renter_id) REFERENCES users (id)
 );
 
@@ -204,6 +204,8 @@ CREATE TABLE order_details
     device_id      BIGINT         NOT NULL,
     price_per_day  DECIMAL(15, 2) NOT NULL,     -- Chốt giá thuê/ngày tại thời điểm đặt (đề phòng chủ máy tăng/giảm giá sau này)
     deposit_amount DECIMAL(15, 2) DEFAULT 0.00, -- Tiền cọc riêng của máy này
+    created_at     TIMESTAMP      NOT NULL,
+    updated_at     TIMESTAMP      NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (device_id) REFERENCES devices (id)
 );
@@ -226,18 +228,20 @@ CREATE TABLE cart_items
 -- BẢNG PAYMENTS (Đã tối ưu hóa cho API MoMo/VNPay thực tế)
 CREATE TABLE payments
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id       BIGINT         NOT NULL,
-    amount         DECIMAL(15, 2) NOT NULL, -- Tổng tiền thuê + cọc cần thanh toán
-    payment_method ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
-    status         ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
-
-    transaction_id VARCHAR(255) NULL, -- Mã GD từ MoMo/VNPay (Mở rộng độ dài lên 255)
-    payment_token  VARCHAR(255) NULL UNIQUE, -- Mã định danh phiên bảo mật bạn tự sinh (UUID)
-    response_metadata TEXT, -- Lưu dữ liệu thô phục vụ debug đồ án
-
-    created_at     TIMESTAMP      NOT NULL,
-    updated_at     TIMESTAMP      NOT NULL,
+    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id           BIGINT         NOT NULL,
+    amount             DECIMAL(15, 2) NOT NULL,
+    payment_method     ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
+    status             ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+    provider_order_id  VARCHAR(255) NULL,
+    transaction_id     VARCHAR(255) NULL,
+    payment_token      VARCHAR(255) NULL UNIQUE,
+    request_payload    LONGTEXT NULL,
+    response_metadata  LONGTEXT NULL,
+    failure_reason     VARCHAR(500) NULL,
+    paid_at            TIMESTAMP NULL,
+    created_at         TIMESTAMP NOT NULL,
+    updated_at         TIMESTAMP NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id)
 );
 
