@@ -2,6 +2,7 @@ package com.example.demo.service.order;
 
 import com.example.demo.dto.order.request.CheckoutRequest;
 import com.example.demo.dto.order.response.CheckoutResponse;
+import com.example.demo.dto.order.response.OrderSummaryResponse;
 import com.example.demo.entity.CartItem;
 import com.example.demo.entity.Order;
 import com.example.demo.entity.OrderDetail;
@@ -25,6 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,11 +42,9 @@ public class OrderService {
 
     @Transactional
     public CheckoutResponse createPendingOrder(CheckoutRequest request, Long renterId, HttpServletRequest httpServletRequest) {
-        // 1. Tìm thông tin người thuê máy
         User renter = userRepository.findById(renterId)
             .orElseThrow(() -> new EntityNotFoundException("Không tìm thấy tài khoản người thuê!"));
 
-        // 2. Lấy danh sách các món đồ được chọn từ Giỏ hàng trong DB lên
         List<CartItem> selectedCartItems = new ArrayList<>();
         for (Long cartItemId : request.cartItemIds()) {
             CartItem item = cartItemRepository.findById(cartItemId)
@@ -54,14 +54,12 @@ public class OrderService {
             if (!item.getUser().getId().equals(renterId)) {
                 throw new org.springframework.security.access.AccessDeniedException("Bạn không có quyền thanh toán món đồ này!");
             }
-            // Đảm bảo món đồ vẫn đang ở trạng thái ACTIVE trong giỏ
             if (item.getStatus() != CartItemStatus.ACTIVE) {
                 throw new IllegalStateException("Món đồ này đã được thanh toán hoặc hết hạn trước đó!");
             }
             selectedCartItems.add(item);
         }
 
-        // 3. TÍNH TOÁN KHOẢNG NGÀY THUÊ TỔNG VÀ TỔNG TIỀN (Gồm Tiền thuê + Tiền cọc)
         LocalDate minStartDate = selectedCartItems.stream().map(CartItem::getStartDate).min(LocalDate::compareTo).orElse(LocalDate.now());
         LocalDate maxEndDate = selectedCartItems.stream().map(CartItem::getEndDate).max(LocalDate::compareTo).orElse(LocalDate.now());
 
@@ -74,10 +72,8 @@ public class OrderService {
             totalDeposit = totalDeposit.add(item.getDevice().getDepositValue());
         }
 
-        // Tổng số tiền cần thanh toán qua cổng điện tử = Tiền thuê máy + Tiền đặt cọc
         BigDecimal totalPriceAll = totalRentalFee.add(totalDeposit);
 
-        // 4. LƯU ĐƠN HÀNG TỔNG (Trạng thái ban đầu bắt buộc là PENDING)
         Order order = Order.builder()
             .renter(renter)
             .startDate(minStartDate)
@@ -88,26 +84,22 @@ public class OrderService {
 
         order = orderRepository.save(order);
 
-        // 5. CHỐT GIÁ VÀ LƯU VÀO BẢNG CHI TIẾT ĐƠN HÀNG (Order Details)
         for (CartItem item : selectedCartItems) {
             OrderDetail detail = OrderDetail.builder()
                 .order(order)
                 .device(item.getDevice())
-                .pricePerDay(item.getDevice().getPricePerDay()) // Chốt giá cố định đề phòng chủ máy đổi giá sau này
+                .pricePerDay(item.getDevice().getPricePerDay())
                 .depositAmount(item.getDevice().getDepositValue())
                 .build();
 
             orderDetailRepository.save(detail);
 
-            //  Đổi trạng thái trong giỏ hàng sang CHECKED_OUT để ẩn khỏi giỏ của người dùng
             item.setStatus(CartItemStatus.CHECKED_OUT);
             cartItemRepository.save(item);
         }
 
-        // ===== BƯỚC 6: TÍCH HỢP STRATEGY PATTERN VÀO ĐÂY =====
         String paymentToken = java.util.UUID.randomUUID().toString();
 
-        // Tìm Service dựa theo chuỗi phương thức khách gửi lên (VNPAY -> VNPAYPaymentService)
         String strategyKey = request.paymentMethod().toUpperCase() + "PaymentService";
         PaymentService strategy = paymentStrategies.get(strategyKey);
 
@@ -127,5 +119,166 @@ public class OrderService {
         String realPaymentUrl = strategy.createPaymentUrl(order, totalPriceAll, paymentToken, httpServletRequest);
 
         return new CheckoutResponse(order.getId(), totalPriceAll, realPaymentUrl, paymentToken);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.example.demo.dto.order.response.OrderSummaryResponse> getOrdersForOwner(Long ownerId) {
+        var orders = orderRepository.findOrdersByOwnerId(ownerId);
+
+        return orders.stream().map(o -> {
+            var deviceNames = o.getOrderDetails().stream()
+                .filter(od -> od.getDevice().getOwner().getId().equals(ownerId))
+                .map(od -> od.getDevice().getProduct().getName())
+                .toList();
+
+            return com.example.demo.dto.order.response.OrderSummaryResponse.builder()
+                .orderId(o.getId())
+                .status(o.getStatus().name())
+                .startDate(o.getStartDate())
+                .endDate(o.getEndDate())
+                .totalPrice(o.getTotalPrice())
+                .renterUsername(o.getRenter() != null ? o.getRenter().getUsername() : "Unknown")
+                .renterPhone(o.getRenter() != null ? o.getRenter().getPhoneNumber() : "")
+                .renterEmail(o.getRenter() != null ? o.getRenter().getEmail() : "")
+                .deviceNames(deviceNames)
+                .build();
+        }).toList();
+    }
+
+    @Transactional
+    public com.example.demo.dto.order.response.OrderSummaryResponse confirmOrder(Long orderId, Long ownerId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + orderId));
+
+        // Verify owner has devices in this order
+        boolean ownerHasDeviceInOrder = order.getOrderDetails().stream()
+            .anyMatch(od -> od.getDevice().getOwner().getId().equals(ownerId));
+
+        if (!ownerHasDeviceInOrder) {
+            throw new org.springframework.security.access.AccessDeniedException("You don't own any devices in this order");
+        }
+
+        // Only allow confirming PAID orders
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new IllegalStateException("Order must be PAID before confirming. Current status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CONFIRMED);
+        order = orderRepository.save(order);
+
+        return buildOrderSummaryResponse(order, ownerId);
+    }
+
+    @Transactional
+    public com.example.demo.dto.order.response.OrderSummaryResponse rejectOrder(Long orderId, Long ownerId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + orderId));
+
+        // Verify owner has devices in this order
+        boolean ownerHasDeviceInOrder = order.getOrderDetails().stream()
+            .anyMatch(od -> od.getDevice().getOwner().getId().equals(ownerId));
+
+        if (!ownerHasDeviceInOrder) {
+            throw new org.springframework.security.access.AccessDeniedException("You don't own any devices in this order");
+        }
+
+        // Only allow rejecting PAID or PENDING_PAYMENT orders
+        if (order.getStatus() != OrderStatus.PAID && order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Cannot reject order with status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order = orderRepository.save(order);
+
+        return buildOrderSummaryResponse(order, ownerId);
+    }
+
+    private com.example.demo.dto.order.response.OrderSummaryResponse buildOrderSummaryResponse(Order o, Long ownerId) {
+        var deviceNames = o.getOrderDetails().stream()
+            .filter(od -> od.getDevice().getOwner().getId().equals(ownerId))
+            .map(od -> od.getDevice().getProduct().getName())
+            .toList();
+
+        return com.example.demo.dto.order.response.OrderSummaryResponse.builder()
+            .orderId(o.getId())
+            .status(o.getStatus().name())
+            .startDate(o.getStartDate())
+            .endDate(o.getEndDate())
+            .totalPrice(o.getTotalPrice())
+            .renterUsername(o.getRenter() != null ? o.getRenter().getUsername() : "Unknown")
+            .renterPhone(o.getRenter() != null ? o.getRenter().getPhoneNumber() : "")
+            .renterEmail(o.getRenter() != null ? o.getRenter().getEmail() : "")
+            .deviceNames(deviceNames)
+            .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<com.example.demo.dto.order.response.OrderSummaryResponse> getAllOrdersForAdmin() {
+        return orderRepository.findAll().stream().map(o -> {
+            var deviceNames = o.getOrderDetails().stream()
+                .map(od -> od.getDevice().getProduct().getName())
+                .toList();
+
+            return com.example.demo.dto.order.response.OrderSummaryResponse.builder()
+                .orderId(o.getId())
+                .status(o.getStatus().name())
+                .startDate(o.getStartDate())
+                .endDate(o.getEndDate())
+                .totalPrice(o.getTotalPrice())
+                .renterUsername(o.getRenter() != null ? o.getRenter().getUsername() : "Unknown")
+                .renterPhone(o.getRenter() != null ? o.getRenter().getPhoneNumber() : "")
+                .renterEmail(o.getRenter() != null ? o.getRenter().getEmail() : "")
+                .deviceNames(deviceNames)
+                .build();
+        }).toList();
+    }
+
+    @Transactional
+    public void cancelOrderByAdmin(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + orderId));
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> getOwnerStats(Long ownerId) {
+        // Fetch all orders for owner
+        var orders = orderRepository.findOrdersByOwnerId(ownerId);
+
+        long paidOrders = orders.stream().filter(o -> o.getStatus() == OrderStatus.PAID).count();
+        long confirmedOrders = orders.stream().filter(o -> o.getStatus() == OrderStatus.CONFIRMED).count();
+        long pickedUpOrders = orders.stream().filter(o -> o.getStatus() == OrderStatus.PICKED_UP).count();
+        long totalOrders = orders.size();
+
+        java.math.BigDecimal totalRevenue = orders.stream()
+            .filter(o -> o.getStatus() != OrderStatus.CANCELLED)
+            .map(o -> o.getTotalPrice() != null ? o.getTotalPrice() : java.math.BigDecimal.ZERO)
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return java.util.Map.of(
+            "totalOrders", totalOrders,
+            "pendingOrders", paidOrders,
+            "confirmedOrders", confirmedOrders,
+            "activeRentals", pickedUpOrders,
+            "totalRevenue", totalRevenue
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<OrderSummaryResponse> getOrdersForRenter(Long renterId) {
+        return orderRepository.findByRenterIdOrderByCreatedAtDesc(renterId).stream()
+            .map(o -> OrderSummaryResponse.builder()
+                .orderId(o.getId())
+                .renterUsername(o.getRenter().getUsername())
+                .totalPrice(o.getTotalPrice() != null ? o.getTotalPrice() : BigDecimal.ZERO)
+                .status(o.getStatus().name())
+                .startDate(o.getStartDate())
+                .endDate(o.getEndDate())
+                .deviceNames(o.getOrderDetails().stream()
+                    .map(od -> od.getDevice().getProduct().getName())
+                    .collect(Collectors.toList()))
+                .build())
+            .collect(Collectors.toList());
     }
 }

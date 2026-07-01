@@ -14,6 +14,8 @@ import com.example.demo.enumValues.RoleType;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mappers.IUserMapper;
+import com.example.demo.repository.order.OrderRepository;
+import com.example.demo.repository.product.DeviceRepository;
 import com.example.demo.repository.user.RoleRepository;
 import com.example.demo.repository.user.UserRepository;
 import com.example.demo.service.CloudinaryService;
@@ -38,6 +40,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final IUserMapper userMapper;
+    private final DeviceRepository deviceRepository;
+    private final OrderRepository orderRepository;
 
 
     @Transactional
@@ -233,6 +237,98 @@ public class UserService {
             return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(idCardNumber.length() - 3);
         }
         return "******";
+    }
+
+    // ADMIN helper: list all users (basic info)
+    @Transactional(readOnly = true)
+    public java.util.List<com.example.demo.dto.user.response.UserResponse> listAllUsers() {
+        return userRepository.findAll().stream()
+            .map(u -> com.example.demo.dto.user.response.UserResponse.builder()
+                .id(u.getId())
+                .username(u.getUsername())
+                .email(u.getEmail())
+                .fullName(u.getFullName())
+                .avatarUrl(u.getAvatarUrl())
+                .enabled(u.isEnabled())
+                .roles(u.getRoles().stream().map(r -> r.getRole().name()).collect(java.util.stream.Collectors.toSet()))
+                .build())
+            .toList();
+    }
+
+    @Transactional
+    public void toggleUserEnabled(Long userId) {
+        var user = userRepository.findById(userId).orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.USER_NOT_FOUND));
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public com.example.demo.dto.user.response.UserResponse getUserDetailForAdmin(Long userId) {
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.USER_NOT_FOUND));
+
+        return com.example.demo.dto.user.response.UserResponse.builder()
+            .id(user.getId())
+            .username(user.getUsername())
+            .email(user.getEmail())
+            .fullName(user.getFullName())
+            .avatarUrl(user.getAvatarUrl())
+            .enabled(user.isEnabled())
+            .roles(user.getRoles().stream().map(r -> r.getRole().name()).collect(java.util.stream.Collectors.toSet()))
+            .build();
+    }
+
+    @Transactional
+    public void updateUserRoles(Long userId, java.util.Set<String> roleNames) {
+        var user = userRepository.findById(userId)
+            .orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.USER_NOT_FOUND));
+
+        // Convert role names to Role entities
+        var newRoles = new java.util.HashSet<com.example.demo.entity.Role>();
+        for (String roleName : roleNames) {
+            try {
+                var roleType = com.example.demo.enumValues.RoleType.valueOf(roleName.toUpperCase());
+                var role = roleRepository.findByRole(roleType)
+                    .orElseThrow(() -> new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.DEFAULT_ROLE_NOT_FOUND));
+                newRoles.add(role);
+            } catch (IllegalArgumentException e) {
+                throw new com.example.demo.exception.AppException(com.example.demo.exception.ErrorCode.DEFAULT_ROLE_NOT_FOUND);
+            }
+        }
+
+        user.setRoles(newRoles);
+        userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> getAdminStats() {
+        var users = userRepository.findAll();
+        long totalUsers = users.size();
+        long ownerCount = users.stream()
+            .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRole() == RoleType.OWNER))
+            .count();
+        long renterCount = users.stream()
+            .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRole() == RoleType.RENTER))
+            .count();
+
+        long totalDevices = deviceRepository.count();
+        long totalOrders = orderRepository.count();
+
+        var orders = orderRepository.findAll();
+        java.math.BigDecimal totalRevenue = orders.stream()
+            .filter(o -> o.getStatus() != com.example.demo.enumValues.OrderStatus.CANCELLED)
+            .map(o -> o.getTotalPrice() != null ? o.getTotalPrice() : java.math.BigDecimal.ZERO)
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return java.util.Map.of(
+            "totalUsers", totalUsers,
+            "totalOwners", ownerCount,
+            "totalRenters", renterCount,
+            "totalDevices", totalDevices,
+            "totalOrders", totalOrders,
+            "totalRevenue", totalRevenue,
+            "activeUsers", users.stream().filter(User::isEnabled).count()
+        );
     }
 
 }

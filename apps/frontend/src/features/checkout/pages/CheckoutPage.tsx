@@ -51,7 +51,7 @@ export function CheckoutPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10">
       <div className="flex items-center space-x-2 mb-6">
         <Link to="/cart"
               className="text-gray-500 hover:text-blue-600 transition flex items-center space-x-1 text-sm font-medium">
@@ -61,14 +61,14 @@ export function CheckoutPage() {
 
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Xác nhận thanh toán</h1>
 
-      <div className="grid grid-cols-12 gap-8 items-start">
+      <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 items-start">
         {/* CỘT TRÁI: PHƯƠNG THỨC THANH TOÁN & ĐƠN THUÊ TÓM TẮT */}
-        <div className="col-span-8 space-y-8 text-left">
+        <div className="w-full lg:col-span-8 space-y-8 text-left">
 
           {/* Nhóm 1: Chọn phương thức thanh toán */}
           <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-4">
             <h2 className="text-xl font-bold text-gray-800">1. Chọn phương thức thanh toán</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
               {/* VNPAY CARD */}
               <label onClick={() => setPaymentMethod('VNPAY')}
@@ -131,19 +131,20 @@ export function CheckoutPage() {
             <div className="divide-y">
               {cart.items.map((item) => (
                 <div key={item.cartItemId} className="flex py-4 first:pt-0 last:pb-0 items-center justify-between">
-                  <div className="flex items-center">
+                  <div className="flex items-center overflow-hidden">
                     <img src={item.device.primaryImageUrl} alt={item.device.name}
-                         className="w-14 h-14 object-cover rounded-lg border bg-gray-50" />
-                    <div className="ml-3">
+                         className="w-12 h-12 sm:w-14 sm:h-14 object-cover rounded-lg border bg-gray-50 shrink-0" />
+                    <div className="ml-3 overflow-hidden">
                       <h4 className="font-medium text-sm text-slate-800 line-clamp-1">{item.device.name}</h4>
                       <div className="flex items-center space-x-1 text-xs text-gray-400 mt-0.5">
                         <Calendar className="w-3 h-3" />
-                        <span>{new Date(item.startDate).toLocaleDateString('vi-VN')} - {new Date(item.endDate).toLocaleDateString('vi-VN')}</span>
-                        <span className="text-teal-600 font-semibold ml-1">({item.rentalDays} ngày)</span>
+                        <span
+                          className="truncate">{new Date(item.startDate).toLocaleDateString('vi-VN')} - {new Date(item.endDate).toLocaleDateString('vi-VN')}</span>
+                        <span className="text-teal-600 font-semibold ml-1 shrink-0">({item.rentalDays} n)</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-right font-semibold text-slate-700 text-sm">
+                  <div className="text-right font-semibold text-slate-700 text-sm shrink-0 ml-4">
                     {item.subTotalRentalFee.toLocaleString('vi-VN')} ₫
                   </div>
                 </div>
@@ -154,7 +155,7 @@ export function CheckoutPage() {
         </div>
 
         {/* CỘT PHẢI: HOÁ ĐƠN CHỐT & NÚT HÀNH ĐỘNG THẦN THÁNH */}
-        <div className="col-span-4 bg-gray-50 border rounded-2xl p-6 space-y-6 sticky top-28 text-left">
+        <div className="w-full lg:col-span-4 bg-gray-50 border rounded-2xl p-6 space-y-6 lg:sticky lg:top-28 text-left">
           <h2 className="text-xl font-bold text-gray-800 border-b pb-3">Chi tiết hóa đơn</h2>
 
           <div className="space-y-4 text-sm border-b pb-4">

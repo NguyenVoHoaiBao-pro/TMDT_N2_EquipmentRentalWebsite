@@ -13,9 +13,9 @@ export function ProductGallery({ images }: ProductGalleryProps) {
   const thumbnails = images.slice(0, 5);
 
   return (
-    <div className="rounded-xl border bg-white p-4 space-y-4">
+    <div className="rounded-2xl border bg-white p-2 md:p-4 space-y-3 md:space-y-4 shadow-sm">
       {/* Main image */}
-      <div className="aspect-4/3 w-full overflow-hidden rounded-xl bg-gray-100">
+      <div className="aspect-square md:aspect-4/3 w-full overflow-hidden rounded-xl bg-gray-100">
         {mainImage ? (
           <img
             src={mainImage.imageUrl}

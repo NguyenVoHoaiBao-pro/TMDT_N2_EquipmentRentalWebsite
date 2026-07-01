@@ -118,20 +118,23 @@ export function RentalBookingCard({
           </button>
 
           {showStartPicker && (
-            <div className="absolute z-50 bg-white border rounded-xl shadow-xl mt-1 p-2">
-              <DayPicker
-                mode="single"
-                selected={startDate}
-                onSelect={(date) => {
-                  setStartDate(date);
-                  setShowStartPicker(false);
-                  if (endDate && date && !isBefore(date, endDate)) setEndDate(undefined);
-                }}
-                disabled={[
-                  { before: startOfDay(new Date()) },
-                  ...disabledDates,
-                ]}
-              />
+            <div
+              className="fixed inset-x-0 bottom-0 z-[100] md:absolute md:inset-auto md:z-50 bg-white border md:rounded-xl shadow-2xl md:shadow-xl mt-1 p-2 flex justify-center">
+              <div className="bg-white">
+                <DayPicker
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    setShowStartPicker(false);
+                    if (endDate && date && !isBefore(date, endDate)) setEndDate(undefined);
+                  }}
+                  disabled={[
+                    { before: startOfDay(new Date()) },
+                    ...disabledDates,
+                  ]}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -148,24 +151,27 @@ export function RentalBookingCard({
           </button>
 
           {showEndPicker && startDate && (
-            <div className="absolute z-50 bg-white border rounded-xl shadow-xl mt-1 p-2 right-0">
-              <DayPicker
-                mode="single"
-                selected={endDate}
-                onSelect={(date) => {
-                  if (!date) return;
-                  if (hasBlockedDateInRange(startDate, date)) {
-                    alert('Khoảng ngày chọn dính ngày đã được thuê! Vui lòng chọn lại.');
-                    return;
-                  }
-                  setEndDate(date);
-                  setShowEndPicker(false);
-                }}
-                disabled={[
-                  { before: startDate },
-                  ...disabledDates,
-                ]}
-              />
+            <div
+              className="fixed inset-x-0 bottom-0 z-[100] md:absolute md:inset-auto md:z-50 bg-white border md:rounded-xl shadow-2xl md:shadow-xl mt-1 p-2 flex justify-center md:right-0 md:left-auto">
+              <div className="bg-white">
+                <DayPicker
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    if (!date) return;
+                    if (hasBlockedDateInRange(startDate, date)) {
+                      alert('Khoảng ngày chọn dính ngày đã được thuê! Vui lòng chọn lại.');
+                      return;
+                    }
+                    setEndDate(date);
+                    setShowEndPicker(false);
+                  }}
+                  disabled={[
+                    { before: startDate },
+                    ...disabledDates,
+                  ]}
+                />
+              </div>
             </div>
           )}
         </div>
