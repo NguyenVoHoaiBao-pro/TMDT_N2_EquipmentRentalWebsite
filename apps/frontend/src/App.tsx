@@ -13,6 +13,7 @@ import { SimpleLayout } from '@/components/layout/SimpleLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
 import { ProfilePage } from '@/features/profile/pages/ProfilePage.tsx';
 import { ProductDetailPage } from '@/features/product/pages/ProductDetailPage.tsx';
+import { CartPage } from '@/features/cart/pages/CartPage.tsx';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         {/* Separate the routes so they render independently */}
         <Route path="/products" element={<ProductCatalogPage />} />
         <Route path="/products/:id" element={<ProductDetailPage />} />
+
       </Route>
 
       {/* 2. Protected Routes using Simple Layout */}
@@ -31,6 +33,8 @@ function App() {
         <Route element={<SimpleLayout />}>
           <Route path="/register-device" element={<RegisterDevicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+
+          <Route path="/cart" element={<CartPage />} />
         </Route>
       </Route>
 

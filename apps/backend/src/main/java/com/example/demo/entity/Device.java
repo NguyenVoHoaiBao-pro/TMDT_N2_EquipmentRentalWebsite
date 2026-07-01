@@ -49,15 +49,15 @@ public class Device extends BaseEntity implements Serializable {
     @Column(name = "status", nullable = false)
     private DeviceStatus status;
 
-    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<DeviceImage> deviceImages = new HashSet<>();
 
-    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @BatchSize(size = 50)
     private Set<DeviceCalendar> deviceCalendar = new HashSet<>();
-    
+
     @OneToMany(mappedBy = "device")
     @Builder.Default
     private Set<OrderDetail> orderDetails = new HashSet<>();

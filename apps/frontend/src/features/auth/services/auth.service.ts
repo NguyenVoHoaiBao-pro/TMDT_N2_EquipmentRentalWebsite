@@ -14,26 +14,46 @@ import type {
 
 import { useQuery } from '@tanstack/react-query';
 
+import { useCart } from '@/features/cart/hooks/useCart.ts';
+
 export const useLoginMutation = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Get the user location for redirection
+  const location = useLocation();
   const loginSuccess = useAuthStore((state) => state.loginSuccess);
+  const { addToCart } = useCart(); // Thêm hook giỏ hàng vào đây
 
-  // If yes, redirect to the previous page or else redirect to the home page
-  const from = (location.state as { from?: { pathname: string; search: string } })?.from;
+  // Khai báo kiểu dữ liệu an toàn cho state nhận từ RentalBookingCard
+  const state = location.state as {
+    from?: { pathname: string; search: string };
+    pendingBooking?: { deviceId: number; startDate: string; endDate: string };
+  } | null;
+
+  const from = state?.from;
   const redirectUrl = from ? `${from.pathname}${from.search}` : '/home';
-
+  const pendingBooking = state?.pendingBooking;
 
   return useMutation({
     mutationFn: (loginData: LoginRequest) => {
       return api.auth.login(loginData);
     },
 
-    onSuccess: (user) => {
+    onSuccess: async (user) => {
       loginSuccess({ username: user.username, roles: user.roles }, user.token);
-
       toast.success(`Welcome, ${user.username}!`);
-      navigate(redirectUrl, { replace: true }); // Replace the current history entry
+
+      if (pendingBooking) {
+        try {
+          await addToCart(pendingBooking);
+          navigate('/cart', { replace: true });
+          return;
+        } catch (error) {
+          console.error('Lỗi tự động thêm vào giỏ hàng:', error);
+          navigate('/cart', { replace: true });
+          return;
+        }
+      }
+
+      navigate(redirectUrl, { replace: true });
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,6 +63,7 @@ export const useLoginMutation = () => {
     },
   });
 };
+
 
 export const useRegisterMutation = () => {
   const navigate = useNavigate();
@@ -107,22 +128,6 @@ export const useResetPasswordMutation = () => {
   });
 };
 
-export const useLogoutMutation = () => {
-  const navigate = useNavigate();
-  const logoutSuccess = useAuthStore((state) => state.logoutSuccess);
-
-  return useMutation({
-    mutationFn: async () => {
-      return await api.auth.logout();
-    },
-    onSettled: () => {
-      logoutSuccess();
-      toast.success('Logout successful.');
-      navigate('/login');
-    },
-  });
-};
-
 export const useCheckDuplicateEmail = (email: string, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['checkEmail', email],
@@ -142,16 +147,32 @@ export const useCheckDuplicateUsername = (username: string, options?: { enabled?
 export const useSocialLogin = () => {
   const location = useLocation();
 
-  const from = (location.state as { from?: { pathname: string; search: string } })?.from;
+  const state = location.state as {
+    from?: { pathname: string; search: string };
+    pendingBooking?: { deviceId: number; startDate: string; endDate: string };
+  } | null;
+
+  const from = state?.from;
   const redirectUrl = from ? `${from.pathname}${from.search}` : '/home';
+  const pendingBooking = state?.pendingBooking;
+
+  const saveRedirectContext = () => {
+    sessionStorage.setItem('redirectAfterLogin', redirectUrl);
+
+    if (pendingBooking) {
+      sessionStorage.setItem('pendingBooking', JSON.stringify(pendingBooking));
+    } else {
+      sessionStorage.removeItem('pendingBooking');
+    }
+  };
 
   const loginWithGoogle = () => {
-    sessionStorage.setItem('redirectAfterLogin', redirectUrl);
+    saveRedirectContext();
     window.location.href = api.auth.googleLoginUrl;
   };
 
   const loginWithFacebook = () => {
-    sessionStorage.setItem('redirectAfterLogin', redirectUrl);
+    saveRedirectContext();
     window.location.href = api.auth.facebookLoginUrl;
   };
 

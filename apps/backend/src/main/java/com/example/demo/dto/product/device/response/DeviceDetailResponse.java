@@ -1,6 +1,7 @@
 package com.example.demo.dto.product.device.response;
 
 import com.example.demo.dto.product.core.response.ProductInformation;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.dto.product.owner.OwnerDTO;
 import com.example.demo.dto.product.review.ReviewDTO;
 
@@ -10,6 +11,7 @@ public record DeviceDetailResponse(
     ProductInformation product,
     DeviceInformation device,
     OwnerDTO owner,
-    List<ReviewDTO> reviews
+    List<ReviewDTO> reviews,
+    List<ProductResponse> relatedProducts
 ) {
 }

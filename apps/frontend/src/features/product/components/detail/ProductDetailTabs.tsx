@@ -42,17 +42,22 @@ export function ProductDetailTabs({ specifications, includedItems, reviews }: Pr
       <div className="pt-4 border-t border-gray-100">
         <h2 className="text-lg font-bold text-gray-900 mb-3">Đánh giá thực tế</h2>
         <div className="space-y-4">
-          {reviews.map((review) => (
-            <div key={review.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
-              <div className="flex justify-between items-center mb-1">
-                <span className="font-semibold text-sm text-gray-800">{review.username}</span>
-                <span className="text-yellow-500 text-sm">★ {review.rating}/5</span>
+          {reviews.length === 0 ? (
+            <p className="text-sm text-gray-400 italic text-left">Chưa có đánh giá nào cho thiết bị này.</p>
+          ) : (
+            reviews.map((review) => (
+              <div key={review.id} className="border-b border-gray-100 pb-3 last:border-0 last:pb-0">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="font-semibold text-sm text-gray-800">{review.username}</span>
+                  <span className="text-yellow-500 text-sm">★ {review.rating}/5</span>
+                </div>
+                <p className="text-sm text-gray-600 text-left">{review.comment}</p>
               </div>
-              <p className="text-sm text-gray-600">{review.comment}</p>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
+
     </div>
   );
 }

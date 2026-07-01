@@ -1,14 +1,12 @@
 package com.example.demo.service.product;
 
 import com.example.demo.dto.product.core.response.ProductInformation;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.dto.product.core.response.SpecificationDTO;
-import com.example.demo.dto.product.device.response.DeviceDetailResponse;
-import com.example.demo.dto.product.device.response.DeviceImageDTO;
-import com.example.demo.dto.product.device.response.DeviceInformation;
+import com.example.demo.dto.product.device.response.*;
 import com.example.demo.dto.product.owner.OwnerDTO;
 import com.example.demo.dto.product.device.request.DeviceImageRequest;
 import com.example.demo.dto.product.device.request.DeviceRequest;
-import com.example.demo.dto.product.device.response.DeviceManageResponse;
 import com.example.demo.dto.product.review.ReviewDTO;
 import com.example.demo.entity.*;
 import com.example.demo.enumValues.DeviceStatus;
@@ -16,7 +14,7 @@ import com.example.demo.repository.product.DeviceCalendarRepository;
 import com.example.demo.repository.product.DeviceImageRepository;
 import com.example.demo.repository.product.DeviceRepository;
 import com.example.demo.repository.product.ProductRepository;
-import com.example.demo.repository.review.ReviewRepository;
+import com.example.demo.repository.review.ProductReviewRepository;
 import com.example.demo.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +37,7 @@ public class DeviceService {
     private final DeviceImageService deviceImageService;
     private final ProductService productService;
     private final DeviceImageRepository deviceImageRepository;
-    private final ReviewRepository reviewRepository;
+    private final ProductReviewRepository productReviewRepository;
     private final DeviceCalendarRepository deviceCalendarRepository;
 
     @Transactional
@@ -110,11 +108,9 @@ public class DeviceService {
                 includedItemsList
             );
 
-        // 3. Tính toán trạng thái vận hành động (availability) dựa trên bảng lịch ngày hôm nay
-        String calculatedAvailability = "AVAILABLE"; // Mặc định là sẵn sàng cho thuê
+        String calculatedAvailability = "AVAILABLE";
         var todayCalendar = deviceCalendarRepository.findByDeviceIdAndEventDate(device.getId(), LocalDate.now());
         if (todayCalendar.isPresent()) {
-            // Áp dụng map trạng thái từ bảng lịch sang chuẩn FE yêu cầu
             calculatedAvailability = switch (todayCalendar.get().getStatus()) {
                 case BOOKED -> "RENTED";
                 case OWNER_BLOCK -> "RESERVED";
@@ -122,13 +118,17 @@ public class DeviceService {
             };
         }
 
-        // 4. Lấy danh sách ảnh thực tế của thiết bị và map sang DeviceImageDTO
         List<DeviceImage> deviceImages = deviceImageRepository.findByDeviceId(device.getId());
         List<DeviceImageDTO> imageDTOs = deviceImages.stream()
             .map(img -> new DeviceImageDTO(img.getId(), img.getImageUrl(), img.isPrimary()))
             .toList();
 
-        // 5. Map cụm 2: DeviceInformation (Thông tin cá thể máy)
+        List<LocalDate> futureBlockedDates = deviceCalendarRepository.findFutureBlockedDatesByDeviceId(device.getId());
+
+        List<String> bookDatesStr = futureBlockedDates.stream()
+            .map(LocalDate::toString)
+            .toList();
+
         DeviceInformation deviceInfo =
             new DeviceInformation(
                 device.getId(),
@@ -137,37 +137,42 @@ public class DeviceService {
                 calculatedAvailability,
                 device.getPricePerDay(),
                 device.getDepositValue(),
-                BigDecimal.ZERO, // Trường insurance chưa có trong DB, tạm thời hardcode 0 để FE không bị lỗi
-                imageDTOs
+                BigDecimal.ZERO,
+                imageDTOs,
+                bookDatesStr
             );
 
-        // 6. Map cụm 3: OwnerDTO (Thông tin chủ sở hữu máy)
         OwnerDTO ownerInfo =
             new OwnerDTO(
                 owner.getId(),
                 owner.getFullName(),
                 owner.getAvatarUrl(),
-                true // Tạm thời hardcode đã xác minh profile sơ bộ, bạn có thể kiểm tra kycVerifications sau
+                true
             );
 
-        // 7. Lấy danh sách 3 bài đánh giá mới nhất (Preview) và map cụm 4: ReviewDTO
-        List<Review> latestReviews = reviewRepository.findLatestReviewsByDeviceId(device.getId(), PageRequest.of(0, 3));
+        List<ProductReview> latestReviews = productReviewRepository.findLatestReviewsByDeviceId(device.getId(), PageRequest.of(0, 3));
+
         List<ReviewDTO> reviewDTOs = latestReviews.stream()
             .map(rev -> new ReviewDTO(
                 rev.getId(),
-                rev.getAuthor() != null ? rev.getAuthor().getUsername() : "Ẩn danh",
+                rev.getRenter() != null ? rev.getRenter().getUsername() : "Ẩn danh",
                 rev.getRating(),
                 rev.getComment(),
                 rev.getCreatedAt()
             ))
             .toList();
 
-        // 8. Đóng gói tất cả các cụm dữ liệu lồng nhau vào Object Response tổng ngoài cùng và trả về
+        List<ProductResponse> relatedProducts = productService.getTop4RelatedProducts(
+            product.getCategory() != null ? product.getCategory().getName() : null,
+            product.getId()
+        );
+
         return new DeviceDetailResponse(
             productInfo,
             deviceInfo,
             ownerInfo,
-            reviewDTOs
+            reviewDTOs,
+            relatedProducts
         );
     }
 

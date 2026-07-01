@@ -1,11 +1,14 @@
 package com.example.demo.service.review;
 
 import com.example.demo.entity.Order;
-import com.example.demo.entity.Review;
+import com.example.demo.entity.Product;
+import com.example.demo.entity.ProductReview;
 import com.example.demo.entity.User;
-import com.example.demo.enumValues.ReviewType;
+import com.example.demo.entity.UserReview;
 import com.example.demo.repository.order.OrderRepository;
-import com.example.demo.repository.review.ReviewRepository;
+import com.example.demo.repository.product.ProductRepository; // Nhớ import Repo này nếu cần validate Product
+import com.example.demo.repository.review.ProductReviewRepository;
+import com.example.demo.repository.review.UserReviewRepository;
 import com.example.demo.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -18,44 +21,64 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private final ReviewRepository reviewRepository;
+    private final ProductReviewRepository productReviewRepository;
+    private final UserReviewRepository userReviewRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
 
     @Transactional
-    public Review createReview(Long orderId, Long authorId, Long targetId, ReviewType reviewType, Integer rating, String comment) {
+    public ProductReview createProductReview(Long orderId, Long renterId, Long productId, Integer rating, String comment) {
         Order order = orderRepository.findById(orderId)
             .orElseThrow(() -> new EntityNotFoundException("Order not found"));
-        User author = userRepository.findById(authorId)
-            .orElseThrow(() -> new EntityNotFoundException("Author not found"));
+        User renter = userRepository.findById(renterId)
+            .orElseThrow(() -> new EntityNotFoundException("Renter not found"));
+        Product product = productRepository.findById(productId)
+            .orElseThrow(() -> new EntityNotFoundException("Product not found"));
 
-        Review review = Review.builder()
+        ProductReview productReview = ProductReview.builder()
             .order(order)
-            .author(author)
-            .targetId(targetId)
-            .reviewType(reviewType)
+            .renter(renter)
+            .product(product)
             .rating(rating)
             .comment(comment)
             .build();
 
-        Review savedReview = reviewRepository.save(review);
+        return productReviewRepository.save(productReview);
+    }
 
-        // Nếu chủ máy review người thuê, tính toán lại trust_score cho người thuê đó
-        if (reviewType == ReviewType.OWNER_TO_RENTER) {
-            updateUserTrustScore(targetId);
-        }
+    @Transactional
+    public UserReview createUserReview(Long orderId, Long ownerId, Long renterId, Integer rating, String comment) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException("Order not found"));
+        User owner = userRepository.findById(ownerId)
+            .orElseThrow(() -> new EntityNotFoundException("Owner not found"));
+        User renter = userRepository.findById(renterId)
+            .orElseThrow(() -> new EntityNotFoundException("Renter not found"));
+
+        UserReview userReview = UserReview.builder()
+            .order(order)
+            .owner(owner)
+            .renter(renter)
+            .rating(rating)
+            .comment(comment)
+            .build();
+
+        UserReview savedReview = userReviewRepository.save(userReview);
+
+        updateUserTrustScore(renterId);
 
         return savedReview;
     }
 
-    private void updateUserTrustScore(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    private void updateUserTrustScore(Long renterId) {
+        User renter = userRepository.findById(renterId)
+            .orElseThrow(() -> new EntityNotFoundException("Renter not found"));
 
-        Double avgRating = reviewRepository.getAverageRating(userId, ReviewType.OWNER_TO_RENTER);
+        Double avgRating = userReviewRepository.getAverageRatingByRenterId(renterId);
         if (avgRating != null) {
-            user.setTrustScore(BigDecimal.valueOf(avgRating));
-            userRepository.save(user);
+            renter.setTrustScore(BigDecimal.valueOf(avgRating));
+            userRepository.save(renter);
         }
     }
 }
