@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import apiClient from '@/services/api.ts';
-
-interface Device {
-  id: number;
-  productName: string;
-  serialNumber: string;
-}
+import { deviceService } from '../services/deviceService';
 
 export default function OwnerCalendarPage() {
-  const [devices, setDevices] = useState<Device[]>([]);
+  const [devices, setDevices] = useState<{ id: number; productName: string; serialNumber: string }[]>([]);
   const [deviceId, setDeviceId] = useState<number | null>(null);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
   const [start, setStart] = useState('');
@@ -22,7 +16,7 @@ export default function OwnerCalendarPage() {
     const loadDevices = async () => {
       setLoading(true);
       try {
-        const data = await apiClient.get('/devices/my-inventory');
+        const data = await deviceService.getMyInventory();
         setDevices(data || []);
         if (data && data.length > 0) {
           setDeviceId(data[0].id);
@@ -42,7 +36,7 @@ export default function OwnerCalendarPage() {
     if (!deviceId) return;
     const loadCalendar = async () => {
       try {
-        const data = await apiClient.get(`/devices/${deviceId}/calendar/future`);
+        const data = await deviceService.getBlockedDates(deviceId);
         setBlockedDates(data || []);
         setError(null);
       } catch (err: any) {
@@ -69,12 +63,12 @@ export default function OwnerCalendarPage() {
 
     setActionLoading(true);
     try {
-      await apiClient.post(`/devices/${deviceId}/calendar/block`, { startDate: start, endDate: end });
+      await deviceService.blockDates(deviceId, start, end);
       alert('Dates blocked successfully!');
       setStart('');
       setEnd('');
       // Reload calendar
-      const data = await apiClient.get(`/devices/${deviceId}/calendar/future`);
+      const data = await deviceService.getBlockedDates(deviceId);
       setBlockedDates(data || []);
     } catch (err: any) {
       console.error(err);
@@ -93,12 +87,12 @@ export default function OwnerCalendarPage() {
 
     setActionLoading(true);
     try {
-      await apiClient.delete(`/devices/${deviceId}/calendar/unblock?start=${start}&end=${end}`);
+      await deviceService.unblockDates(deviceId, start, end);
       alert('Dates unblocked successfully!');
       setStart('');
       setEnd('');
       // Reload calendar
-      const data = await apiClient.get(`/devices/${deviceId}/calendar/future`);
+      const data = await deviceService.getBlockedDates(deviceId);
       setBlockedDates(data || []);
     } catch (err: any) {
       console.error(err);
@@ -125,7 +119,8 @@ export default function OwnerCalendarPage() {
           {loading ? (
             <p className="text-gray-600">Loading devices...</p>
           ) : devices.length === 0 ? (
-            <p className="text-gray-600">No devices found. <a href="/dashboard/inventory" className="text-blue-600 underline">Create one</a></p>
+            <p className="text-gray-600">No devices found. <a href="/dashboard/inventory"
+                                                              className="text-blue-600 underline">Create one</a></p>
           ) : (
             <select
               value={deviceId || ''}

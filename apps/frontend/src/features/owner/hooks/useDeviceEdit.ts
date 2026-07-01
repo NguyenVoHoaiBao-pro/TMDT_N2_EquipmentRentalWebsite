@@ -121,11 +121,32 @@ export function useDeviceEdit(deviceId: number | null) {
     }
   };
 
+  // Add new image
+  const addImage = async (imageUrl: string) => {
+    if (!deviceId || !state.device) return;
+
+    try {
+      await deviceService.addDeviceImage(deviceId, imageUrl);
+      // Reload device or update state manually
+      const updatedDevice = await deviceService.getDeviceForEdit(deviceId);
+      setState(prev => ({ ...prev, device: updatedDevice }));
+      return true;
+    } catch (err) {
+      console.error(err);
+      setState(prev => ({
+        ...prev,
+        error: 'Failed to add image',
+      }));
+      return false;
+    }
+  };
+
   return {
     ...state,
     updateDevice,
     setImageAsPrimary,
     deleteImage,
+    addImage,
   };
 }
 

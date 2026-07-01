@@ -21,15 +21,15 @@ interface SortableTableProps<T> {
 }
 
 export default function SortableTable<T>({
-  columns,
-  data,
-  onSort,
-  currentSort,
-  rowKey,
-  onRowClick,
-  emptyMessage = 'No data found',
-  isLoading,
-}: SortableTableProps<T>) {
+                                           columns,
+                                           data,
+                                           onSort,
+                                           currentSort,
+                                           rowKey,
+                                           onRowClick,
+                                           emptyMessage = 'No data found',
+                                           isLoading,
+                                         }: SortableTableProps<T>) {
   const handleSort = (key: string) => {
     if (!onSort) return;
     const newOrder = currentSort?.key === key && currentSort.order === 'ASC' ? 'DESC' : 'ASC';
@@ -45,9 +45,10 @@ export default function SortableTable<T>({
   }
 
   return (
-    <div className="overflow-x-auto bg-white rounded shadow">
-      <table className="w-full">
-        <thead className="bg-gray-100 border-b">
+    <div className="w-full overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+      <div className="min-w-[800px] lg:min-w-full inline-block align-middle">
+        <table className="w-full border-collapse">
+          <thead className="bg-slate-50/80 border-b border-slate-200 sticky top-0 z-10 backdrop-blur-md">
           <tr>
             {columns.map(col => (
               <th
@@ -76,8 +77,8 @@ export default function SortableTable<T>({
               </th>
             ))}
           </tr>
-        </thead>
-        <tbody>
+          </thead>
+          <tbody>
           {data.map((row, idx) => (
             <tr
               key={String(row[rowKey]) || idx}
@@ -91,8 +92,9 @@ export default function SortableTable<T>({
               ))}
             </tr>
           ))}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import InventoryPage from '@/features/owner/pages/InventoryPage.tsx';
 import OwnerOrdersPage from '@/features/owner/pages/OwnerOrdersPage.tsx';
 import OwnerCalendarPage from '@/features/owner/pages/OwnerCalendarPage.tsx';
 import OwnerDeviceEditPage from '@/features/owner/pages/OwnerDeviceEditPage.tsx';
+import OwnerReviewsPage from '@/features/owner/pages/OwnerReviewsPage.tsx';
 import AdminUsersPage from '@/features/admin/pages/AdminUsersPage.tsx';
 import AdminDevicesPage from '@/features/admin/pages/AdminDevicesPage.tsx';
 import AdminUserDetailPage from '@/features/admin/pages/AdminUserDetailPage.tsx';
@@ -26,6 +27,12 @@ import { CheckoutSuccessPage } from '@/features/checkout/pages/Checkout SuccessP
 import { CheckoutPage } from '@/features/checkout/pages/CheckoutPage.tsx';
 import { DashboardLayout } from '@/components/layout/DashboardLayout.tsx';
 import AdminDashboard from '@/features/admin/pages/AdminDashboard.tsx';
+import AdminCategoriesPage from '@/features/admin/pages/AdminCategoriesPage.tsx';
+import AdminBrandsPage from '@/features/admin/pages/AdminBrandsPage.tsx';
+import AdminOrdersPage from '@/features/admin/pages/AdminOrdersPage.tsx';
+import AdminPaymentsPage from '@/features/admin/pages/AdminPaymentsPage.tsx';
+import AdminIssuesPage from '@/features/admin/pages/AdminIssuesPage.tsx';
+import { MessagePage } from '@/features/chat/pages/MessagePage.tsx';
 
 
 function App() {
@@ -39,13 +46,15 @@ function App() {
         <Route path="/products/:id" element={<ProductDetailPage />} />
       </Route>
 
-      {/* 2. Protected Routes dành cho người mua (RENTER / CUSTOMER) */}
+      {/* 2. Protected Routes RENTER */}
       <Route element={<ProtectedRoute allowedRoles={['RENTER', 'OWNER', 'ADMIN']} />}>
         <Route element={<MainLayout />}>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout/bank-transfer" element={<BankTransferPage />} />
           <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/messages" element={<MessagePage />} />
         </Route>
       </Route>
 
@@ -58,7 +67,7 @@ function App() {
           <Route path="/dashboard/device/:id/edit" element={<OwnerDeviceEditPage />} />
           <Route path="/dashboard/orders" element={<OwnerOrdersPage />} />
           <Route path="/dashboard/calendar" element={<OwnerCalendarPage />} />
-          <Route path="/profile" element={<ProfilePage />} /> {/* Trang cá nhân dùng chung sidebar */}
+          <Route path="/dashboard/reviews" element={<OwnerReviewsPage />} />
         </Route>
       </Route>
 
@@ -69,10 +78,15 @@ function App() {
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
           <Route path="/admin/devices" element={<AdminDevicesPage />} />
+          <Route path="/admin/categories" element={<AdminCategoriesPage />} />
+          <Route path="/admin/brands" element={<AdminBrandsPage />} />
+          <Route path="/admin/orders" element={<AdminOrdersPage />} />
+          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
+          <Route path="/admin/issues" element={<AdminIssuesPage />} />
         </Route>
       </Route>
 
-      {/* 5. Auth Routes (Giữ nguyên) */}
+      {/* 5. Auth Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />

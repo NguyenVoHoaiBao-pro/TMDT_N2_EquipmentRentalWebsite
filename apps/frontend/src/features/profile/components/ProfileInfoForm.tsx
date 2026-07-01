@@ -5,7 +5,7 @@ import { Button } from '@/shared_components/ui/button';
 import { Input } from '@/shared_components/ui/input';
 import { Label } from '@/shared_components/ui/label';
 import { Card } from '@/shared_components/ui/card';
-import { Camera, Phone, LockKeyhole } from 'lucide-react';
+import { Camera, Phone } from 'lucide-react';
 import type { UserProfileResponse } from '@/features/profile/types/profile.type.ts';
 import { useUpdateBasicProfileMutation } from '@/features/profile/services/profile.service.ts';
 
@@ -20,7 +20,6 @@ export function ProfileInfoForm({ initialProfile }: ProfileInfoFormProps) {
   const { mutate, isPending } = useUpdateBasicProfileMutation();
 
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
 
@@ -111,26 +110,6 @@ export function ProfileInfoForm({ initialProfile }: ProfileInfoFormProps) {
               />
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm font-medium text-slate-700">
-              Mật khẩu mới
-            </Label>
-            <div className="relative">
-              <LockKeyhole
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Bỏ trống nếu không muốn đổi"
-                className="h-11 pl-10"
-              />
-            </div>
-          </div>
-
-
         </div>
 
         <div className="flex justify-end">

@@ -112,5 +112,17 @@ public class DeviceController extends BaseController {
         return createResponse(HttpStatus.OK, 1000, "Image deleted successfully", null);
     }
 
+    @PreAuthorize("hasRole('OWNER')")
+    @PostMapping("/{id}/images")
+    public ResponseEntity<MyApiResponse<Void>> addImage(
+        @PathVariable Long id,
+        @RequestBody String imageUrl,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        deviceService.addDeviceImage(id, imageUrl, ownerId);
+        return createResponse(HttpStatus.OK, 1000, "Image added successfully", null);
+    }
+
 
 }

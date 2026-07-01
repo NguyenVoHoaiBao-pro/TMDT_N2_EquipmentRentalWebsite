@@ -1,5 +1,12 @@
 // @/components/layout/HeaderActions.tsx
-import { LucideBell, LucideShoppingCart, LucideUser, LucideHistory, LucideLogOut } from 'lucide-react';
+import {
+  LucideBell,
+  LucideShoppingCart,
+  LucideUser,
+  LucideHistory,
+  LucideLogOut,
+  MessageSquare, // 1. Import thêm icon Chat ở đây
+} from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Link } from 'react-router-dom';
 import {
@@ -30,6 +37,17 @@ export function HeaderActions() {
   return (
     <div className="flex items-center space-x-2 lg:space-x-4">
       <LucideBell className="text-gray-700 hover:text-gray-900 cursor-pointer h-5 w-5" />
+
+      {/* 2. Thêm nút Chat vào đây (chỉ hiển thị khi đã đăng nhập thành công) */}
+      {isAuthenticated && user && (
+        <Link
+          to="/messages"
+          className="p-2 text-gray-600 hover:text-blue-600 transition"
+          title="Tin nhắn"
+        >
+          <MessageSquare className="w-6 h-6" />
+        </Link>
+      )}
 
       <Link to="/cart" className="relative p-2 text-gray-600 hover:text-blue-600 transition">
         <LucideShoppingCart className="w-6 h-6" />

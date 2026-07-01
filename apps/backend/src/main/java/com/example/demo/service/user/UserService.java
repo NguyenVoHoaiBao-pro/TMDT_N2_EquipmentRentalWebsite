@@ -14,6 +14,8 @@ import com.example.demo.enumValues.RoleType;
 import com.example.demo.exception.AppException;
 import com.example.demo.exception.ErrorCode;
 import com.example.demo.mappers.IUserMapper;
+import com.example.demo.repository.order.OrderRepository;
+import com.example.demo.repository.product.DeviceRepository;
 import com.example.demo.repository.user.RoleRepository;
 import com.example.demo.repository.user.UserRepository;
 import com.example.demo.service.CloudinaryService;
@@ -38,6 +40,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
     private final IUserMapper userMapper;
+    private final DeviceRepository deviceRepository;
+    private final OrderRepository orderRepository;
 
 
     @Transactional
@@ -227,10 +231,10 @@ public class UserService {
             return null;
         }
         if (idCardNumber.length() == 12) {
-            return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(9);
+            return STR."\{idCardNumber.substring(0, 3)}******\{idCardNumber.substring(9)}";
         }
         if (idCardNumber.length() > 6) {
-            return idCardNumber.substring(0, 3) + "******" + idCardNumber.substring(idCardNumber.length() - 3);
+            return STR."\{idCardNumber.substring(0, 3)}******\{idCardNumber.substring(idCardNumber.length() - 3)}";
         }
         return "******";
     }
@@ -307,10 +311,22 @@ public class UserService {
             .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRole() == RoleType.RENTER))
             .count();
 
+        long totalDevices = deviceRepository.count();
+        long totalOrders = orderRepository.count();
+
+        var orders = orderRepository.findAll();
+        java.math.BigDecimal totalRevenue = orders.stream()
+            .filter(o -> o.getStatus() != com.example.demo.enumValues.OrderStatus.CANCELLED)
+            .map(o -> o.getTotalPrice() != null ? o.getTotalPrice() : java.math.BigDecimal.ZERO)
+            .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
         return java.util.Map.of(
             "totalUsers", totalUsers,
             "totalOwners", ownerCount,
             "totalRenters", renterCount,
+            "totalDevices", totalDevices,
+            "totalOrders", totalOrders,
+            "totalRevenue", totalRevenue,
             "activeUsers", users.stream().filter(User::isEnabled).count()
         );
     }

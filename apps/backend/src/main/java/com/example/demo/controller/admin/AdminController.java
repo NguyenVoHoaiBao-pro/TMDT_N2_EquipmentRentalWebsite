@@ -50,12 +50,27 @@ public class AdminController extends BaseController {
         return createResponse(HttpStatus.OK, 1000, "Updated user roles", null);
     }
 
+    private final OrderService orderService;
+
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/orders")
     public ResponseEntity<MyApiResponse<List<OrderSummaryResponse>>> listAllOrders() {
-        // For admin, reuse OrderService methods by fetching all orders and mapping
-        // We'll return empty for now or let service map all orders by status
-        return createResponse(HttpStatus.OK, 1000, "Not implemented: use payment/service reports", List.of());
+        return createResponse(HttpStatus.OK, 1000, "Success", orderService.getAllOrdersForAdmin());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/orders/{id}/cancel")
+    public ResponseEntity<MyApiResponse<Void>> cancelOrder(@PathVariable Long id) {
+        orderService.cancelOrderByAdmin(id);
+        return createResponse(HttpStatus.OK, 1000, "Order cancelled", null);
+    }
+
+    private final com.example.demo.repository.payment.PaymentRepository paymentRepository;
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/payments")
+    public ResponseEntity<MyApiResponse<List<com.example.demo.entity.Payment>>> listAllPayments() {
+        return createResponse(HttpStatus.OK, 1000, "Success", paymentRepository.findAll());
     }
 
     @PreAuthorize("hasRole('ADMIN')")

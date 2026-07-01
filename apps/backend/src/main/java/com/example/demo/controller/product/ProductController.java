@@ -4,6 +4,7 @@ import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.product.search.request.ProductFilterRequest;
 import com.example.demo.dto.product.core.response.ProductResponse;
+import com.example.demo.repository.review.ProductReviewRepository;
 import com.example.demo.service.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
@@ -18,6 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.example.demo.dto.product.review.ReviewDTO;
+import com.example.demo.security.CustomUserDetails;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
@@ -25,6 +33,7 @@ public class ProductController extends BaseController {
 
     private final ProductService productService;
     private final MessageSource messageSource;
+    private final ProductReviewRepository productReviewRepository;
 
     @GetMapping
     @io.swagger.v3.oas.annotations.security.SecurityRequirements
@@ -43,6 +52,24 @@ public class ProductController extends BaseController {
             : PageRequest.of(page, size);
 
         return createResponse(HttpStatus.OK, 1000, "Success", productService.getProducts(filter, rawPageable));
+    }
+
+    @GetMapping("/reviews/my")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<MyApiResponse<List<ReviewDTO>>> getMyReviews(
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        var reviews = productReviewRepository.findByOwnerId(ownerId).stream()
+            .map(rev -> new ReviewDTO(
+                rev.getId(),
+                rev.getRenter() != null ? rev.getRenter().getUsername() : "Ẩn danh",
+                rev.getRating(),
+                rev.getComment(),
+                rev.getCreatedAt()
+            ))
+            .toList();
+        return createResponse(HttpStatus.OK, 1000, "Success", reviews);
     }
 
 }

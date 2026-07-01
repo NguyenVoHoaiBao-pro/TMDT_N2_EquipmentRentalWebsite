@@ -18,6 +18,7 @@ import com.example.demo.repository.review.ProductReviewRepository;
 import com.example.demo.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -266,11 +267,35 @@ public class DeviceService {
         deviceRepository.save(device);
     }
 
+    @Transactional
+    public void addDeviceImage(Long deviceId, String imageUrl, Long ownerId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found"));
+
+        if (!device.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this device");
+        }
+
+        DeviceImage newImage = DeviceImage.builder()
+            .device(device)
+            .imageUrl(imageUrl)
+            .isPrimary(device.getDeviceImages().isEmpty())
+            .imageType(com.example.demo.enumValues.ImageType.REAL_SHOT)
+            .build();
+
+        deviceImageRepository.save(newImage);
+    }
+
     // For Owner Dashboard
     @Transactional(readOnly = true)
     public List<DeviceManageResponse> getDevicesByOwner(Long ownerId) {
         List<Device> myDevices = deviceRepository.findByOwnerId(ownerId);
 
+        return getDeviceManageResponses(myDevices);
+    }
+
+    @NonNull
+    private List<DeviceManageResponse> getDeviceManageResponses(List<Device> myDevices) {
         return myDevices.stream().map(device -> {
             List<DeviceImageRequest> allImages = device.getDeviceImages().stream()
                 .map(img -> new DeviceImageRequest(img.getImageUrl(), img.getImageType().name()))
@@ -296,22 +321,6 @@ public class DeviceService {
             .filter(d -> d.getStatus() == status)
             .toList();
 
-        return devices.stream().map(device -> {
-            List<DeviceImageRequest> allImages = device.getDeviceImages().stream()
-                .map(img -> new DeviceImageRequest(img.getImageUrl(), img.getImageType().name()))
-                .toList();
-
-            return new DeviceManageResponse(
-                device.getId(),
-                device.getProduct().getId(),
-                device.getProduct().getName(),
-                device.getSerialNumber(),
-                device.getConditionPercent(),
-                device.getPricePerDay(),
-                device.getDepositValue(),
-                device.getStatus().name(),
-                allImages
-            );
-        }).toList();
+        return getDeviceManageResponses(devices);
     }
 }

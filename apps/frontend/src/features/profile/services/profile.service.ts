@@ -97,3 +97,10 @@ export const useRevealKycMutation = () => {
     },
   });
 };
+
+export const useGetMyOrdersQuery = () => {
+  return useQuery({
+    queryKey: ['my-orders'],
+    queryFn: () => api.profile.getMyOrders(),
+  });
+};

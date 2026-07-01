@@ -1,33 +1,37 @@
 import { useEffect, useState } from 'react';
-import apiClient from '@/services/api.ts';
-
-interface Order {
-  orderId: number;
-  status: string;
-  startDate: string;
-  endDate: string;
-  totalPrice: number;
-  renterUsername: string;
-  renterPhone?: string;
-  renterEmail?: string;
-  deviceNames: string[];
-}
+import { deviceService } from '../services/deviceService';
+import type { Order } from '../types/device.types';
+import {
+  ClipboardList,
+  User,
+  Calendar as CalendarIcon,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Search,
+  Filter,
+} from 'lucide-react';
 
 export default function OwnerOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<Record<number, boolean>>({});
   const [error, setError] = useState<string | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportingOrder, setReportingOrder] = useState<number | null>(null);
+  const [reportTitle, setReportTitle] = useState('');
+  const [reportDescription, setReportDescription] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const loadOrders = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await apiClient.get('/orders/owner');
+      const data = await deviceService.getOwnerOrders();
       setOrders(data || []);
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'Failed to load orders');
+      setError(err?.message || 'Không thể tải danh sách đơn hàng.');
     } finally {
       setLoading(false);
     }
@@ -38,99 +42,189 @@ export default function OwnerOrdersPage() {
   }, []);
 
   const handleConfirm = async (orderId: number) => {
+    if (!window.confirm('Xác nhận đơn hàng này?')) return;
     setActionLoading(prev => ({ ...prev, [orderId]: true }));
     try {
-      const response = await apiClient.post(`/orders/${orderId}/owner/confirm`, {});
-      // Update the order in the list
+      const response = await deviceService.confirmOrder(orderId);
       setOrders(orders.map(o => o.orderId === orderId ? response : o));
-      alert('Order confirmed successfully!');
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'Failed to confirm order');
+      alert(err?.message || 'Không thể xác nhận đơn hàng.');
     } finally {
       setActionLoading(prev => ({ ...prev, [orderId]: false }));
     }
   };
 
   const handleReject = async (orderId: number) => {
-    if (!window.confirm('Are you sure you want to reject this order?')) return;
+    if (!window.confirm('Bạn chắc chắn muốn từ chối đơn hàng này?')) return;
 
     setActionLoading(prev => ({ ...prev, [orderId]: true }));
     try {
-      const response = await apiClient.post(`/orders/${orderId}/owner/reject`, {});
-      // Update the order in the list
+      const response = await deviceService.rejectOrder(orderId);
       setOrders(orders.map(o => o.orderId === orderId ? response : o));
-      alert('Order rejected successfully!');
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'Failed to reject order');
+      alert(err?.message || 'Không thể từ chối đơn hàng.');
     } finally {
       setActionLoading(prev => ({ ...prev, [orderId]: false }));
     }
   };
 
-  const canConfirm = (status: string) => status === 'PAID';
-  const canReject = (status: string) => status === 'PAID' || status === 'PENDING_PAYMENT';
+  const handleReportIssue = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportingOrder) return;
+
+    try {
+      await deviceService.reportIssue(reportingOrder, reportTitle, reportDescription);
+      alert('Đã gửi báo cáo sự cố thành công.');
+      setIsReportModalOpen(false);
+      setReportTitle('');
+      setReportDescription('');
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || 'Không thể gửi báo cáo.');
+    }
+  };
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'PAID':
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+      case 'CONFIRMED':
+        return 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'CANCELLED':
+        return 'bg-red-50 text-red-700 border-red-100';
+      case 'PENDING_PAYMENT':
+        return 'bg-amber-50 text-amber-700 border-amber-100';
+      default:
+        return 'bg-gray-50 text-gray-700 border-gray-100';
+    }
+  };
+
+  const filteredOrders = orders.filter(o =>
+    o.orderId.toString().includes(searchTerm) ||
+    o.renterUsername.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    o.deviceNames?.some(name => name.toLowerCase().includes(searchTerm.toLowerCase())),
+  );
 
   return (
-    <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen bg-gray-50/50">
-      <h1 className="text-2xl font-bold mb-4">Orders for My Devices</h1>
+    <div className="space-y-6 pb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý Đơn thuê</h1>
+          <p className="text-gray-500 mt-1">Theo dõi và xử lý các yêu cầu thuê thiết bị của bạn.</p>
+        </div>
+      </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">
           {error}
         </div>
       )}
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm theo mã đơn, khách hàng, thiết bị..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
+          />
+        </div>
+        <button
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition font-medium text-gray-600">
+          <Filter className="w-4 h-4" />
+          <span>Lọc trạng thái</span>
+        </button>
+      </div>
+
       {loading ? (
-        <p className="text-gray-600">Loading orders...</p>
-      ) : orders.length === 0 ? (
-        <p>No orders yet.</p>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-32 bg-white rounded-2xl border border-gray-100 animate-pulse" />
+          ))}
+        </div>
+      ) : filteredOrders.length === 0 ? (
+        <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
+          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ClipboardList className="w-8 h-8 text-gray-300" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900">Chưa có đơn hàng nào</h3>
+          <p className="text-gray-500 mt-1">Các đơn hàng mới sẽ xuất hiện tại đây khi có người thuê.</p>
+        </div>
       ) : (
         <div className="space-y-4">
-          {orders.map(o => (
-            <div key={o.orderId} className="p-4 bg-white rounded shadow hover:shadow-md transition">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold">Order #{o.orderId}</h3>
-                  <p className="text-sm text-gray-600">Renter: {o.renterUsername}</p>
-                  <p className="text-sm text-gray-600">
-                    Email: {o.renterEmail || 'N/A'} | Phone: {o.renterPhone || 'N/A'}
-                  </p>
-                  <p className="text-sm text-gray-600">Dates: {o.startDate} → {o.endDate}</p>
-                  <p className="text-sm font-medium">Total: ${o.totalPrice}</p>
-                  <p className="text-sm">Devices: {o.deviceNames?.join(', ')}</p>
-                </div>
-                <div className="text-right">
-                  <div className="mb-3">
-                    <span className={`px-3 py-1 rounded text-sm font-medium ${
-                      o.status === 'PAID' ? 'bg-green-100 text-green-800' :
-                      o.status === 'CONFIRMED' ? 'bg-blue-100 text-blue-800' :
-                      o.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {o.status}
-                    </span>
+          {filteredOrders.map(o => (
+            <div key={o.orderId}
+                 className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden group">
+              <div className="p-5">
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-sm font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">#{o.orderId}</span>
+                      <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${getStatusStyle(o.status)}`}>
+                        {o.status}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-gray-900 text-lg">
+                      {o.deviceNames?.join(', ') || 'Thiết bị không xác định'}
+                    </h3>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <User className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium text-gray-900">{o.renterUsername}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <CalendarIcon className="w-4 h-4 text-gray-400" />
+                        <span>{new Date(o.startDate).toLocaleDateString('vi-VN')} - {new Date(o.endDate).toLocaleDateString('vi-VN')}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span className="text-gray-400">Tổng cộng:</span>
+                        <span className="font-bold text-teal-600">{new Intl.NumberFormat('vi-VN', {
+                          style: 'currency',
+                          currency: 'VND',
+                        }).format(o.totalPrice)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-x-2">
-                    {canConfirm(o.status) && (
+
+                  <div className="flex items-center gap-2 lg:flex-col lg:items-end lg:justify-center">
+                    {o.status === 'PAID' && (
                       <button
                         onClick={() => handleConfirm(o.orderId)}
                         disabled={actionLoading[o.orderId]}
-                        className="px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 lg:w-32 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50"
                       >
-                        {actionLoading[o.orderId] ? 'Confirming...' : 'Confirm'}
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{actionLoading[o.orderId] ? '...' : 'Xác nhận'}</span>
                       </button>
                     )}
-                    {canReject(o.status) && (
+                    {(o.status === 'PAID' || o.status === 'PENDING_PAYMENT') && (
                       <button
                         onClick={() => handleReject(o.orderId)}
                         disabled={actionLoading[o.orderId]}
-                        className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 lg:w-32 bg-white border border-red-200 text-red-600 hover:bg-red-50 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center justify-center gap-1.5 disabled:opacity-50"
                       >
-                        {actionLoading[o.orderId] ? 'Rejecting...' : 'Reject'}
+                        <XCircle className="w-4 h-4" />
+                        <span>Từ chối</span>
                       </button>
                     )}
+                    <button
+                      onClick={() => {
+                        setReportingOrder(o.orderId);
+                        setIsReportModalOpen(true);
+                      }}
+                      className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition"
+                      title="Báo cáo sự cố"
+                    >
+                      <AlertTriangle className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -138,7 +232,69 @@ export default function OwnerOrdersPage() {
           ))}
         </div>
       )}
-    </main>
+
+      {/* Report Modal */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
+              <div className="flex items-center gap-2 text-amber-700">
+                <AlertTriangle className="w-5 h-5" />
+                <h2 className="text-xl font-bold">Báo cáo sự cố</h2>
+              </div>
+              <button onClick={() => setIsReportModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleReportIssue} className="p-6 space-y-4 text-left">
+              <p className="text-sm text-gray-500">Báo cáo các vấn đề liên quan đến đơn hàng <span
+                className="font-bold text-gray-900">#{reportingOrder}</span>.</p>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Tiêu đề</label>
+                <input
+                  type="text"
+                  required
+                  value={reportTitle}
+                  onChange={(e) => setReportTitle(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
+                  placeholder="Vd: Thiết bị hư hỏng, Khách trả trễ..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-1.5">Chi tiết nội dung</label>
+                <textarea
+                  required
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition"
+                  rows={4}
+                  placeholder="Mô tả chi tiết tình trạng sự cố để Admin hỗ trợ xử lý..."
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsReportModalOpen(false)}
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 transition"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-sm"
+                >
+                  Gửi báo cáo
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

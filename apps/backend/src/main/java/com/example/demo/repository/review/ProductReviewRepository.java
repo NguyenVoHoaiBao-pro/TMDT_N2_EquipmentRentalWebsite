@@ -23,4 +23,11 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, Lo
     // Tính điểm trung bình rating của một Dòng sản phẩm (Product)
     @Query("SELECT AVG(pr.rating) FROM ProductReview pr WHERE pr.product.id = :productId")
     Double getAverageRatingByProductId(@Param("productId") Long productId);
+
+    @Query("SELECT pr FROM ProductReview pr " +
+        "JOIN pr.product p " +
+        "JOIN Device d ON d.product.id = p.id " +
+        "WHERE d.owner.id = :ownerId " +
+        "ORDER BY pr.createdAt DESC")
+    List<ProductReview> findByOwnerId(@Param("ownerId") Long ownerId);
 }

@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS device_calendars;
 DROP TABLE IF EXISTS payments;
 DROP TABLE IF EXISTS user_reviews;
 DROP TABLE IF EXISTS product_reviews;
+DROP TABLE IF EXISTS issue_reports;
 DROP TABLE IF EXISTS order_details;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS cart_items;
@@ -185,16 +186,30 @@ CREATE TABLE device_calendars
 
 CREATE TABLE orders
 (
-    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
-    renter_id    BIGINT         NOT NULL,
-    start_date   DATE           NOT NULL,
-    end_date     DATE           NOT NULL,
-    total_price  DECIMAL(15, 2) NOT NULL,
-    status       ENUM('PENDING_PAYMENT', 'PAID', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL DEFAULT 'PENDING_PAYMENT',
-    created_at   TIMESTAMP      NOT NULL,
-    updated_at   TIMESTAMP      NOT NULL,
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    renter_id   BIGINT         NOT NULL,
+    start_date  DATE           NOT NULL,
+    end_date    DATE           NOT NULL,
+    total_price DECIMAL(15, 2) NOT NULL,
+    status      ENUM('PENDING_PAYMENT', 'PAID', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL DEFAULT 'PENDING_PAYMENT',
+    created_at  TIMESTAMP      NOT NULL,
+    updated_at  TIMESTAMP      NOT NULL,
     FOREIGN KEY (renter_id) REFERENCES users (id)
 );
+
+CREATE TABLE issue_reports
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id    BIGINT       NOT NULL,
+    reporter_id BIGINT       NOT NULL,
+    title       VARCHAR(255) NOT NULL,
+    description TEXT         NOT NULL,
+    status      ENUM('PENDING', 'PROCESSING','RESOLVED', 'REJECT') NOT NULL DEFAULT 'PENDING',
+    created_at  TIMESTAMP    NOT NULL,
+    updated_at  TIMESTAMP    NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders (id),
+    FOREIGN KEY (reporter_id) REFERENCES users (id)
+)
 
 -- TẠO MỚI BẢNG TRUNG GIAN: Chi tiết các thiết bị nằm trong đơn hàng đó
 CREATE TABLE order_details
@@ -218,30 +233,30 @@ CREATE TABLE cart_items
     start_date  DATE      NOT NULL,
     end_date    DATE      NOT NULL,
     rental_days INT       NOT NULL,
-    status ENUM('ACTIVE', 'EXPIRED', 'CHECKED_OUT') DEFAULT 'ACTIVE',
+    status      ENUM('ACTIVE', 'EXPIRED', 'CHECKED_OUT') DEFAULT 'ACTIVE',
     created_at  TIMESTAMP NOT NULL,
     updated_at  TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (device_id) REFERENCES devices(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (device_id) REFERENCES devices (id) ON DELETE CASCADE
 );
 
 -- BẢNG PAYMENTS (Đã tối ưu hóa cho API MoMo/VNPay thực tế)
 CREATE TABLE payments
 (
-    id                 BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id           BIGINT         NOT NULL,
-    amount             DECIMAL(15, 2) NOT NULL,
-    payment_method     ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
-    status             ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
-    provider_order_id  VARCHAR(255) NULL,
-    transaction_id     VARCHAR(255) NULL,
-    payment_token      VARCHAR(255) NULL UNIQUE,
-    request_payload    LONGTEXT NULL,
-    response_metadata  LONGTEXT NULL,
-    failure_reason     VARCHAR(500) NULL,
-    paid_at            TIMESTAMP NULL,
-    created_at         TIMESTAMP NOT NULL,
-    updated_at         TIMESTAMP NOT NULL,
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id          BIGINT         NOT NULL,
+    amount            DECIMAL(15, 2) NOT NULL,
+    payment_method    ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
+    status            ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+    provider_order_id VARCHAR(255) NULL,
+    transaction_id    VARCHAR(255) NULL,
+    payment_token     VARCHAR(255) NULL UNIQUE,
+    request_payload   LONGTEXT NULL,
+    response_metadata LONGTEXT NULL,
+    failure_reason    VARCHAR(500) NULL,
+    paid_at           TIMESTAMP NULL,
+    created_at        TIMESTAMP      NOT NULL,
+    updated_at        TIMESTAMP      NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id)
 );
 

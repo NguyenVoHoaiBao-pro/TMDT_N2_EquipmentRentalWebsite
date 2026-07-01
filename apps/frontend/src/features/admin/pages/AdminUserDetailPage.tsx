@@ -1,26 +1,17 @@
 // @/features/admin/pages/AdminUserDetailPage.tsx
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import apiClient from '@/services/api.ts';
+import { adminService } from '../services/adminService';
+import type { User } from '../types/admin.types';
 
 const AVAILABLE_ROLES = ['RENTER', 'OWNER', 'ADMIN'];
-
-// Định nghĩa Interface tường minh thay thế cho kiểu 'any' gây lỗi ESLint
-interface UserDetail {
-  id: number;
-  username: string;
-  email: string;
-  fullName: string;
-  roles: string[];
-  enabled: boolean;
-}
 
 export default function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const userId = id ? parseInt(id) : null;
 
-  const [user, setUser] = useState<UserDetail | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,11 +26,12 @@ export default function AdminUserDetailPage() {
       return;
     }
 
-    apiClient.get(`/admin/users/${userId}`)
-      .then((data: unknown) => {
-        const resolvedData = data as UserDetail;
+    adminService.getUserDetail(userId)
+      .then((data: any) => {
+        const resolvedData = data as User;
         setUser(resolvedData);
-        setSelectedRoles(new Set(resolvedData.roles || []));
+        // data.roles might be an array of strings or a Set depending on the response
+        setSelectedRoles(new Set((resolvedData as any).roles || []));
       })
       .catch(err => {
         console.error(err);
@@ -69,7 +61,7 @@ export default function AdminUserDetailPage() {
     try {
       setSaving(true);
       setUiFeedback(null);
-      await apiClient.put(`/admin/users/${userId}/roles`, Array.from(selectedRoles));
+      await adminService.updateUserRoles(userId, Array.from(selectedRoles));
       setUiFeedback({ type: 'success', message: 'Cập nhật phân quyền tài khoản thành công!' });
 
       // Chờ hiển thị thông báo thành công trong 1.5 giây trước khi chuyển trang
@@ -145,7 +137,7 @@ export default function AdminUserDetailPage() {
             </div>
             <div className="truncate">
               <h3 className="font-bold text-slate-900 truncate">{user.fullName || 'Chưa cập nhật'}</h3>
-              <p className="text-xs text-slate-500">ID tài khoản: #{user.id}</p>
+              <p className="text-xs text-slate-500">ID tài khoản: #{user.userId || (user as any).id}</p>
             </div>
           </div>
 
@@ -162,10 +154,10 @@ export default function AdminUserDetailPage() {
               <span className="block text-slate-400 text-xs font-medium">Trạng thái hệ thống</span>
               <span
                 className={`inline-flex items-center gap-1.5 font-semibold text-xs px-2.5 py-0.5 rounded-full mt-1 ${
-                  user.enabled ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
+                  user.active ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
                 }`}>
-                <span className={`w-1 h-1 rounded-full ${user.enabled ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-                {user.enabled ? 'Đang hoạt động' : 'Tạm dừng'}
+                <span className={`w-1 h-1 rounded-full ${user.active ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                {user.active ? 'Đang hoạt động' : 'Tạm dừng'}
               </span>
             </div>
           </div>

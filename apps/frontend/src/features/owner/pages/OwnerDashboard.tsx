@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import apiClient from '@/services/api.ts';
-
-interface OwnerStats {
-  totalOrders: number;
-  pendingOrders: number;
-  confirmedOrders: number;
-  activeRentals: number;
-  totalRevenue: number;
-}
+import { deviceService } from '../services/deviceService';
+import type { OwnerStats } from '../types/device.types';
+import { Package, Calendar, ClipboardList, TrendingUp, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 export default function OwnerDashboard() {
   const [stats, setStats] = useState<OwnerStats | null>(null);
@@ -18,11 +12,11 @@ export default function OwnerDashboard() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        const data = await apiClient.get('/orders/owner/overview');
+        const data = await deviceService.getOwnerStats();
         setStats(data);
       } catch (err: any) {
         console.error(err);
-        setError('Failed to load dashboard data');
+        setError('Không thể tải dữ liệu thống kê bảng điều khiển.');
       } finally {
         setLoading(false);
       }
@@ -30,71 +24,134 @@ export default function OwnerDashboard() {
     loadStats();
   }, []);
 
-  const StatCard = ({ title, value, color }: { title: string; value: number | string; color: string }) => (
-    <div className={`p-4 rounded shadow text-white ${color}`}>
-      <p className="text-sm font-medium opacity-90">{title}</p>
-      <p className="text-3xl font-bold mt-1">{value}</p>
+  const StatCard = ({ title, value, icon: Icon, color, trend }: {
+    title: string;
+    value: number | string;
+    icon: any;
+    color: string;
+    trend?: string
+  }) => (
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-start justify-between">
+      <div>
+        <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
+        <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
+        {trend && (
+          <p className="text-xs font-medium text-green-600 mt-2 flex items-center gap-1">
+            <TrendingUp className="w-3 h-3" /> {trend}
+          </p>
+        )}
+      </div>
+      <div className={`p-3 rounded-xl ${color}`}>
+        <Icon className="w-6 h-6 text-white" />
+      </div>
     </div>
   );
 
   return (
-    <main className="max-w-7xl mx-auto px-4 lg:px-8 py-8 min-h-screen bg-gray-50/50">
-      <h1 className="text-3xl font-bold mb-8">Owner Dashboard</h1>
+    <div className="space-y-8 pb-12">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Bảng điều khiển Chủ máy</h1>
+          <p className="text-gray-500 mt-1">Tổng quan về hiệu quả kinh doanh và thiết bị của bạn.</p>
+        </div>
+        <Link
+          to="/dashboard/inventory"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-medium transition shadow-sm flex items-center justify-center gap-2"
+        >
+          <Package className="w-4 h-4" />
+          <span>Đăng thiết bị mới</span>
+        </Link>
+      </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-100 text-red-700 rounded">
+        <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-3">
+          <AlertCircle className="w-5 h-5" />
           {error}
         </div>
       )}
 
       {/* Stats Section */}
-      {loading ? (
-        <div className="text-gray-600 mb-8">Loading dashboard data...</div>
-      ) : stats ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          <StatCard title="Total Orders" value={stats.totalOrders} color="bg-blue-600" />
-          <StatCard title="Pending Orders" value={stats.pendingOrders} color="bg-yellow-600" />
-          <StatCard title="Confirmed" value={stats.confirmedOrders} color="bg-green-600" />
-          <StatCard title="Active Rentals" value={stats.activeRentals} color="bg-purple-600" />
-          <StatCard
-            title="Total Revenue"
-            value={typeof stats.totalRevenue === 'number' ? `$${stats.totalRevenue.toFixed(2)}` : stats.totalRevenue}
-            color="bg-indigo-600"
-          />
-        </div>
-      ) : null}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {loading ? (
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 animate-pulse h-32" />
+          ))
+        ) : stats ? (
+          <>
+            <StatCard
+              title="Tổng đơn hàng"
+              value={stats.totalOrders}
+              icon={ClipboardList}
+              color="bg-blue-500"
+              trend="+12% so với tháng trước"
+            />
+            <StatCard
+              title="Đơn chờ xử lý"
+              value={stats.pendingOrders}
+              icon={Clock}
+              color="bg-amber-500"
+            />
+            <StatCard
+              title="Đang hoạt động"
+              value={stats.activeRentals}
+              icon={CheckCircle}
+              color="bg-green-500"
+            />
+            <StatCard
+              title="Doanh thu tạm tính"
+              value={new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+              }).format(stats.totalRevenue || 0)}
+              icon={TrendingUp}
+              color="bg-indigo-500"
+            />
+          </>
+        ) : null}
+      </div>
 
       {/* Quick Actions */}
-      <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link
-          to="/dashboard/inventory"
-          className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
-        >
-          <div className="text-3xl mb-2">📦</div>
-          <div className="font-semibold">Manage Devices</div>
-          <div className="text-sm text-gray-600 mt-1">View and edit your devices</div>
-        </Link>
+      <div>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">Lối tắt quản lý</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Link
+            to="/dashboard/inventory"
+            className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition group"
+          >
+            <div
+              className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Package className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-gray-900">Quản lý Kho</h3>
+            <p className="text-sm text-gray-500 mt-1">Cập nhật thông tin, giá thuê và trạng thái các thiết bị.</p>
+          </Link>
 
-        <Link
-          to="/dashboard/calendar"
-          className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
-        >
-          <div className="text-3xl mb-2">📅</div>
-          <div className="font-semibold">Calendar</div>
-          <div className="text-sm text-gray-600 mt-1">Block and manage availability</div>
-        </Link>
+          <Link
+            to="/dashboard/calendar"
+            className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-amber-200 transition group"
+          >
+            <div
+              className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+              <Calendar className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-gray-900">Lịch bận thiết bị</h3>
+            <p className="text-sm text-gray-500 mt-1">Xem lịch đã đặt và chủ động chặn ngày bận của thiết bị.</p>
+          </Link>
 
-        <Link
-          to="/dashboard/orders"
-          className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
-        >
-          <div className="text-3xl mb-2">📋</div>
-          <div className="font-semibold">Orders</div>
-          <div className="text-sm text-gray-600 mt-1">Confirm or reject rental requests</div>
-        </Link>
+          <Link
+            to="/dashboard/orders"
+            className="p-6 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-teal-200 transition group"
+          >
+            <div
+              className="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+              <ClipboardList className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-gray-900">Quản lý Đơn thuê</h3>
+            <p className="text-sm text-gray-500 mt-1">Xử lý các yêu cầu thuê mới và theo dõi trạng thái bàn giao.</p>
+          </Link>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }
 

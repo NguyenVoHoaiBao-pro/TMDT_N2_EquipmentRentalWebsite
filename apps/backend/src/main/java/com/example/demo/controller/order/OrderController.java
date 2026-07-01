@@ -76,4 +76,13 @@ public class OrderController extends BaseController {
         var stats = orderService.getOwnerStats(ownerId);
         return createResponse(HttpStatus.OK, 1000, "Owner overview retrieved", stats);
     }
+
+    @GetMapping("/my-orders")
+    public ResponseEntity<MyApiResponse<java.util.List<com.example.demo.dto.order.response.OrderSummaryResponse>>> getMyOrders(
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long renterId = userDetails.getId();
+        var list = orderService.getOrdersForRenter(renterId);
+        return createResponse(HttpStatus.OK, 1000, "Fetch my orders successfully", list);
+    }
 }

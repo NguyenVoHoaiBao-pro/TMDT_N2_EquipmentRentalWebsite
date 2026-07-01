@@ -1,7 +1,7 @@
-// @/features/admin/pages/AdminUsersPage.tsx
 import { useEffect, useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import apiClient from '@/services/api.ts';
+import { adminService } from '../services/adminService';
+import type { User } from '../types/admin.types';
 import SortableTable from '@/shared_components/ui/SortableTable.tsx';
 import FilterBar from '@/shared_components/ui/FilterBar.tsx';
 import {
@@ -16,7 +16,6 @@ import {
 import { usePagination } from '@/shared_components/hooks/usePagination.ts';
 import type { TableColumn } from '@/shared_components/ui/SortableTable.tsx';
 
-// Thêm các Icon SVG inline nội bộ thay vì cài đặt thư viện bên ngoài giúp giao diện chuyên nghiệp hơn
 const UserIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -33,28 +32,25 @@ const EditIcon = () => (
 
 interface FilterState {
   search: string;
+  status?: string;
 
-  [key: string]: any;
+  [key: string]: string | undefined;
 }
 
-interface User {
-  id: number;
-  username: string;
-  email: string;
+interface UserWithRoles extends User {
+  id?: number;
   fullName: string;
   roles: Set<string>;
-  enabled: boolean;
 }
 
 interface SortConfig {
-  key: keyof User;
+  key: keyof UserWithRoles;
   order: 'ASC' | 'DESC';
 }
 
 export default function AdminUsersPage() {
-  const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [allUsers, setAllUsers] = useState<UserWithRoles[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<FilterState>({ search: '', status: '' });
   const [sort, setSort] = useState<SortConfig | null>(null);
@@ -64,15 +60,18 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     setLoading(true);
-    apiClient.get('/admin/users')
+    adminService.getUsers()
       .then((response) => {
         const data = response as unknown as User[];
-        setAllUsers(data);
-        setError(null);
+        const usersWithRoles: UserWithRoles[] = data.map(user => ({
+          ...user,
+          fullName: user.fullName || 'Chưa cập nhật',
+          roles: new Set(user.role || []),
+        }));
+        setAllUsers(usersWithRoles);
       })
-      .catch((err: unknown) => {
-        console.error(err);
-        setError('Không thể tải danh sách tài khoản người dùng từ hệ thống.');
+      .catch((_err: unknown) => {
+        console.error(_err);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -91,7 +90,7 @@ export default function AdminUsersPage() {
     }
 
     if (filters.status) {
-      result = result.filter(u => (u.enabled ? 'active' : 'inactive') === filters.status);
+      result = result.filter(u => (u.active ? 'active' : 'inactive') === filters.status);
     }
 
     if (sort) {
@@ -103,6 +102,8 @@ export default function AdminUsersPage() {
         const cleanB = bVal instanceof Set ? Array.from(bVal).join(', ') : bVal;
 
         if (cleanA === cleanB) return 0;
+        if (cleanA == null) return 1;
+        if (cleanB == null) return -1;
         if (cleanA < cleanB) return sort.order === 'ASC' ? -1 : 1;
         return sort.order === 'ASC' ? 1 : -1;
       });
@@ -124,18 +125,22 @@ export default function AdminUsersPage() {
   };
 
   const handleSort = (key: string, order: 'ASC' | 'DESC') => {
-    setSort({ key: key as keyof User, order });
+    setSort({ key: key as keyof UserWithRoles, order });
   };
 
-  // Định nghĩa các cột hiển thị trên bảng dữ liệu
-  // FIX lỗi trùng lặp Key: Đổi key cột cuối cùng thành 'username' (hoặc 'enabled') để không trùng với 'id' cột đầu tiên
-  const columns: TableColumn<User>[] = [
-    { key: 'id', header: 'ID', sortable: true, width: '70px' },
+  const columns: TableColumn<UserWithRoles>[] = [
+    {
+      key: 'userId',
+      header: 'ID',
+      sortable: true,
+      width: '70px',
+      render: (_val, row) => row.userId || (row as UserWithRoles & { id: number }).id,
+    },
     {
       key: 'fullName',
       header: 'Họ và tên / Username',
       sortable: true,
-      render: (_, row) => (
+      render: (_val: unknown, row) => (
         <div className="flex items-center space-x-3">
           <div
             className="w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-semibold text-xs border border-slate-200">
@@ -172,31 +177,31 @@ export default function AdminUsersPage() {
       },
     },
     {
-      key: 'enabled',
+      key: 'active',
       header: 'Trạng thái',
       sortable: true,
       render: (val: unknown) => {
-        const isEnabled = val as boolean;
+        const isActive = val as boolean;
         return (
           <span
             className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${
-              isEnabled
+              isActive
                 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                 : 'bg-rose-50 text-rose-700 border border-rose-200'
             }`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${isEnabled ? 'bg-emerald-500' : 'bg-rose-500'}`} />
-            {isEnabled ? 'Hoạt động' : 'Tạm khóa'}
+            <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+            {isActive ? 'Hoạt động' : 'Tạm khóa'}
           </span>
         );
       },
     },
     {
-      key: 'username', // Sửa từ 'id' thành 'username' để triệt tiêu lỗi trùng Key trong React
+      key: 'username',
       header: 'Hành động',
-      render: (_, row) => (
+      render: (_val: unknown, row) => (
         <Link
-          to={`/admin/users/${row.id}`}
+          to={`/admin/users/${row.userId || (row as UserWithRoles & { id: number }).id}`}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium text-sm bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md transition-colors"
         >
           <EditIcon />
@@ -205,7 +210,6 @@ export default function AdminUsersPage() {
       ),
     },
   ];
-
 
   const renderPageNumbers = () => {
     const pages = [];
@@ -295,15 +299,6 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Thông báo lỗi nếu có */}
-      {error && (
-        <div
-          className="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-sm flex items-center space-x-2">
-          <span>⚠️</span>
-          <span>{error}</span>
-        </div>
-      )}
-
       {/* Vùng Lọc và Tìm kiếm */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <FilterBar
@@ -327,7 +322,7 @@ export default function AdminUsersPage() {
         <SortableTable
           columns={columns}
           data={displayedUsers}
-          rowKey="id"
+          rowKey="userId"
           onSort={handleSort}
           currentSort={sort}
           isLoading={loading}

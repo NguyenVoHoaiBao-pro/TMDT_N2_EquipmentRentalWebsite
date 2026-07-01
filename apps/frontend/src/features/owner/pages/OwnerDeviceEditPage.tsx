@@ -2,16 +2,27 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useDeviceEdit } from '../hooks/useDeviceEdit.ts';
 import type { DeviceUpdatePayload } from '../types/device.types.ts';
+import apiClient from '@/services/api.ts';
 
 export default function OwnerDeviceEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const deviceId = id ? parseInt(id) : null;
 
-  const { device, loading, saving, error, updateDevice, setImageAsPrimary, deleteImage } = useDeviceEdit(deviceId);
+  const {
+    device,
+    loading,
+    saving,
+    error,
+    updateDevice,
+    setImageAsPrimary,
+    deleteImage,
+    addImage,
+  } = useDeviceEdit(deviceId);
 
   const [pricePerDay, setPricePerDay] = useState<number>(0);
   const [depositValue, setDepositValue] = useState<number>(0);
+  const [uploading, setUploading] = useState(false);
 
   // Update form when device loads
   if (device && (pricePerDay === 0 || depositValue === 0)) {
@@ -43,6 +54,33 @@ export default function OwnerDeviceEditPage() {
       if (success) {
         alert('Image deleted');
       }
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await apiClient.post('/uploads', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const imageUrl = response; // apiClient returns data directly
+      if (typeof imageUrl === 'string') {
+        await addImage(imageUrl);
+        alert('Image uploaded successfully');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || 'Failed to upload image');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
     }
   };
 
@@ -113,7 +151,25 @@ export default function OwnerDeviceEditPage() {
 
         {/* Images Section */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Device Images</h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-semibold">Device Images</h2>
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileUpload}
+                disabled={uploading}
+                className="hidden"
+                id="image-upload"
+              />
+              <label
+                htmlFor="image-upload"
+                className={`cursor-pointer bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded text-sm font-medium ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {uploading ? 'Uploading...' : 'Add Image'}
+              </label>
+            </div>
+          </div>
           {device.images.length === 0 ? (
             <p className="text-gray-500">No images uploaded yet</p>
           ) : (
@@ -122,7 +178,8 @@ export default function OwnerDeviceEditPage() {
                 <div key={img.id} className="border rounded overflow-hidden bg-gray-100">
                   <img src={img.imageUrl} alt="Device" className="w-full h-48 object-cover" />
                   <div className="p-3 space-y-2">
-                    {img.isPrimary && <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded">Primary</span>}
+                    {img.isPrimary &&
+                      <span className="inline-block bg-blue-500 text-white text-xs px-2 py-1 rounded">Primary</span>}
                     <div className="flex gap-2 text-xs">
                       {!img.isPrimary && (
                         <button
