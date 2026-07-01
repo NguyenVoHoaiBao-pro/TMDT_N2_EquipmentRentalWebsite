@@ -2,6 +2,7 @@ package com.example.demo.controller.product;
 
 import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
+import com.example.demo.dto.product.core.response.LookupResponse;
 import com.example.demo.entity.Brand;
 import com.example.demo.service.product.BrandService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class BrandController extends BaseController {
     private final BrandService brandService;
 
     @GetMapping
-    public ResponseEntity<MyApiResponse<List<Brand>>> getAllBrands() {
+    public ResponseEntity<MyApiResponse<List<LookupResponse>>> getAllBrands() {
         return createResponse(HttpStatus.OK, 1000, "Success", brandService.getAllBrands());
     }
 

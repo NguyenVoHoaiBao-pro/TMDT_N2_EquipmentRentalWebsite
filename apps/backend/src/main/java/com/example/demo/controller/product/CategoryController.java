@@ -2,6 +2,7 @@ package com.example.demo.controller.product;
 
 import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
+import com.example.demo.dto.product.core.response.LookupResponse;
 import com.example.demo.entity.Category;
 import com.example.demo.service.product.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class CategoryController extends BaseController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<MyApiResponse<List<Category>>> getAllCategories() {
+    public ResponseEntity<MyApiResponse<List<LookupResponse>>> getAllCategories() {
         return createResponse(HttpStatus.OK, 1000, "Success", categoryService.getAllCategories());
     }
 

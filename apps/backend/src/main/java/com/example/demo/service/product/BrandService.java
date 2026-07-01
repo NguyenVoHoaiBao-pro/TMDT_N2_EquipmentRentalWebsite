@@ -1,5 +1,6 @@
 package com.example.demo.service.product;
 
+import com.example.demo.dto.product.core.response.LookupResponse;
 import com.example.demo.entity.Brand;
 import com.example.demo.repository.product.BrandRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +14,11 @@ import java.util.List;
 public class BrandService {
     private final BrandRepository brandRepository;
 
-    public List<Brand> getAllBrands() {
-        return brandRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<LookupResponse> getAllBrands() {
+        return brandRepository.findAll().stream()
+            .map(b -> new LookupResponse(b.getId(), b.getName()))
+            .toList();
     }
 
     @Transactional

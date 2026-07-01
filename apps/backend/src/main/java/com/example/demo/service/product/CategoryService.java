@@ -1,5 +1,6 @@
 package com.example.demo.service.product;
 
+import com.example.demo.dto.product.core.response.LookupResponse;
 import com.example.demo.entity.Category;
 import com.example.demo.repository.product.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +14,11 @@ import java.util.List;
 public class CategoryService {
     private final CategoryRepository categoryRepository;
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<LookupResponse> getAllCategories() {
+        return categoryRepository.findAll().stream()
+            .map(c -> new LookupResponse(c.getId(), c.getName()))
+            .toList();
     }
 
     @Transactional
