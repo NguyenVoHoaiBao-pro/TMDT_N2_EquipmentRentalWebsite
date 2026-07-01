@@ -22,6 +22,8 @@ public class OrderSummaryResponse {
     private LocalDate endDate;
     private BigDecimal totalPrice;
     private String renterUsername;
+    private String renterPhone;
+    private String renterEmail;
     private List<String> deviceNames; // for simplicity
 }
 

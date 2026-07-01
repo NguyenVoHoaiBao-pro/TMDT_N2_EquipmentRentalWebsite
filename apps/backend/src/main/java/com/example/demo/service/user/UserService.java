@@ -296,4 +296,23 @@ public class UserService {
         userRepository.save(user);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> getAdminStats() {
+        var users = userRepository.findAll();
+        long totalUsers = users.size();
+        long ownerCount = users.stream()
+            .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRole() == RoleType.OWNER))
+            .count();
+        long renterCount = users.stream()
+            .filter(u -> u.getRoles().stream().anyMatch(r -> r.getRole() == RoleType.RENTER))
+            .count();
+
+        return java.util.Map.of(
+            "totalUsers", totalUsers,
+            "totalOwners", ownerCount,
+            "totalRenters", renterCount,
+            "activeUsers", users.stream().filter(User::isEnabled).count()
+        );
+    }
+
 }

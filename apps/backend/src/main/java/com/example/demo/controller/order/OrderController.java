@@ -44,4 +44,36 @@ public class OrderController extends BaseController {
         var list = orderService.getOrdersForOwner(ownerId);
         return createResponse(HttpStatus.OK, 1000, "Fetch owner orders successfully", list);
     }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @PostMapping("/{orderId}/owner/confirm")
+    public ResponseEntity<MyApiResponse<com.example.demo.dto.order.response.OrderSummaryResponse>> confirmOrder(
+        @PathVariable Long orderId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        var response = orderService.confirmOrder(orderId, ownerId);
+        return createResponse(HttpStatus.OK, 1000, "Order confirmed successfully", response);
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @PostMapping("/{orderId}/owner/reject")
+    public ResponseEntity<MyApiResponse<com.example.demo.dto.order.response.OrderSummaryResponse>> rejectOrder(
+        @PathVariable Long orderId,
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        var response = orderService.rejectOrder(orderId, ownerId);
+        return createResponse(HttpStatus.OK, 1000, "Order rejected successfully", response);
+    }
+
+    @PreAuthorize("hasRole('OWNER')")
+    @GetMapping("/owner/overview")
+    public ResponseEntity<MyApiResponse<java.util.Map<String, Object>>> getOwnerOverview(
+        @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long ownerId = userDetails.getId();
+        var stats = orderService.getOwnerStats(ownerId);
+        return createResponse(HttpStatus.OK, 1000, "Owner overview retrieved", stats);
+    }
 }

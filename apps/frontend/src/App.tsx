@@ -25,6 +25,7 @@ import { BankTransferPage } from '@/features/checkout/pages/BankTransferPage.tsx
 import { CheckoutSuccessPage } from '@/features/checkout/pages/Checkout SuccessPage.tsx';
 import { CheckoutPage } from '@/features/checkout/pages/CheckoutPage.tsx';
 import { DashboardLayout } from '@/components/layout/DashboardLayout.tsx';
+import AdminDashboard from '@/features/admin/pages/AdminDashboard.tsx';
 
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
       {/* 4. Protected Routes áp dụng MENU SIDEBAR riêng cho ADMIN */}
       <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
         <Route element={<DashboardLayout />}> {/* Thay SimpleLayout bằng DashboardLayout */}
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
           <Route path="/admin/devices" element={<AdminDevicesPage />} />

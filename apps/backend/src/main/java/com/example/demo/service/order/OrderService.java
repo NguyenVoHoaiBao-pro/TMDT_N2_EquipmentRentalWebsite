@@ -146,8 +146,101 @@ public class OrderService {
                 .endDate(o.getEndDate())
                 .totalPrice(o.getTotalPrice())
                 .renterUsername(o.getRenter() != null ? o.getRenter().getUsername() : "Unknown")
+                .renterPhone(o.getRenter() != null ? o.getRenter().getPhoneNumber() : "")
+                .renterEmail(o.getRenter() != null ? o.getRenter().getEmail() : "")
                 .deviceNames(deviceNames)
                 .build();
         }).toList();
+    }
+
+    @Transactional
+    public com.example.demo.dto.order.response.OrderSummaryResponse confirmOrder(Long orderId, Long ownerId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + orderId));
+
+        // Verify owner has devices in this order
+        boolean ownerHasDeviceInOrder = order.getOrderDetails().stream()
+            .anyMatch(od -> od.getDevice().getOwner().getId().equals(ownerId));
+
+        if (!ownerHasDeviceInOrder) {
+            throw new org.springframework.security.access.AccessDeniedException("You don't own any devices in this order");
+        }
+
+        // Only allow confirming PAID orders
+        if (order.getStatus() != OrderStatus.PAID) {
+            throw new IllegalStateException("Order must be PAID before confirming. Current status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CONFIRMED);
+        order = orderRepository.save(order);
+
+        return buildOrderSummaryResponse(order, ownerId);
+    }
+
+    @Transactional
+    public com.example.demo.dto.order.response.OrderSummaryResponse rejectOrder(Long orderId, Long ownerId) {
+        Order order = orderRepository.findById(orderId)
+            .orElseThrow(() -> new EntityNotFoundException("Order not found with ID: " + orderId));
+
+        // Verify owner has devices in this order
+        boolean ownerHasDeviceInOrder = order.getOrderDetails().stream()
+            .anyMatch(od -> od.getDevice().getOwner().getId().equals(ownerId));
+
+        if (!ownerHasDeviceInOrder) {
+            throw new org.springframework.security.access.AccessDeniedException("You don't own any devices in this order");
+        }
+
+        // Only allow rejecting PAID or PENDING_PAYMENT orders
+        if (order.getStatus() != OrderStatus.PAID && order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Cannot reject order with status: " + order.getStatus());
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        order = orderRepository.save(order);
+
+        return buildOrderSummaryResponse(order, ownerId);
+    }
+
+    private com.example.demo.dto.order.response.OrderSummaryResponse buildOrderSummaryResponse(Order o, Long ownerId) {
+        var deviceNames = o.getOrderDetails().stream()
+            .filter(od -> od.getDevice().getOwner().getId().equals(ownerId))
+            .map(od -> od.getDevice().getProduct().getName())
+            .toList();
+
+        return com.example.demo.dto.order.response.OrderSummaryResponse.builder()
+            .orderId(o.getId())
+            .status(o.getStatus().name())
+            .startDate(o.getStartDate())
+            .endDate(o.getEndDate())
+            .totalPrice(o.getTotalPrice())
+            .renterUsername(o.getRenter() != null ? o.getRenter().getUsername() : "Unknown")
+            .renterPhone(o.getRenter() != null ? o.getRenter().getPhoneNumber() : "")
+            .renterEmail(o.getRenter() != null ? o.getRenter().getEmail() : "")
+            .deviceNames(deviceNames)
+            .build();
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> getOwnerStats(Long ownerId) {
+        // Fetch all orders for owner
+        var orders = orderRepository.findOrdersByOwnerId(ownerId);
+
+        long paidOrders = orders.stream().filter(o -> o.getStatus() == OrderStatus.PAID).count();
+        long confirmedOrders = orders.stream().filter(o -> o.getStatus() == OrderStatus.CONFIRMED).count();
+        long pickedUpOrders = orders.stream().filter(o -> o.getStatus() == OrderStatus.PICKED_UP).count();
+        long totalOrders = orders.size();
+
+        BigDecimal totalRevenue = orders.stream()
+            .filter(o -> o.getStatus() != OrderStatus.CANCELLED)
+            .map(Order::getTotalPrice)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return Map.of(
+            "totalOrders", totalOrders,
+            "pendingOrders", paidOrders,
+            "confirmedOrders", confirmedOrders,
+            "activeRentals", pickedUpOrders,
+            "totalRevenue", totalRevenue
+        );
     }
 }

@@ -57,6 +57,13 @@ public class AdminController extends BaseController {
         // We'll return empty for now or let service map all orders by status
         return createResponse(HttpStatus.OK, 1000, "Not implemented: use payment/service reports", List.of());
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/overview")
+    public ResponseEntity<MyApiResponse<java.util.Map<String, Object>>> getAdminOverview() {
+        var stats = userService.getAdminStats();
+        return createResponse(HttpStatus.OK, 1000, "Admin overview retrieved", stats);
+    }
 }
 
 
