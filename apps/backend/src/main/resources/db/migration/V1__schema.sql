@@ -204,12 +204,12 @@ CREATE TABLE issue_reports
     reporter_id BIGINT       NOT NULL,
     title       VARCHAR(255) NOT NULL,
     description TEXT         NOT NULL,
-    status      ENUM('PENDING', 'PROCESSING','RESOLVED', 'REJECT') NOT NULL DEFAULT 'PENDING',
+    status      ENUM('PENDING', 'PROCESSING','RESOLVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
     created_at  TIMESTAMP    NOT NULL,
     updated_at  TIMESTAMP    NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (reporter_id) REFERENCES users (id)
-)
+);
 
 -- TẠO MỚI BẢNG TRUNG GIAN: Chi tiết các thiết bị nằm trong đơn hàng đó
 CREATE TABLE order_details
