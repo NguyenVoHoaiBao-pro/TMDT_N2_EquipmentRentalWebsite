@@ -8,11 +8,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface OrderRepository extends JpaRepository<Order, Long> { // Chuyển thành public
+public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    // Tìm tất cả đơn hàng của một người thuê (Renter)
-    List<Order> findByRenterId(Long renterId);
+    List<Order> findByRenterIdOrderByCreatedAtDesc(Long renterId);
 
-    // Tìm các đơn hàng theo trạng thái (Phục vụ việc xử lý đơn hàng: PENDING, CONFIRMED...)
     List<Order> findByStatus(OrderStatus status);
+
+    // Find distinct orders that contain devices owned by a specific owner
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT o FROM Order o JOIN o.orderDetails d WHERE d.device.owner.id = :ownerId ORDER BY o.createdAt DESC")
+    java.util.List<Order> findOrdersByOwnerId(@org.springframework.data.repository.query.Param("ownerId") Long ownerId);
 }

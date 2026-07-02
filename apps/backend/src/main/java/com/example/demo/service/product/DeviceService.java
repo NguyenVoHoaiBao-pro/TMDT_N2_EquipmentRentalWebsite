@@ -1,14 +1,12 @@
 package com.example.demo.service.product;
 
 import com.example.demo.dto.product.core.response.ProductInformation;
+import com.example.demo.dto.product.core.response.ProductResponse;
 import com.example.demo.dto.product.core.response.SpecificationDTO;
-import com.example.demo.dto.product.device.response.DeviceDetailResponse;
-import com.example.demo.dto.product.device.response.DeviceImageDTO;
-import com.example.demo.dto.product.device.response.DeviceInformation;
+import com.example.demo.dto.product.device.response.*;
 import com.example.demo.dto.product.owner.OwnerDTO;
 import com.example.demo.dto.product.device.request.DeviceImageRequest;
 import com.example.demo.dto.product.device.request.DeviceRequest;
-import com.example.demo.dto.product.device.response.DeviceManageResponse;
 import com.example.demo.dto.product.review.ReviewDTO;
 import com.example.demo.entity.*;
 import com.example.demo.enumValues.DeviceStatus;
@@ -16,10 +14,11 @@ import com.example.demo.repository.product.DeviceCalendarRepository;
 import com.example.demo.repository.product.DeviceImageRepository;
 import com.example.demo.repository.product.DeviceRepository;
 import com.example.demo.repository.product.ProductRepository;
-import com.example.demo.repository.review.ReviewRepository;
+import com.example.demo.repository.review.ProductReviewRepository;
 import com.example.demo.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,7 +38,7 @@ public class DeviceService {
     private final DeviceImageService deviceImageService;
     private final ProductService productService;
     private final DeviceImageRepository deviceImageRepository;
-    private final ReviewRepository reviewRepository;
+    private final ProductReviewRepository productReviewRepository;
     private final DeviceCalendarRepository deviceCalendarRepository;
 
     @Transactional
@@ -80,7 +79,6 @@ public class DeviceService {
         Device device = deviceRepository.findFirstByProductIdAndStatus(productId, DeviceStatus.APPROVED)
             .orElseThrow(() -> new EntityNotFoundException("Dòng sản phẩm này hiện tại không có máy nào sẵn sàng cho thuê!"));
 
-
         Product product = device.getProduct();
         User owner = device.getOwner();
 
@@ -93,28 +91,26 @@ public class DeviceService {
 
         List<String> includedItemsList = new ArrayList<>();
         if (product.getAccessoriesIncluded() != null && !product.getAccessoriesIncluded().isBlank()) {
-            includedItemsList = Arrays.stream(product.getAccessoriesIncluded().split("\\R")) // "\\R regex pattern matches any newline character"
+            includedItemsList = Arrays.stream(product.getAccessoriesIncluded().split("\\R"))
                 .map(String::trim)
                 .filter(item -> !item.isEmpty())
                 .toList();
         }
-        ProductInformation productInfo =
-            new ProductInformation(
-                product.getId(),
-                product.getName(),
-                product.getSlug(),
-                product.getCategory() != null ? product.getCategory().getName() : null,
-                product.getBrand() != null ? product.getBrand().getName() : null,
-                product.getDescription(),
-                specificationDTOs,
-                includedItemsList
-            );
 
-        // 3. Tính toán trạng thái vận hành động (availability) dựa trên bảng lịch ngày hôm nay
-        String calculatedAvailability = "AVAILABLE"; // Mặc định là sẵn sàng cho thuê
+        ProductInformation productInfo = new ProductInformation(
+            product.getId(),
+            product.getName(),
+            product.getSlug(),
+            product.getCategory() != null ? product.getCategory().getName() : null,
+            product.getBrand() != null ? product.getBrand().getName() : null,
+            product.getDescription(),
+            specificationDTOs,
+            includedItemsList
+        );
+
+        String calculatedAvailability = "AVAILABLE";
         var todayCalendar = deviceCalendarRepository.findByDeviceIdAndEventDate(device.getId(), LocalDate.now());
         if (todayCalendar.isPresent()) {
-            // Áp dụng map trạng thái từ bảng lịch sang chuẩn FE yêu cầu
             calculatedAvailability = switch (todayCalendar.get().getStatus()) {
                 case BOOKED -> "RENTED";
                 case OWNER_BLOCK -> "RESERVED";
@@ -122,65 +118,185 @@ public class DeviceService {
             };
         }
 
-        // 4. Lấy danh sách ảnh thực tế của thiết bị và map sang DeviceImageDTO
         List<DeviceImage> deviceImages = deviceImageRepository.findByDeviceId(device.getId());
         List<DeviceImageDTO> imageDTOs = deviceImages.stream()
             .map(img -> new DeviceImageDTO(img.getId(), img.getImageUrl(), img.isPrimary()))
             .toList();
 
-        // 5. Map cụm 2: DeviceInformation (Thông tin cá thể máy)
-        DeviceInformation deviceInfo =
-            new DeviceInformation(
-                device.getId(),
-                owner.getId(),
-                device.getConditionPercent(),
-                calculatedAvailability,
-                device.getPricePerDay(),
-                device.getDepositValue(),
-                BigDecimal.ZERO, // Trường insurance chưa có trong DB, tạm thời hardcode 0 để FE không bị lỗi
-                imageDTOs
-            );
+        List<LocalDate> futureBlockedDates = deviceCalendarRepository.findFutureBlockedDatesByDeviceId(device.getId());
+        List<String> bookDatesStr = futureBlockedDates.stream()
+            .map(LocalDate::toString)
+            .toList();
 
-        // 6. Map cụm 3: OwnerDTO (Thông tin chủ sở hữu máy)
-        OwnerDTO ownerInfo =
-            new OwnerDTO(
-                owner.getId(),
-                owner.getFullName(),
-                owner.getAvatarUrl(),
-                true // Tạm thời hardcode đã xác minh profile sơ bộ, bạn có thể kiểm tra kycVerifications sau
-            );
+        DeviceInformation deviceInfo = new DeviceInformation(
+            device.getId(),
+            owner.getId(),
+            device.getConditionPercent(),
+            calculatedAvailability,
+            device.getPricePerDay(),
+            device.getDepositValue(),
+            BigDecimal.ZERO,
+            imageDTOs,
+            bookDatesStr
+        );
 
-        // 7. Lấy danh sách 3 bài đánh giá mới nhất (Preview) và map cụm 4: ReviewDTO
-        List<Review> latestReviews = reviewRepository.findLatestReviewsByDeviceId(device.getId(), PageRequest.of(0, 3));
+        OwnerDTO ownerInfo = new OwnerDTO(
+            owner.getId(),
+            owner.getFullName(),
+            owner.getAvatarUrl(),
+            true
+        );
+
+        List<ProductReview> latestReviews = productReviewRepository.findLatestReviewsByDeviceId(device.getId(), PageRequest.of(0, 3));
         List<ReviewDTO> reviewDTOs = latestReviews.stream()
             .map(rev -> new ReviewDTO(
                 rev.getId(),
-                rev.getAuthor() != null ? rev.getAuthor().getUsername() : "Ẩn danh",
+                rev.getRenter() != null ? rev.getRenter().getUsername() : "Ẩn danh",
                 rev.getRating(),
                 rev.getComment(),
                 rev.getCreatedAt()
             ))
             .toList();
 
-        // 8. Đóng gói tất cả các cụm dữ liệu lồng nhau vào Object Response tổng ngoài cùng và trả về
+        List<ProductResponse> relatedProducts = productService.getTop4RelatedProducts(
+            product.getCategory() != null ? product.getCategory().getName() : null,
+            product.getId()
+        );
+
         return new DeviceDetailResponse(
             productInfo,
             deviceInfo,
             ownerInfo,
-            reviewDTOs
+            reviewDTOs,
+            relatedProducts
         );
     }
 
+    @Transactional(readOnly = true)
+    public DeviceEditResponse getDeviceForOwnerEdit(Long deviceId, Long ownerId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found"));
+
+        if (!device.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this device");
+        }
+
+        var images = deviceImageRepository.findByDeviceId(deviceId).stream()
+            .map(img -> DeviceEditResponse.DeviceImageDTO.builder()
+                .id(img.getId())
+                .imageUrl(img.getImageUrl())
+                .isPrimary(img.isPrimary())
+                .build())
+            .toList();
+
+        return DeviceEditResponse.builder()
+            .id(device.getId())
+            .productId(device.getProduct().getId())
+            .productName(device.getProduct().getName())
+            .serialNumber(device.getSerialNumber())
+            .conditionPercent(device.getConditionPercent())
+            .pricePerDay(device.getPricePerDay())
+            .depositValue(device.getDepositValue())
+            .status(device.getStatus().name())
+            .images(images)
+            .build();
+    }
+
+    @Transactional
+    public void updateDeviceByOwner(Long deviceId, Long ownerId, com.example.demo.dto.product.device.request.DeviceUpdateRequest request) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found"));
+
+        if (!device.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this device");
+        }
+
+        if (request.getPricePerDay() != null) {
+            device.setPricePerDay(request.getPricePerDay());
+        }
+        if (request.getDepositValue() != null) {
+            device.setDepositValue(request.getDepositValue());
+        }
+
+        deviceRepository.save(device);
+        productService.updateBasePrice(device.getProduct().getId());
+    }
+
+    @Transactional
+    public void setDevicePrimaryImage(Long deviceId, Long imageId, Long ownerId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found"));
+
+        if (!device.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this device");
+        }
+
+        device.getDeviceImages().forEach(img -> img.setPrimary(false));
+
+        device.getDeviceImages().stream()
+            .filter(img -> img.getId().equals(imageId))
+            .findFirst()
+            .ifPresentOrElse(
+                img -> img.setPrimary(true),
+                () -> {
+                    throw new EntityNotFoundException("Image not found");
+                }
+            );
+
+        deviceRepository.save(device);
+    }
+
+    @Transactional
+    public void deleteDeviceImage(Long deviceId, Long imageId, Long ownerId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found"));
+
+        if (!device.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this device");
+        }
+
+        var image = deviceImageRepository.findById(imageId)
+            .orElseThrow(() -> new EntityNotFoundException("Image not found"));
+
+        if (!image.getDevice().getId().equals(deviceId)) {
+            throw new IllegalArgumentException("Image does not belong to this device");
+        }
+
+        device.getDeviceImages().remove(image);
+        deviceImageRepository.delete(image);
+        deviceRepository.save(device);
+    }
+
+    @Transactional
+    public void addDeviceImage(Long deviceId, String imageUrl, Long ownerId) {
+        Device device = deviceRepository.findById(deviceId)
+            .orElseThrow(() -> new EntityNotFoundException("Device not found"));
+
+        if (!device.getOwner().getId().equals(ownerId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You do not own this device");
+        }
+
+        DeviceImage newImage = DeviceImage.builder()
+            .device(device)
+            .imageUrl(imageUrl)
+            .isPrimary(device.getDeviceImages().isEmpty())
+            .imageType(com.example.demo.enumValues.ImageType.REAL_SHOT)
+            .build();
+
+        deviceImageRepository.save(newImage);
+    }
 
     // For Owner Dashboard
     @Transactional(readOnly = true)
     public List<DeviceManageResponse> getDevicesByOwner(Long ownerId) {
-        // 1. Find all devices owned by the owner
         List<Device> myDevices = deviceRepository.findByOwnerId(ownerId);
 
-        // 2. Iterate through each device and map to DeviceManageResponse
+        return getDeviceManageResponses(myDevices);
+    }
+
+    @NonNull
+    private List<DeviceManageResponse> getDeviceManageResponses(List<Device> myDevices) {
         return myDevices.stream().map(device -> {
-            // Collect all images for this device
             List<DeviceImageRequest> allImages = device.getDeviceImages().stream()
                 .map(img -> new DeviceImageRequest(img.getImageUrl(), img.getImageType().name()))
                 .toList();
@@ -193,10 +309,18 @@ public class DeviceService {
                 device.getConditionPercent(),
                 device.getPricePerDay(),
                 device.getDepositValue(),
-                device.getStatus().name(), // PENDING_APPROVAL, APPROVED, REJECTED
+                device.getStatus().name(),
                 allImages
             );
         }).toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<DeviceManageResponse> getDevicesByStatus(com.example.demo.enumValues.DeviceStatus status) {
+        List<Device> devices = deviceRepository.findAll().stream()
+            .filter(d -> d.getStatus() == status)
+            .toList();
+
+        return getDeviceManageResponses(devices);
+    }
 }

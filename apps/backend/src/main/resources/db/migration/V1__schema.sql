@@ -7,7 +7,9 @@ DROP TABLE IF EXISTS user_roles;
 DROP TABLE IF EXISTS device_images;
 DROP TABLE IF EXISTS device_calendars;
 DROP TABLE IF EXISTS payments;
-DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS user_reviews;
+DROP TABLE IF EXISTS product_reviews;
+DROP TABLE IF EXISTS issue_reports;
 DROP TABLE IF EXISTS order_details;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS cart_items;
@@ -39,10 +41,10 @@ CREATE TABLE users
 (
     id           BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_name    VARCHAR(255) NOT NULL UNIQUE,
-    password     VARCHAR(255) NULL,       -- Đổi thành NULLABLE vì tài khoản mạng xã hội không có mật khẩu gốc
+    password     VARCHAR(255) NULL,
     full_name    VARCHAR(255) NOT NULL,
     email        VARCHAR(255) NOT NULL UNIQUE,
-    phone_number VARCHAR(15) NULL UNIQUE, -- Đổi thành NULLABLE vì Google/Facebook không trả về số điện thoại mặc định
+    phone_number VARCHAR(15) NULL UNIQUE,
     avatar_url   VARCHAR(255) NULL,
     trust_score  DECIMAL(3, 2)         DEFAULT 5.00,
     enabled      BOOLEAN      NOT NULL DEFAULT FALSE,
@@ -62,7 +64,7 @@ CREATE TABLE user_social_accounts
     avatar_url       VARCHAR(255) NULL,                      -- Đường dẫn ảnh đại diện từ mạng xã hội
     created_at       TIMESTAMP    NOT NULL,
     updated_at       TIMESTAMP    NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     UNIQUE KEY uq_provider_user (provider, provider_user_id) -- Đảm bảo không bị trùng lặp tài khoản social
 );
 
@@ -78,7 +80,7 @@ CREATE TABLE user_kyc_verifications
     verified_at       TIMESTAMP NULL,
     created_at        TIMESTAMP NOT NULL,
     updated_at        TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 
@@ -87,8 +89,8 @@ CREATE TABLE user_roles
     user_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
     PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (role_id) REFERENCES roles (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles (id) ON DELETE CASCADE
 );
 
 CREATE TABLE brands
@@ -154,7 +156,7 @@ CREATE TABLE product_images
     is_primary BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP    NOT NULL,
     updated_at TIMESTAMP    NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES products (id)
+    FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE CASCADE
 );
 
 CREATE TABLE device_images
@@ -166,7 +168,7 @@ CREATE TABLE device_images
     is_primary BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP    NOT NULL,
     updated_at TIMESTAMP    NOT NULL,
-    FOREIGN KEY (device_id) REFERENCES devices (id)
+    FOREIGN KEY (device_id) REFERENCES devices (id) ON DELETE CASCADE
 );
 
 CREATE TABLE device_calendars
@@ -178,7 +180,7 @@ CREATE TABLE device_calendars
     order_id   BIGINT NULL,                         -- Null nếu do chủ máy tự khóa (OWNER_BLOCK)
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (device_id) REFERENCES devices (id),
+    FOREIGN KEY (device_id) REFERENCES devices (id) ON DELETE CASCADE,
     UNIQUE KEY uq_item_date (device_id, event_date) -- Khóa chặn không cho trùng ngày
 );
 
@@ -188,11 +190,25 @@ CREATE TABLE orders
     renter_id   BIGINT         NOT NULL,
     start_date  DATE           NOT NULL,
     end_date    DATE           NOT NULL,
-    total_price DECIMAL(15, 2) NOT NULL, -- Tổng tiền của TẤT CẢ các máy cộng lại
-    status      ENUM('PENDING', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL,
+    total_price DECIMAL(15, 2) NOT NULL,
+    status      ENUM('PENDING_PAYMENT', 'PAID', 'CONFIRMED', 'PICKED_UP', 'RETURNED', 'CANCELLED', 'OVERDUE') NOT NULL DEFAULT 'PENDING_PAYMENT',
     created_at  TIMESTAMP      NOT NULL,
     updated_at  TIMESTAMP      NOT NULL,
     FOREIGN KEY (renter_id) REFERENCES users (id)
+);
+
+CREATE TABLE issue_reports
+(
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id    BIGINT       NOT NULL,
+    reporter_id BIGINT       NOT NULL,
+    title       VARCHAR(255) NOT NULL,
+    description TEXT         NOT NULL,
+    status      ENUM('PENDING', 'PROCESSING','RESOLVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    created_at  TIMESTAMP    NOT NULL,
+    updated_at  TIMESTAMP    NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders (id),
+    FOREIGN KEY (reporter_id) REFERENCES users (id)
 );
 
 -- TẠO MỚI BẢNG TRUNG GIAN: Chi tiết các thiết bị nằm trong đơn hàng đó
@@ -203,49 +219,75 @@ CREATE TABLE order_details
     device_id      BIGINT         NOT NULL,
     price_per_day  DECIMAL(15, 2) NOT NULL,     -- Chốt giá thuê/ngày tại thời điểm đặt (đề phòng chủ máy tăng/giảm giá sau này)
     deposit_amount DECIMAL(15, 2) DEFAULT 0.00, -- Tiền cọc riêng của máy này
+    created_at     TIMESTAMP      NOT NULL,
+    updated_at     TIMESTAMP      NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
     FOREIGN KEY (device_id) REFERENCES devices (id)
 );
 
 CREATE TABLE cart_items
 (
-    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id    BIGINT    NOT NULL,
-    device_id  BIGINT    NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (id),
-    FOREIGN KEY (device_id) REFERENCES devices (id),
-    UNIQUE KEY uq_user_device (user_id, device_id)
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id     BIGINT    NOT NULL,
+    device_id   BIGINT    NOT NULL,
+    start_date  DATE      NOT NULL,
+    end_date    DATE      NOT NULL,
+    rental_days INT       NOT NULL,
+    status      ENUM('ACTIVE', 'EXPIRED', 'CHECKED_OUT') DEFAULT 'ACTIVE',
+    created_at  TIMESTAMP NOT NULL,
+    updated_at  TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (device_id) REFERENCES devices (id) ON DELETE CASCADE
 );
 
-
+-- BẢNG PAYMENTS (Đã tối ưu hóa cho API MoMo/VNPay thực tế)
 CREATE TABLE payments
 (
-    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id       BIGINT         NOT NULL,
-    amount         DECIMAL(15, 2) NOT NULL,
-    payment_method ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
-    status         ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
-    transaction_id VARCHAR(100),
-    created_at     TIMESTAMP      NOT NULL,
-    updated_at     TIMESTAMP      NOT NULL,
+    id                BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id          BIGINT         NOT NULL,
+    amount            DECIMAL(15, 2) NOT NULL,
+    payment_method    ENUM('VNPAY', 'MOMO', 'BANK_TRANSFER', 'CASH') NOT NULL,
+    status            ENUM('PENDING', 'SUCCESS', 'FAILED', 'REFUNDED') NOT NULL DEFAULT 'PENDING',
+    provider_order_id VARCHAR(255) NULL,
+    transaction_id    VARCHAR(255) NULL,
+    payment_token     VARCHAR(255) NULL UNIQUE,
+    request_payload   LONGTEXT NULL,
+    response_metadata LONGTEXT NULL,
+    failure_reason    VARCHAR(500) NULL,
+    paid_at           TIMESTAMP NULL,
+    created_at        TIMESTAMP      NOT NULL,
+    updated_at        TIMESTAMP      NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id)
 );
 
--- CẬP NHẬT: Review 2 chiều cho cả máy và người thuê
-CREATE TABLE reviews
+CREATE TABLE product_reviews
 (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    order_id    BIGINT    NOT NULL,
-    author_id   BIGINT    NOT NULL, -- Người viết đánh giá
-    target_id   BIGINT    NOT NULL, -- Người/thiết bị được đánh giá (Có thể là ID của User hoặc ID của Product_Item)
-    review_type ENUM('RENTER_TO_ITEM', 'OWNER_TO_RENTER') NOT NULL,
-    rating      INT       NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    comment     TEXT,
-    created_at  TIMESTAMP NOT NULL,
-    updated_at  TIMESTAMP NOT NULL,
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id   BIGINT    NOT NULL,
+    renter_id  BIGINT    NOT NULL,
+    product_id BIGINT    NOT NULL,
+    rating     INT       NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment    TEXT,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders (id),
-    FOREIGN KEY (author_id) REFERENCES users (id)
+    FOREIGN KEY (renter_id) REFERENCES users (id),
+    FOREIGN KEY (product_id) REFERENCES products (id)
+);
+
+CREATE TABLE user_reviews
+(
+    id         BIGINT AUTO_INCREMENT PRIMARY KEY,
+    order_id   BIGINT    NOT NULL,
+    owner_id   BIGINT    NOT NULL,
+    renter_id  BIGINT    NOT NULL,
+    rating     INT       NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment    TEXT,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders (id),
+    FOREIGN KEY (owner_id) REFERENCES users (id),
+    FOREIGN KEY (renter_id) REFERENCES users (id)
 );
 
 -- 1. Table manages chat rooms

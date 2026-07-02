@@ -65,6 +65,38 @@ public class ProductService {
         });
     }
 
+    @Transactional(readOnly = true)
+    public List<ProductResponse> getTop4RelatedProducts(String categoryName, Long currentProductId) {
+        // 1. Tìm tất cả sản phẩm cùng danh mục nhưng loại trừ sản phẩm đang xem
+        // (Bạn có thể viết câu query này trong ProductRepository)
+        List<Product> rawRelated = productRepository.findTop4ByCategoryNameAndIdNot(categoryName, currentProductId, org.springframework.data.domain.PageRequest.of(0, 4));
+
+        // 2. Map sang ProductResponse y hệt như hàm getProducts của bạn
+        return rawRelated.stream().map(product -> {
+            String primaryUrl = product.getImages().stream()
+                .filter(ProductImage::isPrimary)
+                .map(ProductImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+
+            boolean hasApprovedDevice = product.getDevices().stream()
+                .anyMatch(device -> device.getStatus() == DeviceStatus.APPROVED);
+            String statusText = hasApprovedDevice ? "AVAILABLE" : "OUT_OF_STOCK";
+
+            return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getSlug(),
+                categoryName,
+                product.getBrand() != null ? product.getBrand().getName() : null,
+                primaryUrl,
+                product.getBasePrice() != null ? product.getBasePrice() : BigDecimal.ZERO,
+                statusText
+            );
+        }).toList();
+    }
+
+
     private static Specification<Product> getProductSpecification(ProductFilterRequest filter) {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
@@ -87,7 +119,7 @@ public class ProductService {
                 predicate = cb.and(predicate, inClause);
             }
 
-            // 3. Other filters for minPrice, maxPrice, and search remains
+            // 3. Other filters for minPrice, maxPrice, and search remain
             if (filter.search() != null && !filter.search().isBlank()) {
                 String keyword = "%" + filter.search().toLowerCase() + "%";
                 predicate = cb.and(predicate, cb.like(cb.lower(root.get("name")), keyword));
@@ -117,7 +149,7 @@ public class ProductService {
             .map(Product::getBasePrice)
             .filter(Objects::nonNull)
             .max(BigDecimal::compareTo)
-            .orElse(BigDecimal.valueOf(5000000)); // Default value
+            .orElse(BigDecimal.valueOf(500000)); // Default value
 
         return new PriceRangeResponse(min, max);
     }

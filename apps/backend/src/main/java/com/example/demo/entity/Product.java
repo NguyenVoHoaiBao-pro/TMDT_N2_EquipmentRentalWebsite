@@ -58,7 +58,7 @@ public class Product extends BaseEntity implements Serializable {
     @Builder.Default
     private Set<Device> devices = new HashSet<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     @BatchSize(size = 20) // Adjust batch size as needed
     private Set<ProductImage> images = new HashSet<>();

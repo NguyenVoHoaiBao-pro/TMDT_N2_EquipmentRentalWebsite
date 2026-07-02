@@ -100,7 +100,10 @@ apiClient.interceptors.response.use(
 
     // LOGIN GUARD: If a 401 error occurs on the login request itself (invalid credentials),
     // reject immediately to show a toast. This avoids infinite refresh loops or unexpected redirects.
-    if (originalRequest?.url?.includes('/auth/login')) {
+    if (
+      originalRequest?.url?.includes('/auth/login') ||
+      originalRequest?.url?.includes('/auth/refresh-token')
+    ) {
       return Promise.reject(error);
     }
 
@@ -159,7 +162,6 @@ apiClient.interceptors.response.use(
       processQueue(refreshError, null);
       isRefreshing = false;
       useAuthStore.getState().logoutSuccess();
-      window.location.href = '/login';
       return Promise.reject(refreshError);
     }
   },
@@ -178,9 +180,6 @@ export const api = {
 
     resetPassword: (data: ResetPasswordRequest): Promise<void> =>
       apiClient.post('/auth/reset-password', data),
-
-    logout: () =>
-      apiClient.post('/auth/logout'),
 
     checkDuplicateEmail: (email: string): Promise<boolean> =>
       apiClient.get('/auth/check-email', { params: { email } }),
@@ -213,6 +212,7 @@ export const api = {
       }),
     revealKyc: (data: RevealKycRequest): Promise<string> =>
       apiClient.post('/users/profile/reveal-kyc', data),
+    getMyOrders: (): Promise<any> => apiClient.get('/orders/my-orders'),
   },
 };
 
