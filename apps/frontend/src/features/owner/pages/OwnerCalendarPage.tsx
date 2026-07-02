@@ -23,9 +23,9 @@ export default function OwnerCalendarPage() {
       setLoading(true);
       try {
         const data = await apiClient.get('/devices/my-inventory');
-        setDevices(data || []);
-        if (data && data.length > 0) {
-          setDeviceId(data[0].id);
+        setDevices(data.data || []);
+        if (data.data && data.data.length > 0) {
+          setDeviceId(data.data[0].id);
         }
       } catch (err: any) {
         console.error(err);
@@ -43,7 +43,7 @@ export default function OwnerCalendarPage() {
     const loadCalendar = async () => {
       try {
         const data = await apiClient.get(`/devices/${deviceId}/calendar/future`);
-        setBlockedDates(data || []);
+        setBlockedDates(data.data || []);
         setError(null);
       } catch (err: any) {
         console.error(err);
@@ -75,7 +75,7 @@ export default function OwnerCalendarPage() {
       setEnd('');
       // Reload calendar
       const data = await apiClient.get(`/devices/${deviceId}/calendar/future`);
-      setBlockedDates(data || []);
+      setBlockedDates(data.data || []);
     } catch (err: any) {
       console.error(err);
       alert(err?.message || 'Failed to block dates');
@@ -99,7 +99,7 @@ export default function OwnerCalendarPage() {
       setEnd('');
       // Reload calendar
       const data = await apiClient.get(`/devices/${deviceId}/calendar/future`);
-      setBlockedDates(data || []);
+      setBlockedDates(data.data || []);
     } catch (err: any) {
       console.error(err);
       alert(err?.message || 'Failed to unblock dates');

@@ -14,6 +14,7 @@ apps/backend/target
 .vscode
 *.log
 .wslconfig
+mise.toml
 
 # Ignore environment variable and file act built:
 .env

@@ -24,7 +24,7 @@ export default function OwnerOrdersPage() {
     setError(null);
     try {
       const data = await apiClient.get('/orders/owner');
-      setOrders(data || []);
+      setOrders(data.data || []);
     } catch (err: any) {
       console.error(err);
       setError(err?.message || 'Failed to load orders');
@@ -42,7 +42,7 @@ export default function OwnerOrdersPage() {
     try {
       const response = await apiClient.post(`/orders/${orderId}/owner/confirm`, {});
       // Update the order in the list
-      setOrders(orders.map(o => o.orderId === orderId ? response : o));
+      setOrders(orders.map(o => o.orderId === orderId ? response.data : o));
       alert('Order confirmed successfully!');
     } catch (err: any) {
       console.error(err);
@@ -59,7 +59,7 @@ export default function OwnerOrdersPage() {
     try {
       const response = await apiClient.post(`/orders/${orderId}/owner/reject`, {});
       // Update the order in the list
-      setOrders(orders.map(o => o.orderId === orderId ? response : o));
+      setOrders(orders.map(o => o.orderId === orderId ? response.data : o));
       alert('Order rejected successfully!');
     } catch (err: any) {
       console.error(err);

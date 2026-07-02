@@ -3,7 +3,9 @@ package com.example.demo.controller.admin;
 import com.example.demo.controller.BaseController;
 import com.example.demo.dto.MyApiResponse;
 import com.example.demo.dto.order.response.OrderSummaryResponse;
+import com.example.demo.dto.payment.response.TransactionResponse;
 import com.example.demo.dto.user.response.UserResponse;
+import com.example.demo.repository.payment.PaymentRepository;
 import com.example.demo.security.CustomUserDetails;
 import com.example.demo.service.order.OrderService;
 import com.example.demo.service.user.UserService;
@@ -23,6 +25,28 @@ import java.util.Set;
 public class AdminController extends BaseController {
 
     private final UserService userService;
+    private final PaymentRepository paymentRepository;
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/transactions")
+    public ResponseEntity<MyApiResponse<List<TransactionResponse>>> listTransactions() {
+        var payments = paymentRepository.findAllWithOrderAndRenter();
+        var transactions = payments.stream().map(p -> TransactionResponse.builder()
+            .id(p.getId())
+            .orderId(p.getOrder().getId())
+            .amount(p.getAmount())
+            .paymentMethod(p.getPaymentMethod().name())
+            .status(p.getStatus().name())
+            .transactionId(p.getTransactionId())
+            .providerOrderId(p.getProviderOrderId())
+            .renterName(p.getOrder().getRenter().getFullName())
+            .renterEmail(p.getOrder().getRenter().getEmail())
+            .paidAt(p.getPaidAt())
+            .createdAt(p.getCreatedAt())
+            .build()
+        ).toList();
+        return createResponse(HttpStatus.OK, 1000, "Success", transactions);
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")

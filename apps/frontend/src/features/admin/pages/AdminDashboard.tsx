@@ -18,7 +18,7 @@ export default function AdminDashboard() {
     const loadStats = async () => {
       try {
         const data = await apiClient.get('/admin/overview');
-        setStats(data);
+        setStats(data.data);
       } catch (err: any) {
         console.error(err);
         setError('Failed to load dashboard data');
@@ -77,6 +77,15 @@ export default function AdminDashboard() {
           <div className="text-3xl mb-2">✅</div>
           <div className="font-semibold">Device Approval</div>
           <div className="text-sm text-gray-600 mt-1">Review and approve pending devices</div>
+        </Link>
+
+        <Link
+          to="/admin/transactions"
+          className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
+        >
+          <div className="text-3xl mb-2">💰</div>
+          <div className="font-semibold">Transactions</div>
+          <div className="text-sm text-gray-600 mt-1">View all payment transactions</div>
         </Link>
       </div>
     </main>

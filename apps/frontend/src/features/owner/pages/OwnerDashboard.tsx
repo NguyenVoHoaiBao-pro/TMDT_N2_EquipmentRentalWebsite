@@ -19,7 +19,7 @@ export default function OwnerDashboard() {
     const loadStats = async () => {
       try {
         const data = await apiClient.get('/orders/owner/overview');
-        setStats(data);
+        setStats(data.data);
       } catch (err: any) {
         console.error(err);
         setError('Failed to load dashboard data');
@@ -66,7 +66,7 @@ export default function OwnerDashboard() {
 
       {/* Quick Actions */}
       <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <Link
           to="/dashboard/inventory"
           className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
@@ -92,6 +92,24 @@ export default function OwnerDashboard() {
           <div className="text-3xl mb-2">📋</div>
           <div className="font-semibold">Orders</div>
           <div className="text-sm text-gray-600 mt-1">Confirm or reject rental requests</div>
+        </Link>
+
+        <Link
+          to="/dashboard/incidents"
+          className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
+        >
+          <div className="text-3xl mb-2">⚠️</div>
+          <div className="font-semibold">Incidents</div>
+          <div className="text-sm text-gray-600 mt-1">Report and track equipment issues</div>
+        </Link>
+
+        <Link
+          to="/invoices"
+          className="p-6 bg-white rounded shadow hover:shadow-lg transition text-center hover:text-blue-600"
+        >
+          <div className="text-3xl mb-2">🧾</div>
+          <div className="font-semibold">Invoices</div>
+          <div className="text-sm text-gray-600 mt-1">View your rental invoices</div>
         </Link>
       </div>
     </main>

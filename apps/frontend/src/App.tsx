@@ -15,6 +15,9 @@ import OwnerDeviceEditPage from '@/features/owner/pages/OwnerDeviceEditPage.tsx'
 import AdminUsersPage from '@/features/admin/pages/AdminUsersPage.tsx';
 import AdminDevicesPage from '@/features/admin/pages/AdminDevicesPage.tsx';
 import AdminUserDetailPage from '@/features/admin/pages/AdminUserDetailPage.tsx';
+import AdminTransactionsPage from '@/features/admin/pages/AdminTransactionsPage.tsx';
+import OwnerIncidentsPage from '@/features/incident/pages/OwnerIncidentsPage.tsx';
+import InvoicePage from '@/features/invoice/pages/InvoicePage.tsx';
 import { OAuth2RedirectHandler } from '@/features/auth/components/OAuth2RedirectHandler.tsx';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoutes';
@@ -46,6 +49,7 @@ function App() {
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/checkout/bank-transfer" element={<BankTransferPage />} />
           <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+          <Route path="/invoices" element={<InvoicePage />} />
         </Route>
       </Route>
 
@@ -58,6 +62,7 @@ function App() {
           <Route path="/dashboard/device/:id/edit" element={<OwnerDeviceEditPage />} />
           <Route path="/dashboard/orders" element={<OwnerOrdersPage />} />
           <Route path="/dashboard/calendar" element={<OwnerCalendarPage />} />
+          <Route path="/dashboard/incidents" element={<OwnerIncidentsPage />} />
           <Route path="/profile" element={<ProfilePage />} /> {/* Trang cá nhân dùng chung sidebar */}
         </Route>
       </Route>
@@ -69,6 +74,7 @@ function App() {
           <Route path="/admin/users" element={<AdminUsersPage />} />
           <Route path="/admin/users/:id" element={<AdminUserDetailPage />} />
           <Route path="/admin/devices" element={<AdminDevicesPage />} />
+          <Route path="/admin/transactions" element={<AdminTransactionsPage />} />
         </Route>
       </Route>
 

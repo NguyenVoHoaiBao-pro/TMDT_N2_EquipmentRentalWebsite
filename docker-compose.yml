@@ -41,6 +41,7 @@ services:
       timeout: 3s
       retries: 5
       interval: 5s
+#      disable: true
     networks:
       - equipment-rental-network
 
@@ -54,14 +55,17 @@ services:
       resources:
         limits:
           memory: 768M
-    env_file:
-      - ./apps/backend/.env
+#    env_file:
+#      - ./apps/backend/.env
     environment:
+      environment:
+      MANAGEMENT_HEALTH_MAIL_ENABLED: "false"
       JAVA_OPTS: '-Xmx512m -Xms256m -Ddebug=true'
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME}
-      DB_USER: equipment_rental_user
+#      DB_USER: equipment_rental_user
+      DB_USER: root
       DB_PASSWORD: ${DB_USER_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379

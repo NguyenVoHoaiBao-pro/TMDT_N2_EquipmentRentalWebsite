@@ -15,6 +15,8 @@ export function DashboardLayout() {
     ? [
       { path: '/admin/users', label: 'Quản lý Người dùng', icon: '👤' },
       { path: '/admin/devices', label: 'Quản lý Thiết bị', icon: '💻' },
+      { path: '/admin/transactions', label: 'Giao dịch', icon: '💰' },
+      { path: '/incidents', label: 'Sự cố', icon: '⚠️' },
       { path: '/profile', label: 'Trang cá nhân', icon: '⚙️' },
     ]
     : [
@@ -22,7 +24,9 @@ export function DashboardLayout() {
       { path: '/dashboard/inventory', label: 'Kho thiết bị', icon: '📦' },
       { path: '/dashboard/orders', label: 'Đơn đặt hàng', icon: '📋' },
       { path: '/dashboard/calendar', label: 'Lịch cho thuê', icon: '📅' },
+      { path: '/dashboard/incidents', label: 'Báo cáo sự cố', icon: '⚠️' },
       { path: '/register-device', label: 'Đăng ký thiết bị', icon: '➕' },
+      { path: '/invoices', label: 'Hóa đơn', icon: '🧾' },
       { path: '/profile', label: 'Trang cá nhân', icon: '⚙️' },
     ];
 
